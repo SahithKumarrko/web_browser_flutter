@@ -156,6 +156,7 @@ class _DownloadPageState extends State<DownloadPage> {
     browserModel.tasks?.removeWhere((element) => element.taskId == task.taskId);
     await _prepare();
     setState(() {});
+
     await browserModel.save();
   }
 
