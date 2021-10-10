@@ -129,8 +129,6 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
 
   Widget _buildLinkPreview() {
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
-    var settings = browserModel.getSettings();
-
     return ListTile(
       title: Center(child: const Text("Link Preview")),
       subtitle: Container(

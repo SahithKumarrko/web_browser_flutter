@@ -263,31 +263,8 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
     );
   }
 
-  Route _goToSearchPage() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => SearchPage(),
-      transitionDuration: const Duration(milliseconds: 250),
-      reverseTransitionDuration: const Duration(milliseconds: 250),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(0.0, 1.0);
-        const end = Offset.zero;
-        const curve = Curves.easeOut;
-
-        var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
-      },
-    );
-  }
-
   List<Widget> _buildActionsMenu() {
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
-    var settings = browserModel.getSettings();
-
     return <Widget>[
       // settings.homePageEnabled
       //     ? SizedBox(

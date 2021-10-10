@@ -85,7 +85,6 @@ class SearchModel extends ChangeNotifier {
           final body = json.decode(utf8.decode(response.bodyBytes));
           List<Search> results = [];
           var r = body[1];
-          var ind = 0;
           for (var i in r) {
             if (history.length != 0)
               for (var element in history) {

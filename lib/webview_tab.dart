@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:device_info/device_info.dart';
 import 'package:flash/flash.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -155,7 +154,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         positiveActionBuilder: (context, controller, _) {
           return TextButton(
               onPressed: () async {
-                bool s = await openAppSettings();
+                await openAppSettings();
 
                 _checkPermissionAfterSettingsPage = true;
                 controller.dismiss();
@@ -348,7 +347,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
   var result;
   Future<bool> _checkPermission() async {
     final platform = Theme.of(context).platform;
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    // DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     // AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
     //  &&
     //     androidInfo.version.sdkInt <= 28

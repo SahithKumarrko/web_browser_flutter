@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -253,9 +252,9 @@ class _HistoryState extends State<History> {
 }
 
 class HisItem extends StatefulWidget {
-  HItem item;
-  int index;
-  Animation<double> animation;
+  final HItem item;
+  final int index;
+  final Animation<double> animation;
   HisItem(
       {required this.item,
       required this.animation,
