@@ -1,5 +1,3 @@
-import 'dart:developer';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:device_info/device_info.dart';
@@ -7,7 +5,6 @@ import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html/shims/dart_ui_real.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
@@ -23,7 +20,6 @@ class DownloadPage extends StatefulWidget {
 
 class _DownloadPageState extends State<DownloadPage> {
   bool errorDismissed = false;
-
   late bool _isLoading;
   late List<ItemHolder> _items = [];
   late String _localPath;
@@ -178,9 +174,10 @@ class _DownloadPageState extends State<DownloadPage> {
             child: Text(
               'Dismiss',
               style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20.0),
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
+                fontSize: 20.0,
+              ),
             ),
           );
         },
