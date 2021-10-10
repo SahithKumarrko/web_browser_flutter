@@ -1,0 +1,882 @@
+ var el = {};
+                              function _generateXPATH(eleStr,attribute){
+                                //var c = eleStr.replaceAll("\"","");
+                                var ie = eleStr.split(">");
+                                for(i=0;i<ie.length;i++){
+                                    ie[i] += ">"
+                                }
+                                var l= [];
+                                var si = eleStr.indexOf(attribute);
+                                var s2=0,ei = 0;
+                                var s = ie[0];
+                                var r = "";
+                                for(i=si;i<s.length;i++){
+                                    if(s[i] == "\""){
+                                        s2 = s2+1;
+                                        if(s2==2){
+                                          ei = i
+                                          break;
+                                        }
+                                        continue;
+                                    }
+                                    if(s2==1){
+                                      r = r+s[i]; 
+                                    }
+                                }
+                                return {result:r,end:ei};
+                              }
+                              function _clear(){
+                                if("current_element" in el){
+                                  console.log("Clearing previous selects...");
+                                  var ele = el["current_element"];
+                                  ele.style = el["s"];
+                                }
+                              }
+                              function _beforeSelect(ele){
+
+                              }
+                              // var ele = document.evaluate("//h1[contains(@class,'title')]",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue;
+                                    //var s = window.getComputedStyle(t)
+                                    //el["current_element"]=t;
+                                    //el["s"] = s;
+                                    
+                                // var dpm = document.getElementById("__fbrowser_selection_mark_area_margin__");
+                                // var mt = dpm.children[0];
+                                // pt.style = "position:absolute;top:0;background:brown;width:100%;height:"+s.marginTop+";"
+                                // var mr = dpm.children[1];
+                                // mr.style = "position:absolute;right:0;background:brown;width:"+s.marginRight+";height:100%;"
+                                // var mb = dpm.children[2];
+                                // mb.style = "position:absolute;bottom:0;background:brown;width:100%;height:"+s.marginBottom+";"
+                                // var ml = dpm.children[3];
+                                // ml.style = "position:absolute;left:0;background:brown;width:"+s.marginLeft+";height:100%;"
+                                
+                                // var dpp = document.getElementById("__fbrowser_selection_mark_area_padding__");
+                                // var pt = dpm.children[0];
+                                // var pr = dpm.children[1];
+                                // var pb = dpm.children[2];
+                                // var pl = dpm.children[3];
+
+
+
+
+                                function _createMark(ele){
+                                var s = window.getComputedStyle(ele);
+                                var b = ele.getBoundingClientRect();
+                                
+                                var mh = b.height + parseFloat(s.marginTop) + parseFloat(s.marginBottom);
+                                var mw = b.width + parseFloat(s.marginLeft) + parseFloat(s.marginRight);
+                                var mtp = Math.max(0,parseFloat(b.top) - parseFloat(s.marginTop));
+                                var mlp = parseFloat(b.left) - parseFloat(s.marginLeft);
+
+                                var ptp = parseFloat(s.marginTop) + parseFloat(s.borderTop);
+                                var plp = parseFloat(s.marginLeft) + parseFloat(s.borderLeft);
+                                var pbp = parseFloat(s.marginBottom) + parseFloat(s.borderBottom);
+                                var prp = parseFloat(s.marginRight) + parseFloat(s.borderRight);
+
+                                var ctp = ptp + parseFloat(s.paddingTop);
+                                var clp = plp + parseFloat(s.paddingLeft);
+                                var cbp = pbp + parseFloat(s.paddingBottom);
+                                var crp = prp + parseFloat(s.paddingRight);
+
+                                var div_ele = document.createElement("div");
+                                div_ele.style = "position: absolute;width:"+mw+"px;height: "+mh+"px;top: "+mtp+"px;left: "+mlp+"px;z-index:20000;";
+                                div_ele.innerHTML = "<div id='__fbrowser_selection_mark_area__' style='background:rgba(249,204,157,0.3);position:relative;width:100%;height:100%;'>";
+                                div_ele.innerHTML += "<div id='__fbrowser_selection_mark_area_border__' style='background:rgba(253,221,155,0.3);position:absolute;top:"+ s.marginTop +";left:"+s.marginLeft+";bottom:"+s.marginBottom+";right:"+s.marginRight+";'></div>";
+                                div_ele.innerHTML += "<div id='__fbrowser_selection_mark_area_padding__' style='background:rgba(195,222,183,0.3);position:absolute;top:"+ ptp +"px;left:"+plp+"px;bottom:"+pbp+"px;right:"+prp+"px;'></div>";
+                                div_ele.innerHTML += "<div id='__fbrowser_selection_mark_area_content__' style='background:rgba(160,197,232,0.3);position:absolute;top:"+ ctp +"px;left:"+clp+"px;bottom:"+cbp+"px;right:"+crp+"px;'></div>";
+                                div_ele.innerHTML += "</div>";
+                                document.body.append(div_ele);
+                              }
+
+
+                              function getStyle(className) {
+    var cssText = "";
+    var classes = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
+    for (var x = 0; x < classes.length; x++) {        
+        if (classes[x].selectorText == className) {
+            cssText += classes[x].cssText || classes[x].style.cssText;
+        }         
+    }
+    return cssText;
+}
+
+alert(getStyle('.test'));
+
+
+
+
+
+DotNavigationBar(
+          currentIndex: this._currentIndex,
+          onTap: _handleIndexChanged,
+          dotIndicatorColor: Colors.black,
+          enableFloatingNavBar: true,
+          backgroundColor: Color(0xFFE9EBFA),
+          unselectedItemColor: Colors.grey.shade100,
+          selectedItemColor: Color(0xFF606EC1),
+          boxShadow: [
+            BoxShadow(
+                blurRadius: 3,
+                color: Colors.black12,
+                spreadRadius: 1,
+                offset: Offset(0, 4))
+          ],
+          items: [
+            /// Home
+            DotNavigationBarItem(
+              icon: Icon(Icons.arrow_back),
+            ),
+            DotNavigationBarItem(
+              icon: Icon(Icons.desktop_windows),
+            ),
+            DotNavigationBarItem(
+              icon: Icon(Icons.arrow_forward),
+            ),
+            DotNavigationBarItem(
+              icon: Icon(Icons.refresh),
+            ),
+            DotNavigationBarItem(
+              icon: this._isConsoleOpened == false
+                  ? ImageIcon(AssetImage("assets/icons/dev_tools.png"))
+                  : Icon(Icons.close_fullscreen_rounded),
+            ),
+          ],
+        ),
+
+        _handleIndexChanged(int pos) {
+    this.setState(() {
+      this._currentIndex = pos;
+    });
+    switch (pos) {
+      case 0:
+        _webViewController?.goBack();
+        break;
+      case 1:
+        _isDesktopMode = !_isDesktopMode;
+        _webViewController?.evaluateJavascript(
+            source: _isDesktopMode
+                ? "document.getElementsByName('viewport')[0].setAttribute('content','user-scalable=yes, maximum-scale=1.5');"
+                : "document.getElementsByName('viewport')[0].setAttribute('content','width=device-width, initial-scale=1.0');");
+
+        break;
+      case 2:
+        _webViewController?.goForward();
+        break;
+      case 3:
+        _webViewController?.reload();
+        break;
+      case 4:
+        this._isConsoleOpened = !this._isConsoleOpened;
+        this.setState(() {});
+        _webViewController?.evaluateJavascript(
+            source: this._isConsoleOpened
+                ? "_elementInteraction(true)"
+                : "_elementInteraction(false)");
+
+        print("Opened ::: " + this._isConsoleOpened.toString());
+        break;
+    }
+  }
+
+
+
+  CustomScrollView(
+      slivers: <Widget>[
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              return GestureDetector(
+                onTap: ()=>{
+                  if(widget.onTap!=null){
+                    widget.onTap!(index);
+                  }
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+
+    GestureDetector(
+                  onTap: () {
+                    if (widget.onTap != null) {
+                      widget.onTap!(index);
+                      this.setState(() {
+                        index = -1;
+                      });
+                    }
+                  },
+                  child: widget.children[index],
+                )
+
+
+
+
+
+
+                import 'dart:convert';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:http/http.dart' as http;
+import 'package:webpage_dev_console/helpers.dart';
+
+import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/webview_model.dart';
+
+class SearchModel extends ChangeNotifier {
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  List<Search> _suggestions = [];
+  List<Search> get suggestions => _suggestions;
+  void clearS() {
+    _suggestions = [];
+  }
+
+  String _query = '';
+  String get query => _query;
+  List<Search> shuffle(List<Search> items) {
+    var random = new Random();
+
+    // Go through all elements.
+    for (var i = items.length - 1; i > 0; i--) {
+      // Pick a pseudorandom number according to the list length
+      var n = random.nextInt(i + 1);
+
+      var temp = items[i];
+      items[i] = items[n];
+      items[n] = temp;
+    }
+
+    return items;
+  }
+
+  void onQueryChanged(String query, WebViewModel webViewModel, bool startPage,
+      String url) async {
+    // if (query == _query && _query.isNotEmpty) return;
+    _isLoading = true;
+    notifyListeners();
+    if (query.isNotEmpty)
+      _query = query;
+    else if (!startPage) {
+      query = _query;
+      var _webViewController = webViewModel.webViewController;
+      var title = await _webViewController?.getTitle();
+      query = Helper.getTitle(title.toString());
+    }
+
+    try {
+      history = [];
+      if (!startPage) {
+        WebHistory? webHistory;
+        await webViewModel.webViewController
+            ?.getCopyBackForwardList()
+            .then((value) {
+          webHistory = value;
+        });
+
+        query = query.toLowerCase();
+        for (var i = webHistory?.list?.length ?? 0; i > 0; i--) {
+          WebHistoryItem? h = webHistory?.list?.elementAt(i - 1);
+
+          if (h!.title != null && h.title?.length != 0) {
+            String hTitle = Helper.getTitle(h.title ?? "");
+            // query.length >= 2 &&
+            List<String> lq = query.split(" ");
+            bool y = true;
+            bool isHome =
+                h.url.toString().toLowerCase().startsWith(url.toLowerCase());
+            for (String qq in lq) {
+              if (!(hTitle.toLowerCase().contains(qq) ||
+                      h.url!.toString().toLowerCase().contains(qq) ||
+                      qq.isEmpty) ||
+                  isHome) y = false;
+            }
+            if (y) {
+              history.add(new Search(
+                  name: hTitle,
+                  url: (isHome && !startPage) ? null : h.url,
+                  isHistory: true));
+            }
+          }
+        }
+
+        var gurl =
+            "https://www.google.com/complete/search?client=hp&hl=en&sugexp=msedr&gs_rn=62&gs_ri=hp&cp=1&gs_id=9c&q=$query&xhr=t";
+        final response = await http.get(Uri.parse(gurl));
+        final body = json.decode(utf8.decode(response.bodyBytes));
+        List<Search> results = [];
+        var r = body[1];
+        var ind = 0;
+        // results.removeAt(0);
+        for (var i in r) {
+          if (history.length != 0)
+            for (var element in history) {
+              if (Helper.htmlToString(element.name).toLowerCase() !=
+                  Helper.htmlToString(i[0].toString()).toLowerCase()) {
+                results.add(Search(name: i[0].toString()));
+              }
+            }
+          else
+            results.add(Search(name: i[0].toString()));
+        }
+
+        var hl = history.length;
+        history = history.sublist(0, hl >= 4 ? 4 : hl);
+        history.addAll(results.sublist(0, results.length - history.length));
+
+        history = history.toSet().toList();
+      }
+      _suggestions = history;
+
+      print(_suggestions);
+    } catch (e) {
+      print("error : " + e.toString());
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  void clear() {
+    _suggestions = [];
+    notifyListeners();
+  }
+}
+
+List<Search> history = [];
+
+
+for (String qq in lq) {
+          var his = webHistory.where((element) =>
+              (Helper.getTitle(element.title).toLowerCase().contains(qq) ||
+                  qq.isEmpty ||
+                  (element.url!.toString().toLowerCase().contains(qq) &&
+                      !element.url
+                          .toString()
+                          .toLowerCase()
+                          .startsWith(url.toLowerCase()))));
+          history.addAll(his);
+          history = history.toSet().toList();
+        }
+
+
+
+
+
+
+
+        copiedContents != ""
+                          ? Column(
+                              children: [
+                                SizedBox(
+                                  height: 8,
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Go To",
+                                      style: TextStyle(
+                                          color: Colors.black, fontSize: 16),
+                                    ),
+                                    SizedBox(
+                                      width: 8,
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        copiedContents,
+                                        style: TextStyle(
+                                            color: Colors.blue,
+                                            overflow: TextOverflow.fade,
+                                            fontSize: 14),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 8,
+                                ),
+                                Divider(
+                                  color: Colors.black54,
+                                ),
+                              ],
+                            )
+                          : SizedBox.shrink(),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                          import 'dart:collection';
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:webpage_dev_console/HistoryItems.dart';
+import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/browser_model.dart';
+
+bool showSearchField = false;
+bool showClearAll = true;
+GlobalKey clearAllSwitcher = GlobalKey();
+List<HItem> _data = [];
+
+GlobalKey<AnimatedListState> _listKey = GlobalKey();
+GlobalKey<AnimatedListState> hViewer = GlobalKey();
+
+class History extends StatefulWidget {
+  final void Function({Uri? url}) addNewTab;
+  History({
+    Key? key,
+    required this.addNewTab,
+  }) : super(key: key);
+
+  @override
+  _HistoryState createState() => _HistoryState();
+}
+
+class HItem {
+  String date;
+  Search? search;
+  bool isDeleted;
+  HItem({required this.date, required this.search, this.isDeleted = false});
+
+  @override
+  String toString() => 'HItem(title: $date,url: $search)';
+}
+
+class _HistoryState extends State<History> {
+  late BrowserModel browserModel;
+  late BrowserSettings settings;
+  String curDate = "";
+  bool isRemoved = false;
+  Map<String, List<int>> items = {};
+  late HItem ritem;
+  GlobalKey appBarKey = GlobalKey();
+
+  Future initialize(BuildContext context) async {
+    // This is where you can initialize the resources needed by your app while
+    // the splash screen is displayed.  Remove the following example because
+    // delaying the user experience is a bad design practice!
+    await Future.delayed(const Duration(seconds: 1), () async {
+      generateHistoryValues("");
+    });
+  }
+
+  updateState() {}
+
+  generateHistoryValues(String searchValue) {
+    var keys = browserModel.history.keys.toList().reversed;
+    int ind = 0;
+    _data = [];
+    items = {};
+    searchValue = searchValue.toLowerCase();
+    print("Getting for $searchValue");
+    for (String k in keys) {
+      var v = browserModel.history[k];
+      if (v!.length != 0) {
+        var c = 0;
+        _data.add(HItem(date: k, search: null));
+
+        items[k] = [];
+        items[k]!.addAll([c, ind]);
+        ind = ind + 1;
+        for (Search s in v) {
+          if (searchValue == "" ||
+              s.title.toLowerCase().contains(searchValue) ||
+              s.url.toString().toLowerCase().contains(searchValue)) {
+            _data.add(HItem(date: k, search: s));
+            c += 1;
+            ind = ind + 1;
+          }
+        }
+        if (c == 0) {
+          items.remove(k);
+          _data.removeAt(ind - 1);
+          ind = ind - 1;
+        } else {
+          items[k]![0] = c;
+        }
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    browserModel = Provider.of<BrowserModel>(context, listen: false);
+
+    settings = browserModel.getSettings();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return buildHistory();
+  }
+
+  SafeArea buildHistory() {
+    return SafeArea(
+      child: WillPopScope(
+        onWillPop: () async {
+          if (!showSearchField)
+            Navigator.pop(context);
+          else {
+            appBarKey.currentState?.setState(() {
+              showSearchField = false;
+            });
+            clearAllSwitcher.currentState?.setState(() {
+              showClearAll = true;
+            });
+          }
+          return false;
+        },
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          appBar: HistoryAppBar(
+            generateHistoryValues: generateHistoryValues,
+            key: appBarKey,
+          ),
+          body: FutureBuilder(
+            future: initialize(context),
+            builder: (context, AsyncSnapshot snapshot) {
+              // Show splash screen while waiting for app resources to load:
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.blue,
+                  ),
+                );
+              } else {
+                // Loading is done, return the app:
+                return Column(
+                  children: [
+                    ClearAllH(
+                      dataLen: _data.length,
+                      browserModel: browserModel,
+                      key: clearAllSwitcher,
+                    ),
+                    Expanded(
+                        key: hViewer,
+                        child: HistoryList(
+                            data: _data,
+                            listKey: _listKey,
+                            browserModel: browserModel,
+                            settings: settings,
+                            items: items,
+                            addNewTab: widget.addNewTab)),
+                  ],
+                );
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ClearAllH extends StatefulWidget {
+  final int dataLen;
+  final BrowserModel browserModel;
+  ClearAllH({required this.dataLen, required this.browserModel, Key? key})
+      : super(key: key);
+
+  @override
+  _ClearAllHState createState() => _ClearAllHState();
+}
+
+class _ClearAllHState extends State<ClearAllH> {
+  GlobalKey clearall = GlobalKey();
+  Widget _buildClearAllHistory(BuildContext context, Key key) {
+    return Row(
+      children: [
+        Padding(
+          key: key,
+          padding: const EdgeInsets.all(8.0),
+          child: TextButton(
+            child: Text(
+              "Clear Browsing History",
+              style: TextStyle(
+                color: Colors.blue,
+                decoration: TextDecoration.underline,
+                fontSize: 16,
+              ),
+            ),
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (_) {
+                    return AlertDialog(
+                      title: Text('Warning'),
+                      content:
+                          Text('Do you really want to clear all your history?'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            widget.browserModel.history = LinkedHashMap();
+                            widget.browserModel.save();
+                            _data.clear();
+                            setState(() => _listKey = GlobalKey());
+
+                            Navigator.pop(context);
+                          },
+                          child: Text('YES'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text('NO'),
+                        ),
+                      ],
+                    );
+                  });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: Duration(milliseconds: 200),
+      child: (widget.dataLen != 0 && showClearAll)
+          ? _buildClearAllHistory(context, clearall)
+          : SizedBox.shrink(),
+    );
+  }
+}
+
+class HistoryAppBar extends StatefulWidget implements PreferredSizeWidget {
+  final Function(String) generateHistoryValues;
+  HistoryAppBar({required this.generateHistoryValues, Key? key})
+      : super(key: key);
+
+  @override
+  _HistoryAppBarState createState() => _HistoryAppBarState();
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+}
+
+class _HistoryAppBarState extends State<HistoryAppBar> {
+  TextEditingController txtc = TextEditingController();
+  GlobalKey ktab = GlobalKey();
+  GlobalKey ksf = GlobalKey();
+  @override
+  void dispose() {
+    txtc.dispose();
+    super.dispose();
+  }
+
+  Widget _buildSTF({required Key key}) {
+    return Container(
+      key: key,
+      padding: EdgeInsets.all(8),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          InkWell(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.arrow_back),
+            ),
+            onTap: () {
+              setState(() {
+                showSearchField = false;
+              });
+              clearAllSwitcher.currentState?.setState(() {
+                showClearAll = true;
+              });
+            },
+          ),
+          Expanded(
+            child: TextFormField(
+              autofocus: true,
+              keyboardType: TextInputType.url,
+              style: TextStyle(fontSize: 16),
+              textInputAction: TextInputAction.go,
+              textAlignVertical: TextAlignVertical.center,
+              textAlign: TextAlign.left,
+              maxLines: 1,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(0, 12, 12, 12),
+                hintText: "Search or type address",
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                fillColor: Colors.black54,
+              ),
+              controller: txtc,
+              onChanged: (value) {
+                print("Searching for " + value.toString());
+                widget.generateHistoryValues(value);
+                log(_data.toString());
+                setState(() {
+                  _listKey = GlobalKey();
+                });
+              },
+            ),
+          ),
+          InkWell(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+              child: Icon(Icons.clear),
+            ),
+            onTap: () {
+              txtc.clear();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHTab({required Key key}) {
+    return Container(
+      key: key,
+      padding: EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "History",
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    showSearchField = true;
+                  });
+                  clearAllSwitcher.currentState?.setState(() {
+                    showClearAll = false;
+                  });
+                },
+                child: Icon(
+                  Icons.search,
+                  size: 26,
+                ),
+              ),
+              SizedBox(
+                width: 16,
+              ),
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Icon(
+                  Icons.close,
+                  size: 26,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: 200),
+        child: showSearchField ? _buildSTF(key: ksf) : _buildHTab(key: ktab),
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+  void addBackHistory(WebHistory? history2) {
+    
+    int ci = history2?.list?.length ?? 0;
+    int hci = _history?.list?.length ?? 0;
+    if (hci == 0)
+      _history = history2;
+    else if (ci > 0) {
+      var s = 0;
+      for (WebHistoryItem? wi in _history?.list ?? []) {
+        if (((wi?.originalUrl == history2?.list?.elementAt(0).originalUrl) &&
+            (wi?.url == history2?.list?.elementAt(0).url))) {
+          break;
+        }
+        s += 1;
+      }
+      var ss = s + 1;
+      var h2i = 1;
+      for (var i = h2i; i < (history2?.currentIndex ?? 0); i++) {
+        if (ss < (_history?.list?.length ?? 0)) {
+          if (!((history2?.list?.elementAt(i).originalUrl ==
+                  _history?.list?.elementAt(ss).originalUrl) &&
+              (history2?.list?.elementAt(i).url ==
+                  _history?.list?.elementAt(ss).url))) {
+            break;
+          }
+        } else
+          break;
+        h2i += 1;
+        ss += 1;
+      }
+
+      if (ss == hci) {
+        for (var i = h2i; i < ci; i++) {
+          _history?.list?.add(history2?.list?.elementAt(i) ?? WebHistoryItem());
+        }
+        curIndex = _history?.list?.length ?? 0;
+        if (curIndex != 0) {
+          curIndex = curIndex - 1;
+        }
+      } else {
+        if (history2?.currentIndex == (ci - 1)) {
+          _history?.list?.removeRange(ss, _history?.list?.length ?? 0);
+          for (var i = h2i; i < ci; i++) {
+            _history?.list
+                ?.add(history2?.list?.elementAt(i) ?? WebHistoryItem());
+          }
+          curIndex = _history?.list?.length ?? 0;
+          if (curIndex != 0) {
+            curIndex = curIndex - 1;
+          }
+        } else
+          curIndex = ss;
+      }
+    }
+
+  }
