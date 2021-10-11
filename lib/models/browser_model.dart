@@ -237,8 +237,8 @@ class BrowserModel extends ChangeNotifier {
       url: task.link!,
       savedDir: _localPath,
       fileName: fileName,
-      showNotification: false,
-      openFileFromNotification: false,
+      showNotification: true,
+      openFileFromNotification: true,
     );
   }
 
