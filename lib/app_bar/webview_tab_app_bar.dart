@@ -24,6 +24,7 @@ import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
 import 'package:webpage_dev_console/models/web_archive_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
+import 'package:webpage_dev_console/page_download.dart';
 import 'package:webpage_dev_console/search_page.dart';
 import 'package:webpage_dev_console/settings/main.dart';
 import 'package:webpage_dev_console/tab_popup_menu_actions.dart';
@@ -753,9 +754,9 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
     ];
   }
 
-  Route _goToHistory() {
+  Route _goToHistory(var obj) {
     return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => History(),
+      pageBuilder: (context, animation, secondaryAnimation) => obj,
       transitionDuration: const Duration(milliseconds: 400),
       reverseTransitionDuration: const Duration(milliseconds: 300),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -786,13 +787,14 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
         showFavorites();
         break;
       case PopupMenuActions.HISTORY:
-        Navigator.of(context).push(_goToHistory());
+        Navigator.of(context).push(_goToHistory(History()));
         break;
       case PopupMenuActions.DOWNLOADS:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DownloadPage()),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => PageDownload()),
+        // );
+        Navigator.of(context).push(_goToHistory(PageDownload()));
         break;
       case PopupMenuActions.FIND_ON_PAGE:
         if (widget.showFindOnPage != null) {

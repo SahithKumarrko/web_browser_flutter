@@ -110,8 +110,8 @@ class _DownloadPageState extends State<DownloadPage> {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
     var downloads = browserModel.tasks;
 
-    _tasks!.addAll(downloads!.map((download) =>
-        TaskInfo(name: download.name, link: download.link, key: GlobalKey())));
+    // _tasks!.addAll(downloads!.map((download) =>
+    //     TaskInfo(name: download.name, link: download.link, key: GlobalKey())));
 
     for (int i = count; i < _tasks!.length; i++) {
       _items.add(ItemHolder(name: _tasks![i].name, task: _tasks![i]));
@@ -145,16 +145,16 @@ class _DownloadPageState extends State<DownloadPage> {
     }
   }
 
-  void _delete(TaskInfo task) async {
-    await FlutterDownloader.remove(
-        taskId: task.taskId!, shouldDeleteContent: true);
-    var browserModel = Provider.of<BrowserModel>(context, listen: false);
-    browserModel.tasks?.removeWhere((element) => element.taskId == task.taskId);
-    await _prepare();
-    setState(() {});
+  // void _delete(TaskInfo task) async {
+  //   await FlutterDownloader.remove(
+  //       taskId: task.taskId!, shouldDeleteContent: true);
+  //   var browserModel = Provider.of<BrowserModel>(context, listen: false);
+  //   browserModel.tasks.removeWhere((element) => element.taskId == task.taskId);
+  //   await _prepare();
+  //   setState(() {});
 
-    await browserModel.save();
-  }
+  //   await browserModel.save();
+  // }
 
   void _showPermissionError({bool persistent = true}) {
     context.showFlashDialog(
@@ -271,7 +271,7 @@ class _DownloadPageState extends State<DownloadPage> {
                     } else if (task.status == DownloadTaskStatus.paused) {
                       _resumeDownload(task);
                     } else if (task.status == DownloadTaskStatus.complete) {
-                      _delete(task);
+                      // _delete(task);
                     } else if (task.status == DownloadTaskStatus.failed) {
                       _retryDownload(task);
                     }

@@ -1,4 +1,5 @@
 import 'package:extended_image/extended_image.dart';
+import 'package:custom_file_icons/file_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -14,6 +15,9 @@ class CustomImage extends StatefulWidget {
   final Uri? url;
   final bool isCurrent;
   final bool isSelected;
+  final IconData iconData;
+  final bool isDownload;
+  final String fileName;
   CustomImage(
       {Key? key,
       this.url,
@@ -24,7 +28,10 @@ class CustomImage extends StatefulWidget {
       this.maxHeight = double.infinity,
       this.minWidth = 0.0,
       this.minHeight = 0.0,
-      this.isSelected = false})
+      this.isSelected = false,
+      this.iconData = Icons.file_present_rounded,
+      this.isDownload = false,
+      this.fileName = ""})
       : super(key: key);
 
   @override
@@ -58,6 +65,20 @@ class _CustomImageState extends State<CustomImage> {
   }
 
   Widget? getImage() {
+    if (widget.isDownload) {
+      print("Getting for :: ${widget.fileName}");
+      // var ext = widget.fileName.split(".").last.toLowerCase();
+      // if( ["apk"].contains(ext) || ['.dot','.dotm','.wps','.odt'].contains(ext)){
+
+      // }
+      return Container(
+        key: imageKey,
+        child: FileIcon(
+          fileName: widget.fileName,
+          size: this.widget.width ?? this.widget.height ?? this.widget.maxWidth,
+        ),
+      );
+    }
     if (widget.url != null) {
       return Container(
         key: imageKey,

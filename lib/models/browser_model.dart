@@ -80,7 +80,8 @@ class BrowserModel extends ChangeNotifier {
   late WebViewModel _currentWebViewModel;
   LinkedHashMap<String, List<Search>> history = LinkedHashMap();
   bool _showTabScroller = false;
-  List<TaskInfo>? _tasks = [];
+  LinkedHashMap<String, List<TaskInfo>> _tasks = LinkedHashMap();
+
   bool loadingVisible = false;
   late BuildContext loadctx;
 
@@ -125,22 +126,30 @@ class BrowserModel extends ChangeNotifier {
   }
 
   set addDownloadTask(TaskInfo task) {
-    _tasks?.insert(0, task);
-  }
-
-  bool get areTasksNotEmpty => _tasks != null && _tasks!.isNotEmpty;
-
-  updateDownloadTask(String? id, DownloadTaskStatus? status, int? progress) {
-    if (_tasks != null && _tasks!.isNotEmpty) {
-      final task = _tasks!.firstWhere((_task) => _task.taskId == id);
-
-      task.status = status;
-      task.progress = progress;
-      // notifyListeners();
+    String date = DateFormat.yMMMd().format(DateTime.now());
+    if (!_tasks.containsKey(date)) {
+      _tasks[date] = [];
     }
+    _tasks[date]?.insert(0, task);
   }
 
-  List<TaskInfo>? get tasks => _tasks;
+  set addListOfDownlods(LinkedHashMap<String, List<TaskInfo>> data) {
+    _tasks = data;
+  }
+
+  bool get areTasksNotEmpty => _tasks.length != 0;
+
+  // updateDownloadTask(String? id, DownloadTaskStatus? status, int? progress) {
+  //   if (_tasks != null && _tasks!.isNotEmpty) {
+  //     final task = _tasks!.firstWhere((_task) => _task.taskId == id);
+
+  //     task.status = status;
+  //     task.progress = progress;
+  //     // notifyListeners();
+  //   }
+  // }
+
+  LinkedHashMap<String, List<TaskInfo>> get tasks => _tasks;
 
   BrowserModel(currentWebViewModel) {
     this._currentWebViewModel = currentWebViewModel;
@@ -361,7 +370,7 @@ class BrowserModel extends ChangeNotifier {
       if (!history.containsKey(date)) {
         history[date] = [];
       }
-      history[DateFormat.yMMMd().format(DateTime.now())]?.insert(0, search);
+      history[date]?.insert(0, search);
     }
   }
 
@@ -423,12 +432,13 @@ class BrowserModel extends ChangeNotifier {
       this.history[key] = values.map((e) => Search.fromMap(e)!).toList();
     }
 
-    List<Map<String, dynamic>> downloadList =
-        browserData["downloads"]?.cast<Map<String, dynamic>>() ?? {};
+    Map<String, dynamic> downloadList =
+        browserData["downloads"]?.cast<String, dynamic>() ?? {};
     // this.history = historyList.map((e) => Search.fromMap(e)!).toList();
-    List<TaskInfo> downloads =
-        downloadList.map((e) => TaskInfo.fromMap(e)!).toList();
-    _tasks = downloads;
+    for (String key in downloadList.keys) {
+      List<dynamic> values = downloadList[key] ?? [];
+      this._tasks[key] = values.map((e) => TaskInfo.fromMap(e)!).toList();
+    }
     List<Map<String, dynamic>> webViewTabList =
         browserData["webViewTabs"]?.cast<Map<String, dynamic>>() ?? [];
     List<WebViewTab> webViewTabs = webViewTabList
@@ -466,7 +476,7 @@ class BrowserModel extends ChangeNotifier {
       "settings": _settings.toMap(),
       "currentWebViewModel": _currentWebViewModel.toMap(),
       "history": convertSearchToMap(),
-      "downloads": _tasks?.map((e) => e.toMap()).toList()
+      "downloads": convertDownloadsToMap()
     };
   }
 
@@ -477,6 +487,15 @@ class BrowserModel extends ChangeNotifier {
   @override
   String toString() {
     return toMap().toString();
+  }
+
+  Map<String, List<Map<String, dynamic>>> convertDownloadsToMap() {
+    LinkedHashMap<String, List<Map<String, dynamic>>> res = LinkedHashMap();
+    for (String key in _tasks.keys) {
+      List<TaskInfo> values = _tasks[key] ?? [];
+      res[key] = values.map((e) => e.toMap()).toList();
+    }
+    return res;
   }
 
   Map<String, List<Map<String, dynamic>>> convertSearchToMap() {
