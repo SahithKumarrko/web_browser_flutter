@@ -35,6 +35,7 @@ bool isRemoved = false;
 Map<String, List<int>> items = {};
 late DItem ritem;
 GlobalKey appBarKey = GlobalKey();
+bool isLoadingSearch = false;
 
 class DItem {
   String date;
@@ -69,9 +70,19 @@ class _CASState extends State<CAS> {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 300),
-      child: (_data.length > 1)
-          ? widget.buildDownloadList()
-          : widget.buildNoHistory(),
+      child: isLoadingSearch
+          ? Row(
+              children: [
+                Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.blue,
+                  ),
+                )
+              ],
+            )
+          : (_data.length > 1)
+              ? widget.buildDownloadList()
+              : widget.buildNoHistory(),
     );
   }
 }
@@ -94,7 +105,7 @@ class _PageDownloadState extends State<PageDownload> {
     // the splash screen is displayed.  Remove the following example because
     // delaying the user experience is a bad design practice!
     await Future.delayed(const Duration(seconds: 1), () async {
-      generateHistoryValues("", false);
+      await generateHistoryValues("", false);
       bindBackgroundIsolate();
       FlutterDownloader.registerCallback(downloadCallback);
     });
@@ -178,8 +189,13 @@ class _PageDownloadState extends State<PageDownload> {
     send.send([id, status, progress]);
   }
 
-  generateHistoryValues(String searchValue, bool needUpdate) {
+  generateHistoryValues(String searchValue, bool needUpdate) async {
+    nohist.currentState?.setState(() {
+      isLoadingSearch = true;
+    });
+
     var keys = browserModel.tasks.keys.toList().reversed;
+    var tasks = await FlutterDownloader.loadTasks();
     int ind = 0;
     _data = [];
     items = {};
@@ -211,9 +227,24 @@ class _PageDownloadState extends State<PageDownload> {
         }
       }
     }
+    for (DItem ditem in _data) {
+      if (ditem.task != null) {
+        for (DownloadTask t in tasks ?? []) {
+          if (t.filename == ditem.task?.name && t.url == ditem.task?.link) {
+            ditem.task?.taskId = t.taskId;
+            ditem.task?.fileSize = t.fileSize;
+            ditem.task?.link = t.url;
+            ditem.task?.name = t.filename;
+            ditem.task?.progress = t.progress;
+          }
+        }
+      }
+    }
     if (needUpdate) {
       _listKey.currentState?.setState(() {});
-      nohist.currentState?.setState(() {});
+      nohist.currentState?.setState(() {
+        isLoadingSearch = false;
+      });
     }
   }
 
