@@ -374,8 +374,8 @@ class _DownloadItemState extends State<DownloadItem> {
                                 isSelected: item.isSelected,
                                 isDownload: true,
                                 fileName: item.task?.name ?? "",
-                                maxWidth: 24.0,
-                                height: 24.0)
+                                maxWidth: 36.0,
+                                height: 36.0)
                           ],
                         ),
                         const SizedBox(width: 12),
