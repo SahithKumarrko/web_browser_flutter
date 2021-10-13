@@ -190,10 +190,11 @@ class _PageDownloadState extends State<PageDownload> {
   }
 
   generateHistoryValues(String searchValue, bool needUpdate) async {
-    nohist.currentState?.setState(() {
-      isLoadingSearch = true;
-    });
-
+    if (needUpdate) {
+      nohist.currentState?.setState(() {
+        isLoadingSearch = true;
+      });
+    }
     var keys = browserModel.tasks.keys.toList().reversed;
     var tasks = await FlutterDownloader.loadTasks();
     int ind = 0;
