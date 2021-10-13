@@ -1,5 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-import 'meta.dart';
+
+import 'package:custom_file_icons/src/meta.dart';
 
 const _r = 0xE001;
 const _apple = 0xE002;
@@ -67,6 +68,7 @@ const _haskell = 0xE03F;
 const _haxe = 0xE040;
 const _heroku = 0xE041;
 const _hex = 0xE042;
+const _android = 0xE801;
 const _html = 0xE043;
 const _html_erb = 0xE044;
 const _ignored = 0xE045;
@@ -75,7 +77,7 @@ const _image = 0xE047;
 const _info = 0xE048;
 const _ionic = 0xE049;
 const _jade = 0xE04A;
-const _java = 0xE04B;
+const _java = 0xE803;
 const _javascript = 0xE04C;
 const _jenkins = 0xE04D;
 const _jinja = 0xE04E;
@@ -151,10 +153,10 @@ const _wgt = 0xE093;
 const _windows = 0xE094;
 const _word = 0xE095;
 const _xls = 0xE096;
-const _xml = 0xE097;
+const _xml = 0xE901;
 const _yarn = 0xE098;
-const _yml = 0xE099;
-const _zip = 0xE09A;
+const _yml = 0xE806;
+const _zip = 0xE80a;
 const _white = 0xffd4d7d6;
 const _grey = 0xff4d5a5e;
 const _grey_light = 0xff6d8086;
@@ -168,6 +170,7 @@ const _yellow = 0xffcbcb41;
 const _ignore = 0xff41535b;
 const _seti_primary = _blue;
 const iconSetMap = {
+  'notPresent': SetiMeta(0xE800, _purple),
   '.bsl': SetiMeta(_bsl, _red),
   '.mdo': SetiMeta(_mdo, _red),
   '.asm': SetiMeta(_asm, _red),
@@ -197,6 +200,7 @@ const iconSetMap = {
   '.coffee': SetiMeta(_coffee, _yellow),
   '.config': SetiMeta(_config, _grey_light),
   '.cfg': SetiMeta(_config, _grey_light),
+  '.wgt': SetiMeta(_wgt, _blue),
   '.conf': SetiMeta(_config, _grey_light),
   '.cr': SetiMeta(_crystal, _white),
   '.ecr': SetiMeta(_crystal_embedded, _white),
@@ -221,6 +225,9 @@ const iconSetMap = {
   '.ico': SetiMeta(_favicon, _yellow),
   '.fs': SetiMeta(_f_sharp, _blue),
   '.fsx': SetiMeta(_f_sharp, _blue),
+  '.pdf': SetiMeta(_pdf, _red),
+  '.exe': SetiMeta(_settings, _ignore),
+  '.dll': SetiMeta(_settings, _ignore),
   '.gitignore': SetiMeta(_git, _ignore),
   '.gitconfig': SetiMeta(_git, _ignore),
   '.gitkeep': SetiMeta(_git, _ignore),
@@ -245,6 +252,9 @@ const iconSetMap = {
   '.hxp': SetiMeta(_haxe, _blue),
   '.hxml': SetiMeta(_haxe, _purple),
   '.html': SetiMeta(_html, _orange),
+  '.htm': SetiMeta(_html, _orange),
+  '.mhtm': SetiMeta(_html, _orange),
+  '.mhtml': SetiMeta(_html, _orange),
   '.jade': SetiMeta(_jade, _red),
   '.java': SetiMeta(_java, _red),
   '.class': SetiMeta(_java, _red),
@@ -312,6 +322,17 @@ const iconSetMap = {
   '.epp': SetiMeta(_puppet, _yellow),
   '.py': SetiMeta(_python, _blue),
   '.jsx': SetiMeta(_react, _blue),
+  '.ppt': SetiMeta(0xE802, _red),
+  '.potm': SetiMeta(0xE802, _red),
+  '.potx': SetiMeta(0xE802, _red),
+  '.pot': SetiMeta(0xE802, _red),
+  '.ppa': SetiMeta(0xE802, _red),
+  '.ppam': SetiMeta(0xE802, _red),
+  '.pps': SetiMeta(0xE802, _red),
+  '.ppsm': SetiMeta(0xE802, _red),
+  '.ppsx': SetiMeta(0xE802, _red),
+  '.pptx': SetiMeta(0xE802, _red),
+  '.pptm': SetiMeta(0xE802, _red),
   '.spec.jsx': SetiMeta(_react, _orange),
   '.test.jsx': SetiMeta(_react, _orange),
   '.cjsx': SetiMeta(_react, _blue),
@@ -344,6 +365,7 @@ const iconSetMap = {
   '.dtx': SetiMeta(_tex, _orange),
   '.ins': SetiMeta(_tex, _white),
   '.txt': SetiMeta(_default, _white),
+  '.rtf': SetiMeta(_default, _white),
   '.toml': SetiMeta(_config, _grey_light),
   '.twig': SetiMeta(_twig, _green),
   '.ts': SetiMeta(_typescript, _blue),
@@ -356,6 +378,9 @@ const iconSetMap = {
   '.wasm': SetiMeta(_wasm, _purple),
   '.wat': SetiMeta(_wat, _purple),
   '.xml': SetiMeta(_xml, _orange),
+  '.dtd': SetiMeta(_xml, _orange),
+  '.xps': SetiMeta(_xml, _purple),
+  '.thmx': SetiMeta(_xml, _purple),
   '.yml': SetiMeta(_yml, _purple),
   '.yaml': SetiMeta(_yml, _purple),
   'swagger.json': SetiMeta(_json, _green),
@@ -363,16 +388,51 @@ const iconSetMap = {
   'swagger.yaml': SetiMeta(_json, _green),
   '.jar': SetiMeta(_zip, _red),
   '.zip': SetiMeta(_zip, _grey_light),
-  '.wgt': SetiMeta(_wgt, _blue),
+  '.rar': SetiMeta(_zip, _grey_light),
+  '.tar': SetiMeta(_zip, _grey_light),
+  '.a': SetiMeta(_zip, _grey_light),
+  '.ar': SetiMeta(_zip, _grey_light),
+  '.cpio': SetiMeta(_zip, _grey_light),
+  '.shar': SetiMeta(_zip, _grey_light),
+  '.lbr': SetiMeta(_zip, _grey_light),
+  '.iso': SetiMeta(_zip, _grey_light),
+  '.mar': SetiMeta(_zip, _grey_light),
+  '.sbx': SetiMeta(_zip, _grey_light),
+  '.bz2': SetiMeta(_zip, _grey_light),
+  '.gz': SetiMeta(_zip, _grey_light),
+  '.lz': SetiMeta(_zip, _grey_light),
+  '.lz4': SetiMeta(_zip, _grey_light),
+  '.lzma': SetiMeta(_zip, _grey_light),
+  '.lzo': SetiMeta(_zip, _grey_light),
+  '.rz': SetiMeta(_zip, _grey_light),
+  '.sfark': SetiMeta(_zip, _grey_light),
+  '.sz': SetiMeta(_zip, _grey_light),
+  '.xz': SetiMeta(_zip, _grey_light),
+  '.z': SetiMeta(_zip, _grey_light),
+  '.7z': SetiMeta(_zip, _grey_light),
+  '.s7z': SetiMeta(_zip, _grey_light),
+  '.zpaq': SetiMeta(_zip, _grey_light),
+  '.zz': SetiMeta(_zip, _grey_light),
+  '.rev': SetiMeta(_zip, _grey_light),
+  '.apk': SetiMeta(_android, _green),
+  '.xapk': SetiMeta(_android, _green),
+  '.apks': SetiMeta(_android, _green),
+  '.apkm': SetiMeta(_android, _green),
+  '.abb': SetiMeta(_android, _green),
   '.ai': SetiMeta(_illustrator, _yellow),
   '.psd': SetiMeta(_photoshop, _blue),
-  '.pdf': SetiMeta(_pdf, _red),
+  '.eps': SetiMeta(_pdf, _red),
+  '.indd': SetiMeta(_pdf, _red),
   '.eot': SetiMeta(_font, _red),
   '.ttf': SetiMeta(_font, _red),
   '.woff': SetiMeta(_font, _red),
   '.woff2': SetiMeta(_font, _red),
   '.gif': SetiMeta(_image, _purple),
   '.jpg': SetiMeta(_image, _purple),
+  '.bmp': SetiMeta(_image, _purple),
+  '.wmf': SetiMeta(_image, _purple),
+  '.tiff': SetiMeta(_image, _purple),
+  '.raw': SetiMeta(_image, _purple),
   '.jpeg': SetiMeta(_image, _purple),
   '.png': SetiMeta(_image, _purple),
   '.pxm': SetiMeta(_image, _purple),
@@ -393,8 +453,28 @@ const iconSetMap = {
   '.webm': SetiMeta(_video, _pink),
   '.avi': SetiMeta(_video, _pink),
   '.mpg': SetiMeta(_video, _pink),
+  '.mkv': SetiMeta(_video, _pink),
   '.mp4': SetiMeta(_video, _pink),
+  '.wmv': SetiMeta(_video, _pink),
+  '.m4v': SetiMeta(_video, _pink),
+  '.3gp': SetiMeta(_video, _pink),
+  '.f4v': SetiMeta(_video, _pink),
+  '.f4p': SetiMeta(_video, _pink),
+  '.f4a': SetiMeta(_video, _pink),
+  '.f4b': SetiMeta(_video, _pink),
+  '.svi': SetiMeta(_video, _pink),
+  '.3gp2': SetiMeta(_video, _pink),
+  '.m2v': SetiMeta(_video, _pink),
+  '.m4p': SetiMeta(_video, _pink),
+  '.flv': SetiMeta(_video, _pink),
+  '.drc': SetiMeta(_video, _pink),
+  '.vob': SetiMeta(_video, _pink),
   '.mp3': SetiMeta(_audio, _purple),
+  '.aiff': SetiMeta(_audio, _purple),
+  '.pcm': SetiMeta(_audio, _purple),
+  '.dsd': SetiMeta(_audio, _purple),
+  '.alac': SetiMeta(_audio, _purple),
+  '.aac': SetiMeta(_audio, _purple),
   '.ogg': SetiMeta(_audio, _purple),
   '.wav': SetiMeta(_audio, _purple),
   '.flac': SetiMeta(_audio, _purple),
@@ -411,6 +491,7 @@ const iconSetMap = {
   'bower.json': SetiMeta(_bower, _orange),
   '.bowerrc': SetiMeta(_bower, _orange),
   'dockerfile': SetiMeta(_docker, _blue),
+  '.dockerfile': SetiMeta(_docker, _blue),
   '.dockerignore': SetiMeta(_docker, _grey),
   'docker-healthcheck': SetiMeta(_docker, _green),
   'docker-compose.yml': SetiMeta(_docker, _pink),

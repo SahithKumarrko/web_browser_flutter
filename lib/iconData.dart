@@ -174,7 +174,7 @@ const _yellow = 0xffcbcb41;
 const _ignore = 0xff41535b;
 const _seti_primary = _blue;
 const iconSetMap = {
-  'notPresent': SetiMeta(0xf56d, _purple),
+  'notPresent': SetiMeta(0xE800, _purple),
   '.bsl': SetiMeta(_bsl, _red),
   '.mdo': SetiMeta(_mdo, _red),
   '.asm': SetiMeta(_asm, _red),

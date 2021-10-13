@@ -1,4 +1,5 @@
 import 'package:custom_file_icons/src/meta.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'src/data.dart';
 
@@ -22,6 +23,8 @@ class _FileIconState extends State<FileIcon> {
 
   @override
   Widget build(BuildContext context) {
+    iconData = null;
+    color = null;
     if (iconSetMap.containsKey(widget.fileName)) {
       iconData = iconSetMap[widget.fileName]!.codePoint;
       color = iconSetMap[widget.fileName]!.color;
@@ -34,24 +37,18 @@ class _FileIconState extends State<FileIcon> {
           color = iconSetMap[k]?.color;
           break;
         }
-        if (['.dot', '.dotm', '.wps', '.odt'].contains(k)) {
-          iconData = iconSetMap[".doc"]?.codePoint;
-          color = iconSetMap[".doc"]?.color;
-          break;
-        }
-        if ([".exe", ".dll"].contains(k)) {
-          iconData = 0xE07C;
-        }
+
         chunks = chunks.sublist(1);
       }
     }
+
     return Icon(
       IconData(
-        iconData ?? 0xE05F,
+        iconData ?? 0XE80C,
         fontFamily: 'Seti',
         fontPackage: 'custom_file_icons',
       ),
-      color: Color(color ?? 0xE028),
+      color: Color(color ?? 0xff4d5a5e),
       size: widget.size,
     );
   }
