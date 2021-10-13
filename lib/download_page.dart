@@ -104,6 +104,7 @@ class _DownloadPageState extends State<DownloadPage> {
 
   Future<Null> _prepare() async {
     var tasks = await FlutterDownloader.loadTasks();
+
     int count = 0;
     _tasks = [];
     _items = [];

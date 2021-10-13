@@ -7,6 +7,7 @@ class TaskInfo {
 
   String? taskId;
   int? progress = 0;
+  String fileSize = "";
   DownloadTaskStatus? status = DownloadTaskStatus.undefined;
   GlobalKey? key = GlobalKey();
 
@@ -16,11 +17,12 @@ class TaskInfo {
       this.key,
       this.taskId,
       this.progress,
+      this.fileSize = "",
       this.status});
 
   @override
   String toString() {
-    return "TaskInfo(taskId: $taskId,name: $name,link: $link, status: $status)";
+    return "TaskInfo(taskId: $taskId,name: $name,link: $link, filesize: $fileSize ,status: $status)";
   }
 
   static TaskInfo? fromMap(Map<String, dynamic>? map) {
@@ -30,6 +32,7 @@ class TaskInfo {
             link: map["link"],
             taskId: map["taskId"],
             progress: map["progress"],
+            fileSize: map["fileSize"],
             status: map["status"])
         : null;
   }
@@ -40,7 +43,8 @@ class TaskInfo {
       "link": link?.toString(),
       "taskId": taskId,
       "progress": progress ?? 0,
-      "status": status
+      "status": status,
+      "fileSize": fileSize
     };
   }
 }

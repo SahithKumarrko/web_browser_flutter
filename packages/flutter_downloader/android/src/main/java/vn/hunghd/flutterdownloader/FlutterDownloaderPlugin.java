@@ -195,6 +195,7 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
             Map<String, Object> item = new HashMap<>();
             item.put("task_id", task.taskId);
             item.put("status", task.status);
+            item.put("file_size", task.fileSize);
             item.put("progress", task.progress);
             item.put("url", task.url);
             item.put("file_name", task.filename);
@@ -213,6 +214,8 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
             Map<String, Object> item = new HashMap<>();
             item.put("task_id", task.taskId);
             item.put("status", task.status);
+            
+            item.put("file_size", task.fileSize);
             item.put("progress", task.progress);
             item.put("url", task.url);
             item.put("file_name", task.filename);

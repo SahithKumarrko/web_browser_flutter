@@ -25,7 +25,8 @@ public class TaskDao {
             TaskContract.TaskEntry.COLUMN_NAME_OPEN_FILE_FROM_NOTIFICATION,
             TaskContract.TaskEntry.COLUMN_NAME_SHOW_NOTIFICATION,
             TaskContract.TaskEntry.COLUMN_NAME_TIME_CREATED,
-            TaskContract.TaskEntry.COLUMN_SAVE_IN_PUBLIC_STORAGE
+            TaskContract.TaskEntry.COLUMN_SAVE_IN_PUBLIC_STORAGE,
+            TaskContract.TaskEntry.COLUMN_FILE_SIZE
     };
 
     public TaskDao(TaskDbHelper helper) {
@@ -45,6 +46,7 @@ public class TaskDao {
         values.put(TaskContract.TaskEntry.COLUMN_NAME_SAVED_DIR, savedDir);
         values.put(TaskContract.TaskEntry.COLUMN_NAME_HEADERS, headers);
         values.put(TaskContract.TaskEntry.COLUMN_NAME_MIME_TYPE, "unknown");
+        values.put(TaskContract.TaskEntry.COLUMN_NAME_MIME_TYPE, "0");
         values.put(TaskContract.TaskEntry.COLUMN_NAME_SHOW_NOTIFICATION, showNotification ? 1 : 0);
         values.put(TaskContract.TaskEntry.COLUMN_NAME_OPEN_FILE_FROM_NOTIFICATION, openFileFromNotification ? 1 : 0);
         values.put(TaskContract.TaskEntry.COLUMN_NAME_RESUMABLE, 0);
@@ -127,6 +129,22 @@ public class TaskDao {
         ContentValues values = new ContentValues();
         values.put(TaskContract.TaskEntry.COLUMN_NAME_STATUS, status);
         values.put(TaskContract.TaskEntry.COLUMN_NAME_PROGRESS, progress);
+
+        db.beginTransaction();
+        try {
+            db.update(TaskContract.TaskEntry.TABLE_NAME, values, TaskContract.TaskEntry.COLUMN_NAME_TASK_ID + " = ?", new String[]{taskId});
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    public void updateTask(String taskId, String size) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(TaskContract.TaskEntry.COLUMN_NAME_FILE_SIZE, size);
 
         db.beginTransaction();
         try {

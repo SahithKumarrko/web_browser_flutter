@@ -47,6 +47,7 @@ class DownloadTaskStatus {
 class DownloadTask {
   final String taskId;
   final DownloadTaskStatus status;
+  final String fileSize;
   final int progress;
   final String url;
   final String? filename;
@@ -56,6 +57,7 @@ class DownloadTask {
   DownloadTask(
       {required this.taskId,
       required this.status,
+      required this.fileSize,
       required this.progress,
       required this.url,
       required this.filename,

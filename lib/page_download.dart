@@ -1,7 +1,10 @@
 import 'dart:collection';
+import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_html/shims/dart_ui_real.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -52,9 +55,9 @@ class DItem {
 }
 
 class CAS extends StatefulWidget {
-  final Function() buildhistoryList;
+  final Function() buildDownloadList;
   final Function() buildNoHistory;
-  CAS({required this.buildhistoryList, required this.buildNoHistory, Key? key})
+  CAS({required this.buildDownloadList, required this.buildNoHistory, Key? key})
       : super(key: key);
 
   @override
@@ -67,7 +70,7 @@ class _CASState extends State<CAS> {
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 300),
       child: (_data.length > 1)
-          ? widget.buildhistoryList()
+          ? widget.buildDownloadList()
           : widget.buildNoHistory(),
     );
   }
@@ -92,7 +95,87 @@ class _PageDownloadState extends State<PageDownload> {
     // delaying the user experience is a bad design practice!
     await Future.delayed(const Duration(seconds: 1), () async {
       generateHistoryValues("", false);
+      bindBackgroundIsolate();
+      FlutterDownloader.registerCallback(downloadCallback);
     });
+  }
+
+  late String _localPath;
+  late bool _permissionReady;
+  ReceivePort _port = ReceivePort();
+  List<TaskInfo>? _tasks = [];
+
+  @override
+  void dispose() {
+    super.dispose();
+    unbindBackgroundIsolate();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    browserModel = Provider.of<BrowserModel>(context, listen: false);
+
+    settings = browserModel.getSettings();
+  }
+
+  void _cancelDownload(TaskInfo task) async {
+    await FlutterDownloader.cancel(taskId: task.taskId!);
+  }
+
+  void _pauseDownload(TaskInfo task) async {
+    await FlutterDownloader.pause(taskId: task.taskId!);
+  }
+
+  void _resumeDownload(TaskInfo task) async {
+    String? newTaskId = await FlutterDownloader.resume(taskId: task.taskId!);
+    task.taskId = newTaskId;
+  }
+
+  void _retryDownload(TaskInfo task) async {
+    String? newTaskId = await FlutterDownloader.retry(taskId: task.taskId!);
+    task.taskId = newTaskId;
+  }
+
+  void bindBackgroundIsolate() {
+    bool isSuccess = IsolateNameServer.registerPortWithName(
+        _port.sendPort, 'downloader_send_port');
+    if (!isSuccess) {
+      unbindBackgroundIsolate();
+      bindBackgroundIsolate();
+      return;
+    }
+    _port.listen((dynamic data) {
+      if (debug) {
+        print('UI Isolate Callback: $data');
+      }
+      String? id = data[0];
+      DownloadTaskStatus? status = data[1];
+      int? progress = data[2];
+      if (_tasks != null && _tasks!.isNotEmpty) {
+        final task = _tasks!.firstWhere((_task) => _task.taskId == id);
+
+        task.status = status;
+        task.progress = progress;
+        task.key?.currentState?.setState(() {});
+      }
+    });
+  }
+
+  void unbindBackgroundIsolate() {
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
+  }
+
+  static void downloadCallback(
+      String id, DownloadTaskStatus status, int progress) {
+    if (debug) {
+      print(
+          'Background Isolate Callback: task ($id) is in status ($status) and process ($progress)');
+    }
+    final SendPort send =
+        IsolateNameServer.lookupPortByName('downloader_send_port')!;
+    send.send([id, status, progress]);
   }
 
   generateHistoryValues(String searchValue, bool needUpdate) {
@@ -135,24 +218,11 @@ class _PageDownloadState extends State<PageDownload> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    browserModel = Provider.of<BrowserModel>(context, listen: false);
-
-    settings = browserModel.getSettings();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return buildHistory();
+    return buildDownload();
   }
 
-  SafeArea buildHistory() {
+  SafeArea buildDownload() {
     return SafeArea(
       child: WillPopScope(
         onWillPop: () async {
@@ -197,7 +267,7 @@ class _PageDownloadState extends State<PageDownload> {
                     Expanded(
                       child: CAS(
                         buildNoHistory: _buildNoHistory,
-                        buildhistoryList: _buildhistoryList,
+                        buildDownloadList: _buildDownloadList,
                         key: nohist,
                       ),
                     ),
@@ -222,14 +292,14 @@ class _PageDownloadState extends State<PageDownload> {
             ),
             borderRadius: BorderRadius.all(Radius.circular(10))),
         child: Text(
-          "No history found",
+          "No downloads found",
           style: TextStyle(color: Colors.black87, fontSize: 24),
         ),
       ),
     );
   }
 
-  AnimatedList _buildhistoryList() {
+  AnimatedList _buildDownloadList() {
     return AnimatedList(
       key: _listKey,
       initialItemCount: _data.length,
@@ -360,7 +430,8 @@ class _DownloadItemState extends State<DownloadItem> {
                       appBarKey.currentState?.setState(() {});
                     }
                   },
-                  child: Padding(
+                  child: Container(
+                    key: widget.item.key,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                     child: Row(
@@ -384,13 +455,63 @@ class _DownloadItemState extends State<DownloadItem> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                item.task!.name ?? "File name not available",
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500),
-                                overflow: TextOverflow.ellipsis,
+                              Row(
+                                children: [
+                                  Text(
+                                    "File name not available sadsadsad sadsa dsadsad",
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(left: 12),
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: TextStyle(
+                                          color: Colors.black.withOpacity(0.7),
+                                          fontSize: 14,
+                                        ),
+                                        children: [
+                                          TextSpan(
+                                            text: int.parse(widget.item.task
+                                                            ?.fileSize ??
+                                                        "0") ==
+                                                    0
+                                                ? "NA"
+                                                : (((int.parse(widget.item.task
+                                                                            ?.fileSize ??
+                                                                        "0") /
+                                                                    1024) /
+                                                                1024) *
+                                                            ((widget.item.task
+                                                                        ?.progress ??
+                                                                    1) /
+                                                                100))
+                                                        .toString() +
+                                                    "MB",
+                                          ),
+                                          TextSpan(text: "/"),
+                                          TextSpan(
+                                            text: int.parse(widget.item.task
+                                                            ?.fileSize ??
+                                                        "0") ==
+                                                    0
+                                                ? "NA"
+                                                : (((int.parse(widget.item.task
+                                                                        ?.fileSize ??
+                                                                    "0") /
+                                                                1024) /
+                                                            1024))
+                                                        .toString() +
+                                                    "MB",
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               item.task!.link != null
                                   ? Text(
@@ -405,6 +526,9 @@ class _DownloadItemState extends State<DownloadItem> {
                                       style: TextStyle(fontSize: 16),
                                     )
                                   : SizedBox.shrink(),
+                              LinearProgressIndicator(
+                                value: (widget.item.task?.progress ?? 0) / 100,
+                              ),
                             ],
                           ),
                         ),
@@ -499,8 +623,8 @@ class _ClearAllHState extends State<ClearAllH> {
           child: TextButton(
             child: Text(
               (!showSearchField)
-                  ? "Clear Browsing History"
-                  : "Clear All Searched Results",
+                  ? "Clear All Downloads"
+                  : "Clear All Searched Downloads",
               key: vk,
               style: TextStyle(
                 color: (!longPressed) ? Colors.blue : Colors.grey,
@@ -516,8 +640,8 @@ class _ClearAllHState extends State<ClearAllH> {
                       return AlertDialog(
                         title: Text('Warning'),
                         content: Text(!showSearchField
-                            ? 'Do you really want to clear all your history?'
-                            : 'Do you really want to clear this history?'),
+                            ? 'Do you really want to clear all your downloads?'
+                            : 'Do you really want to clear this downloads?'),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () {
@@ -672,7 +796,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            "History",
+            "Downloads",
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           Row(
@@ -764,7 +888,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                         return AlertDialog(
                           title: Text('Warning'),
                           content: Text(
-                              'Do you really want to clear all the selected history?'),
+                              'Do you really want to clear all the selected downloads?'),
                           actions: <Widget>[
                             TextButton(
                               onPressed: () {

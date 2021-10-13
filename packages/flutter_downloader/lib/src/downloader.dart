@@ -123,6 +123,7 @@ class FlutterDownloader {
           .map((item) => new DownloadTask(
               taskId: item['task_id'],
               status: DownloadTaskStatus(item['status']),
+              fileSize: item["file_size"],
               progress: item['progress'],
               url: item['url'],
               filename: item['file_name'],
@@ -166,6 +167,7 @@ class FlutterDownloader {
           .map((item) => new DownloadTask(
               taskId: item['task_id'],
               status: DownloadTaskStatus(item['status']),
+              fileSize: item["file_size"],
               progress: item['progress'],
               url: item['url'],
               filename: item['file_name'],
