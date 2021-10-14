@@ -446,6 +446,12 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
 
         if (isCurrentTab(currentWebViewModel)) {
           currentWebViewModel.updateWithValue(widget.webViewModel);
+          if (widget.webViewModel.isDesktopMode) {
+            String js =
+                "document.querySelector('meta[name=\"viewport\"]').setAttribute('content', 'width=1024px, initial-scale=' + (document.documentElement.clientWidth / 1024));";
+            widget.webViewModel.webViewController
+                ?.evaluateJavascript(source: js);
+          }
         } else if (widget.webViewModel.needsToCompleteInitialLoad) {
           controller.stopLoading();
         }

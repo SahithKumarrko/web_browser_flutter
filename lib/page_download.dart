@@ -166,12 +166,10 @@ class _PageDownloadState extends State<PageDownload> {
       int? progress = data[2];
       if (_data.isNotEmpty) {
         final task = _data.firstWhere((_task) => _task.task?.taskId == id);
-        print("Found :: $task");
+
         task.task?.status = status;
         task.task?.progress = progress;
-        task.key?.currentState?.setState(() {
-          print("Changed state");
-        });
+        task.key?.currentState?.setState(() {});
       }
     });
   }
@@ -240,7 +238,6 @@ class _PageDownloadState extends State<PageDownload> {
             ditem.task?.name = t.filename;
             ditem.task?.progress = t.progress;
             ditem.task?.status = t.status;
-            print(ditem);
           }
         }
       }
