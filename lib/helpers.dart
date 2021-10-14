@@ -143,8 +143,6 @@ class Helper {
       _pauseDownload(task);
     } else if (task.status == DownloadTaskStatus.paused) {
       _resumeDownload(task);
-    } else if (task.status == DownloadTaskStatus.complete) {
-      // _delete(task);
     } else if (task.status == DownloadTaskStatus.failed) {
       _retryDownload(task);
     }

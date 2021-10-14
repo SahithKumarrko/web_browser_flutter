@@ -628,6 +628,7 @@ class _DownloadItemState extends State<DownloadItem> {
         Helper.shareFiles([task.savedDir + "/" + task.fileName]);
         break;
       case "Delete":
+        removeItem(widget.index);
         break;
     }
   }
