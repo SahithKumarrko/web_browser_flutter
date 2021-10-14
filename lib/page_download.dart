@@ -1,6 +1,8 @@
 import 'dart:collection';
 import 'dart:isolate';
 
+import 'package:extended_image/extended_image.dart';
+import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -36,6 +38,9 @@ Map<String, List<int>> items = {};
 late DItem ritem;
 GlobalKey appBarKey = GlobalKey();
 bool isLoadingSearch = false;
+
+late String _localPath;
+late bool _permissionReady;
 
 class DItem {
   String date;
@@ -108,13 +113,11 @@ class _PageDownloadState extends State<PageDownload> {
       await generateHistoryValues("", false);
       bindBackgroundIsolate();
       FlutterDownloader.registerCallback(downloadCallback);
+      _localPath = await FileUtil.findLocalPath();
     });
   }
 
-  late String _localPath;
-  late bool _permissionReady;
   ReceivePort _port = ReceivePort();
-  List<TaskInfo>? _tasks = [];
 
   @override
   void dispose() {
@@ -129,24 +132,6 @@ class _PageDownloadState extends State<PageDownload> {
     browserModel = Provider.of<BrowserModel>(context, listen: false);
 
     settings = browserModel.getSettings();
-  }
-
-  void _cancelDownload(TaskInfo task) async {
-    await FlutterDownloader.cancel(taskId: task.taskId!);
-  }
-
-  void _pauseDownload(TaskInfo task) async {
-    await FlutterDownloader.pause(taskId: task.taskId!);
-  }
-
-  void _resumeDownload(TaskInfo task) async {
-    String? newTaskId = await FlutterDownloader.resume(taskId: task.taskId!);
-    task.taskId = newTaskId;
-  }
-
-  void _retryDownload(TaskInfo task) async {
-    String? newTaskId = await FlutterDownloader.retry(taskId: task.taskId!);
-    task.taskId = newTaskId;
   }
 
   void bindBackgroundIsolate() {
@@ -372,6 +357,8 @@ class DownloadItem extends StatefulWidget {
 
 class _DownloadItemState extends State<DownloadItem> {
   Widget _buildItem(DItem item, int index, Animation<double> animation) {
+    print(
+        "File Name :: ${item.task?.fileName} , Size :: ${item.task?.fileSize}");
     return Column(
       children: [
         item.task == null
@@ -426,24 +413,6 @@ class _DownloadItemState extends State<DownloadItem> {
                   },
                   onTap: () {
                     if (!longPressed) {
-                      var webViewModel =
-                          Provider.of<WebViewModel>(context, listen: false);
-                      var _webViewController = webViewModel.webViewController;
-                      var url = Uri.parse(widget.item.task!.link.toString());
-                      if (!url.scheme.startsWith("http") &&
-                          !Util.isLocalizedContent(url)) {
-                        url = Uri.parse(settings.searchEngine.searchUrl +
-                            widget.item.task!.link.toString().trim());
-                      }
-
-                      if (_webViewController != null) {
-                        _webViewController.loadUrl(
-                            urlRequest: URLRequest(url: url));
-                      } else {
-                        Helper.addNewTab(url: url, context: context);
-                        webViewModel.url = url;
-                      }
-
                       Navigator.pop(context);
                     } else {
                       if (item.isSelected) {
@@ -503,7 +472,7 @@ class _DownloadItemState extends State<DownloadItem> {
                                       ? SizedBox(
                                           width: 28,
                                         )
-                                      : _buildRemoveItem(index),
+                                      : _buildActionForTask(widget.item.task!),
                                 ],
                               ),
                               SizedBox(
@@ -528,16 +497,16 @@ class _DownloadItemState extends State<DownloadItem> {
                                           widget.item.task?.status == null)
                                       ? SizedBox.shrink()
                                       : Text(
-                                          int.parse(widget.item.task
+                                          num.parse(widget.item.task
                                                           ?.fileSize ??
                                                       "0") ==
                                                   0
                                               ? "NA"
-                                              : (((int.parse(widget.item.task
+                                              : (((num.parse(widget.item.task
                                                                           ?.fileSize ??
                                                                       "0") /
-                                                                  1000) /
-                                                              1000) *
+                                                                  1024) /
+                                                              1024) *
                                                           ((widget.item.task
                                                                       ?.progress ??
                                                                   1) /
@@ -581,15 +550,15 @@ class _DownloadItemState extends State<DownloadItem> {
                                           ),
                                         ),
                                   Text(
-                                    int.parse(widget.item.task?.fileSize ??
+                                    num.parse(widget.item.task?.fileSize ??
                                                 "0") ==
                                             0
                                         ? "NA"
-                                        : (((int.parse(widget.item.task
+                                        : (((num.parse(widget.item.task
                                                                 ?.fileSize ??
                                                             "0") /
-                                                        1000) /
-                                                    1000))
+                                                        1024) /
+                                                    1024))
                                                 .toStringAsFixed(2) +
                                             "MB",
                                     style: TextStyle(
@@ -648,56 +617,183 @@ class _DownloadItemState extends State<DownloadItem> {
     );
   }
 
-  SizedBox _buildRemoveItem(int index) {
-    return SizedBox(
-      width: 28,
-      child: IconButton(
-          padding: EdgeInsets.zero,
-          constraints: BoxConstraints(),
-          onPressed: () {
-            ritem = _data.removeAt(index);
-            for (int i = 0; i < _data.length; i++) {
-              if (_data[i].task == null) {
-                items[_data[i].date]![1] = i;
-              }
-            }
-            AnimatedListRemovedItemBuilder builder = (context, animation) {
-              browserModel.tasks[ritem.date] = _data
-                  .where((element) => element.task != null)
-                  .toList()
-                  .where((element) => (element.date == ritem.date &&
-                      element.task!.name != ritem.task!.name &&
-                      element.task!.link != ritem.task!.link))
-                  .toList()
-                  .map((e) => e.task!)
-                  .toList();
-              browserModel.save();
-              items[ritem.date]![0] = (items[ritem.date]![0] - 1);
-              ritem.isDeleted = true;
-
-              return _buildItem(ritem, index, animation);
-            };
-            _listKey.currentState?.removeItem(index, builder);
-
-            if (items[ritem.date]![0] <= 1) {
-              AnimatedListRemovedItemBuilder builder2 = (context, animation) {
-                return _buildItem(_data.removeAt(items[ritem.date]![1]),
-                    items[ritem.date]![1], animation);
-              };
-              _listKey.currentState
-                  ?.removeItem(items[ritem.date]![1], builder2);
-
-              nohist.currentState?.setState(() {});
-              clearAllSwitcher.currentState?.setState(() {});
-            }
-          },
-          icon: FaIcon(
-            FontAwesomeIcons.timesCircle,
-            color: Colors.black.withOpacity(0.7),
-            size: 18,
-          )),
-    );
+  void _popupMenuChoiceAction(String choice, TaskInfo task) {
+    switch (choice) {
+      case "Open in File Explorer":
+        break;
+      case "Rename":
+        break;
+      case "Share":
+        print("Sharing .. ${task.savedDir}/${task.fileName}");
+        Helper.shareFiles([task.savedDir + "/" + task.fileName]);
+        break;
+      case "Delete":
+        break;
+    }
   }
+
+  Widget _buildoptionsMenu(TaskInfo task) {
+    return PopupMenuButton<String>(
+        onSelected: (choice) => _popupMenuChoiceAction(choice, task),
+        padding: EdgeInsets.zero,
+        child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Icon(
+              Icons.more_vert_rounded,
+              color: Colors.black,
+              size: 20,
+            )),
+        itemBuilder: (popupMenuContext) {
+          var popupitems = <PopupMenuEntry<String>>[];
+
+          popupitems.add(CustomPopupMenuItem<String>(
+            enabled: true,
+            value: "Open in File Explorer",
+            child: Text("Open in File Explorer"),
+          ));
+          popupitems.add(CustomPopupMenuItem<String>(
+            enabled: true,
+            value: "Rename",
+            child: Text("Rename"),
+          ));
+
+          popupitems.add(CustomPopupMenuItem<String>(
+            enabled: true,
+            value: "Share",
+            child: Text("Share"),
+          ));
+
+          popupitems.add(CustomPopupMenuItem<String>(
+            enabled: true,
+            value: "Delete",
+            child: Text("Delete"),
+          ));
+          return popupitems;
+        });
+  }
+
+  Widget _buildActionForTask(TaskInfo task) {
+    if (task.status == DownloadTaskStatus.undefined) {
+      return IconButton(
+        onPressed: () {
+          Helper.downloadActionclick(task, browserModel, _localPath);
+        },
+        icon: Icon(
+          Icons.refresh,
+          color: Colors.red,
+          size: 24,
+        ),
+        constraints: BoxConstraints(),
+        padding: EdgeInsets.zero,
+      );
+    } else if (task.status == DownloadTaskStatus.running) {
+      return IconButton(
+        onPressed: () {
+          Helper.downloadActionclick(task, browserModel, _localPath);
+        },
+        icon: Icon(
+          Icons.pause,
+          color: Colors.blue,
+          size: 24,
+        ),
+        constraints: BoxConstraints(),
+        padding: EdgeInsets.zero,
+      );
+    } else if (task.status == DownloadTaskStatus.paused) {
+      return IconButton(
+        onPressed: () {
+          Helper.downloadActionclick(task, browserModel, _localPath);
+        },
+        icon: Icon(
+          Icons.play_arrow,
+          color: Colors.green,
+          size: 24,
+        ),
+        constraints: BoxConstraints(),
+        padding: EdgeInsets.zero,
+      );
+    } else if (task.status == DownloadTaskStatus.complete) {
+      return _buildoptionsMenu(task);
+    } else if (task.status == DownloadTaskStatus.failed) {
+      return IconButton(
+        onPressed: () {
+          Helper.downloadActionclick(task, browserModel, _localPath);
+        },
+        icon: Icon(
+          Icons.refresh,
+          color: Colors.red,
+          size: 24,
+        ),
+        constraints: BoxConstraints(),
+        padding: EdgeInsets.zero,
+      );
+    } else if (task.status == DownloadTaskStatus.enqueued) {
+      return Container(
+        constraints: BoxConstraints(minHeight: 32.0, minWidth: 32.0),
+        child: CircularProgressIndicator(
+          color: Colors.blue,
+        ),
+      );
+    } else {
+      return Icon(
+        Icons.warning_amber_rounded,
+        color: Colors.red,
+        size: 32,
+      );
+    }
+  }
+
+  removeItem(int index) {
+    ritem = _data.removeAt(index);
+    for (int i = 0; i < _data.length; i++) {
+      if (_data[i].task == null) {
+        items[_data[i].date]![1] = i;
+      }
+    }
+    AnimatedListRemovedItemBuilder builder = (context, animation) {
+      browserModel.tasks[ritem.date] = _data
+          .where((element) => element.task != null)
+          .toList()
+          .where((element) => (element.date == ritem.date &&
+              element.task!.name != ritem.task!.name &&
+              element.task!.link != ritem.task!.link))
+          .toList()
+          .map((e) => e.task!)
+          .toList();
+      browserModel.save();
+      items[ritem.date]![0] = (items[ritem.date]![0] - 1);
+      ritem.isDeleted = true;
+
+      return _buildItem(ritem, index, animation);
+    };
+    _listKey.currentState?.removeItem(index, builder);
+
+    if (items[ritem.date]![0] <= 1) {
+      AnimatedListRemovedItemBuilder builder2 = (context, animation) {
+        return _buildItem(_data.removeAt(items[ritem.date]![1]),
+            items[ritem.date]![1], animation);
+      };
+      _listKey.currentState?.removeItem(items[ritem.date]![1], builder2);
+
+      nohist.currentState?.setState(() {});
+      clearAllSwitcher.currentState?.setState(() {});
+    }
+  }
+
+  // Widget _buildStatusOfDownload(int index) {
+  //   return SizedBox(
+  //     width: 28,
+  //     child: IconButton(
+  //         padding: EdgeInsets.zero,
+  //         constraints: BoxConstraints(),
+  //         onPressed: removeItem(index),
+  //         icon: FaIcon(
+  //           FontAwesomeIcons.timesCircle,
+  //           color: Colors.black.withOpacity(0.7),
+  //           size: 18,
+  //         )),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -935,6 +1031,64 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
     );
   }
 
+  void _popupMenuChoiceActionForSelected(String choice) async {
+    switch (choice) {
+      case "Share":
+        List<String> filePaths = [];
+        var c = 0;
+        for (var i in _selectedList) {
+          var fp = "${i.task?.savedDir}/${i.task?.fileName}";
+          File file = File(fp);
+          if (await file.exists()) {
+            filePaths.add(fp);
+            c += 1;
+          }
+        }
+        if (c != _selectedList.length) {
+          Helper.showBasicFlash(
+              msg: "Not able to share few files.",
+              context: context,
+              duration: Duration(seconds: 5),
+              backgroundColor: Colors.redAccent,
+              textColor: Colors.white,
+              position: FlashPosition.top);
+        }
+        Helper.shareFiles(filePaths);
+        break;
+      case "Delete":
+        break;
+    }
+  }
+
+  Widget _buildoptionsMenu() {
+    return PopupMenuButton<String>(
+        onSelected: (choice) => _popupMenuChoiceActionForSelected(choice),
+        padding: EdgeInsets.zero,
+        child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Icon(
+              Icons.more_vert_rounded,
+              color: Colors.white,
+              size: 24,
+            )),
+        itemBuilder: (popupMenuContext) {
+          var popupitems = <PopupMenuEntry<String>>[];
+
+          popupitems.add(CustomPopupMenuItem<String>(
+            enabled: true,
+            value: "Share",
+            child: Text("Share"),
+          ));
+
+          popupitems.add(CustomPopupMenuItem<String>(
+            enabled: true,
+            value: "Delete",
+            child: Text("Delete"),
+          ));
+          return popupitems;
+        });
+  }
+
   Widget _buildLongPressed({required Key key}) {
     return Container(
       key: key,
@@ -1034,6 +1188,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               SizedBox(
                 width: 8,
               ),
+              _buildoptionsMenu(),
             ],
           ),
         ],

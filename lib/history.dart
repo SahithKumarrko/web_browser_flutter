@@ -830,53 +830,23 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                     popupitems.add(CustomPopupMenuItem<String>(
                       enabled: true,
                       value: TabViewerPopupMenuActions.NEW_TAB,
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Open in New Tab"),
-                          ]),
+                      child: Text("Open in New Tab"),
                     ));
                     popupitems.add(CustomPopupMenuItem<String>(
                       enabled: true,
                       value: TabViewerPopupMenuActions.NEW_INCOGNITO_TAB,
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Open in Incognito Tab"),
-                          ]),
+                      child: Text("Open in Incognito Tab"),
                     ));
                     if (_selectedList.length == 1) {
                       popupitems.add(CustomPopupMenuItem<String>(
                         enabled: true,
                         value: "Copy Link",
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text("Copy Link"),
-                            ]),
+                        child: Text("Copy Link"),
                       ));
                     }
 
                     return popupitems;
                   }),
-
-              // InkWell(
-              //   onTap: () {
-              //     setState(() {
-              //       showSearchField = false;
-              //     });
-              //     _selectedList = [];
-              //     longPressed = false;
-              //     widget.generateHistoryValues("", true);
-              //     clearAllSwitcher.currentState?.setState(() {});
-              //     nohist.currentState?.setState(() {});
-              //   },
-              //   child: Icon(
-              //     Icons.close,
-              //     size: 26,
-              //     color: Colors.white,
-              //   ),
-              // ),
             ],
           ),
         ],

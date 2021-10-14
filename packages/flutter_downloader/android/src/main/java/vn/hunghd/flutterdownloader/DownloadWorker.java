@@ -367,8 +367,11 @@ public class DownloadWorker extends Worker implements MethodChannel.MethodCallHa
                 log("fileName = " + filename);
 
                 taskDao.updateTask(getId().toString(), filename, contentType);
-                taskDao.updateTask(getId().toString(),String.valueOf(contentLength));
-
+                DownloadTask task_temp = taskDao.loadTask(getId().toString());
+                if(task_temp.fileSize==null){
+                    taskDao.updateTask(getId().toString(),String.valueOf(contentLength));
+                }
+                
                 // opens input stream from the HTTP connection
                 inputStream = httpConn.getInputStream();
 

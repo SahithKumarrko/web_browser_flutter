@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flash/flash.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -38,7 +36,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
   TextEditingController _httpAuthUsernameController = TextEditingController();
   TextEditingController _httpAuthPasswordController = TextEditingController();
   late String _localPath;
-  late bool _permissionReady;
+  late PermissionStatus _permissionReady;
   bool _checkPermissionAfterSettingsPage = false;
   String fileName = "", durl = "";
   late BrowserModel dbm;
@@ -93,29 +91,15 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
     }
   }
 
-  void retryDownload() async {
-    dbm = Provider.of<BrowserModel>(context, listen: false);
-    result = await Permission.storage.request();
-
-    if (result == PermissionStatus.granted) {
-      fileName = await getFileName(fileName);
-
-      // download();
-    } else {
-      HandlePermission.showDeniedError(
-          msg: "Not able to download as write storage permision is not given.",
-          duration: Duration(seconds: 5),
-          context: context);
-    }
-  }
-
-  void resume() {
+  void resume() async {
     if (Platform.isAndroid) {
       _webViewController?.android.resume();
     }
     if (_checkPermissionAfterSettingsPage) {
       _checkPermissionAfterSettingsPage = false;
-      retryDownload();
+      dbm = Provider.of<BrowserModel>(context, listen: false);
+      fileName =
+          await FileUtil.retryDownload(context: context, fileName: fileName);
     }
   }
 
@@ -127,244 +111,15 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
     _webViewController?.resumeTimers();
   }
 
-  Future _showPermissionError({bool persistent = true}) async {
-    context.showFlashDialog(
-        persistent: persistent,
-        title: Text('Error!'),
-        content: Text(
-          'Please grant accessing storage permission to continue -_-',
-          textAlign: TextAlign.left,
-          style: TextStyle(color: Colors.blueGrey, fontSize: 18.0),
-        ),
-        negativeActionBuilder: (context, controller, _) {
-          return TextButton(
-            onPressed: () {
-              controller.dismiss();
-            },
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: Colors.red.shade400,
-                fontWeight: FontWeight.bold,
-                fontSize: 20.0,
-              ),
-            ),
-          );
-        },
-        positiveActionBuilder: (context, controller, _) {
-          return TextButton(
-              onPressed: () async {
-                await openAppSettings();
-
-                _checkPermissionAfterSettingsPage = true;
-                controller.dismiss();
-              },
-              child: Text(
-                'Open Settings',
-                style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20.0),
-              ));
-        });
-  }
-
   void download() {
-    var task = TaskInfo(link: durl.toString(), name: fileName);
+    var task = TaskInfo(
+        link: durl.toString(),
+        name: fileName,
+        fileName: fileName,
+        savedDir: _localPath);
     dbm.requestDownload(task, _localPath, fileName);
     dbm.addDownloadTask = task;
     dbm.save();
-  }
-
-  void _showAlreadyFileExistsError({
-    bool persistent = true,
-    EdgeInsets margin = EdgeInsets.zero,
-  }) {
-    showFlash(
-      context: context,
-      persistent: persistent,
-      builder: (_, controller) {
-        return Flash(
-          controller: controller,
-          margin: margin,
-          behavior: FlashBehavior.fixed,
-          position: FlashPosition.bottom,
-          borderRadius: BorderRadius.circular(8.0),
-          boxShadows: kElevationToShadow[8],
-          onTap: () => controller.dismiss(),
-          forwardAnimationCurve: Curves.easeInBack,
-          reverseAnimationCurve: Curves.easeInCubic,
-          child: FlashBar(
-            title: Text(
-              'Warning!',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20.0),
-            ),
-            content: Text(
-              "The file is already present, do you want to download again?",
-              style: TextStyle(color: Colors.black),
-            ),
-            indicatorColor: Colors.red,
-            icon: Icon(Icons.info_outline),
-            primaryAction: IconButton(
-              constraints: BoxConstraints(),
-              padding: EdgeInsets.zero,
-              onPressed: () => controller.dismiss(),
-              icon: Icon(Icons.close),
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  controller.dismiss();
-                },
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0),
-                ),
-              ),
-              TextButton(
-                  onPressed: () async {
-                    controller.dismiss();
-                    fileName = await getFileName(fileName);
-                    download();
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 1,
-                              offset: Offset(1, 1)),
-                        ]),
-                    child: Text(
-                      'Download',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16.0),
-                    ),
-                  )),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // void _showAlreadyFileExistsError({bool persistent = true}) {
-  //   context.showFlashDialog(
-  //       persistent: persistent,
-  //       // title: Text('Error!'),
-  //       content: Text(
-  //         'File already exists. Do you still want to download the file?',
-  //         textAlign: TextAlign.left,
-  //         style: TextStyle(color: Colors.blueGrey, fontSize: 18.0),
-  //       ),
-  //       negativeActionBuilder: (context, controller, _) {
-  //         return TextButton(
-  //           onPressed: () {
-  //             controller.dismiss();
-  //           },
-  //           child: Text(
-  //             'Cancel',
-  //             style: TextStyle(
-  //                 color: Colors.blue,
-  //                 fontWeight: FontWeight.bold,
-  //                 fontSize: 20.0),
-  //           ),
-  //         );
-  //       },
-  //       positiveActionBuilder: (context, controller, _) {
-  //         return TextButton(
-  //             onPressed: () async {
-  //               controller.dismiss();
-  //               fileName = await getFileName(fileName);
-  //               download();
-  //             },
-  //             child: Text(
-  //               'Download',
-  //               style: TextStyle(
-  //                   color: Colors.blue,
-  //                   fontWeight: FontWeight.bold,
-  //                   fontSize: 20.0),
-  //             ));
-  //       });
-  // }
-
-  Future<String> getFileName(String fn) async {
-    var fn1 = fn.split(".");
-    var fn2 = fn1.sublist(0, fn1.length - 1);
-    _localPath = await FileUtil.findLocalPath();
-    print("Downloading in :: $_localPath");
-    var myDir = Directory(_localPath);
-    var fname = fn2.join(".");
-
-    var count = 0;
-    var exists = await myDir.exists();
-    if (!exists) {
-      _localPath = await FileUtil.findLocalPath();
-      myDir = Directory(_localPath);
-      exists = await myDir.exists();
-    }
-    if (exists) {
-      var l = myDir.list(recursive: false, followLinks: false);
-      var tasks = await FlutterDownloader.loadTasks();
-      var l2 = await l.toList();
-      l2.forEach((element) {
-        var fp = element.path.split("/").last;
-        if (fp.contains(fname)) {
-          count += 1;
-        }
-      });
-      tasks?.forEach((element) {
-        var tfn = element.filename ?? "";
-        var temp = fname + " ($count)." + fn1.last;
-        if (tfn.contains(fname) && tfn == temp) {
-          count += 1;
-        }
-      });
-    } else {
-      Helper.showBasicFlash(
-          msg: "Not able to download file.",
-          context: context,
-          position: FlashPosition.top,
-          backgroundColor: Colors.redAccent,
-          textColor: Colors.white,
-          duration: Duration(seconds: 5));
-    }
-
-    return fname + " ($count)." + fn1.last;
-  }
-
-  var result;
-  Future<bool> _checkPermission() async {
-    final platform = Theme.of(context).platform;
-    // DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    // AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    //  &&
-    //     androidInfo.version.sdkInt <= 28
-    if (platform == TargetPlatform.android) {
-      final status = await Permission.storage.status;
-
-      if (status != PermissionStatus.granted) {
-        result = await Permission.storage.request();
-
-        if (result == PermissionStatus.granted) {
-          return true;
-        }
-      } else {
-        return true;
-      }
-    }
-    return false;
   }
 
   @override
@@ -451,10 +206,6 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
                 "document.querySelector('meta[name=\"viewport\"]').setAttribute('content', 'width=1024px, initial-scale=' + (document.documentElement.clientWidth / 1024));";
             widget.webViewModel.webViewController
                 ?.evaluateJavascript(source: js);
-            double? pzz =
-                await widget.webViewModel.webViewController?.getZoomScale();
-
-            print("Zoom :: $pzz");
           }
         } else if (widget.webViewModel.needsToCompleteInitialLoad) {
           controller.stopLoading();
@@ -481,9 +232,6 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
           if (widget.webViewModel.isDesktopMode) {
             await widget.webViewModel.webViewController
                 ?.zoomBy(zoomFactor: 0.02);
-            double? pzz2 =
-                await widget.webViewModel.webViewController?.getZoomScale();
-            print("ZoomAfter :: $pzz2");
           }
         }
 
@@ -678,9 +426,9 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         //   openFileFromNotification: true,
         // );
         dbm = browserModel;
-        _permissionReady = await _checkPermission();
+        _permissionReady = await FileUtil.checkPermission(context: context);
 
-        if (_permissionReady) {
+        if (_permissionReady == PermissionStatus.granted) {
           _localPath = await FileUtil.findLocalPath();
           print("Checking in :: $_localPath");
 
@@ -700,13 +448,23 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
             //   if (entity.path.endsWith(fileName)) count += 1;
             // }
             // fileName = await getFileName(fileName);
-            _showAlreadyFileExistsError();
+            FileUtil.showAlreadyFileExistsError(
+                context: context,
+                action: () async {
+                  fileName = await FileUtil.getFileName(
+                      context: context, fileName: fileName);
+                  download();
+                });
           } else {
             download();
           }
         } else {
-          if (result == PermissionStatus.permanentlyDenied) {
-            _showPermissionError();
+          if (_permissionReady == PermissionStatus.permanentlyDenied) {
+            FileUtil.showPermissionError(
+                context: context,
+                action: () {
+                  _checkPermissionAfterSettingsPage = true;
+                });
           }
         }
       },

@@ -201,10 +201,15 @@ class _SearchPageState extends State<SearchPage> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: <Widget>[
                                     CustomImage(
-                                        url: Uri.parse(
-                                            (_webViewModel.url?.origin ??
+                                        url: _webViewModel.url
+                                                .toString()
+                                                .startsWith(RegExp(
+                                                    "http[s]{0,1}:[/]{2}"))
+                                            ? Uri.parse((_webViewModel
+                                                        .url?.origin ??
                                                     settings.searchEngine.url) +
-                                                "/favicon.ico"),
+                                                "/favicon.ico")
+                                            : null,
                                         maxWidth: 24.0,
                                         height: 24.0)
                                   ],
@@ -471,9 +476,13 @@ class _SearchPageState extends State<SearchPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           CustomImage(
-                              url: Uri.parse((search.url?.origin ??
-                                      settings.searchEngine.url) +
-                                  "/favicon.ico"),
+                              url: search.url
+                                      .toString()
+                                      .startsWith(RegExp("http[s]{0,1}:[/]{2}"))
+                                  ? Uri.parse((search.url?.origin ??
+                                          settings.searchEngine.url) +
+                                      "/favicon.ico")
+                                  : null,
                               maxWidth: 24.0,
                               height: 24.0)
                         ],
