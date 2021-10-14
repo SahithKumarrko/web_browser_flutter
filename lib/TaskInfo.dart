@@ -33,7 +33,7 @@ class TaskInfo {
             taskId: map["taskId"],
             progress: map["progress"],
             fileSize: map["fileSize"],
-            status: map["status"])
+            status: DownloadTaskStatus(map["status"] ?? 0))
         : null;
   }
 
@@ -43,7 +43,7 @@ class TaskInfo {
       "link": link?.toString(),
       "taskId": taskId,
       "progress": progress ?? 0,
-      "status": status,
+      "status": status?.value ?? 0,
       "fileSize": fileSize
     };
   }

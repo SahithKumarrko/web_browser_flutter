@@ -52,7 +52,7 @@ class DItem {
 
   @override
   String toString() =>
-      'DItem(title: $date,taskId: ${task?.taskId}, url: ${task?.link},"name":${task?.name},isSelected : $isSelected,"name":${task?.name})';
+      'DItem(title: $date,fileSize : ${task?.fileSize}, taskId: ${task?.taskId}, url: ${task?.link},"name":${task?.name},isSelected : $isSelected,"name":${task?.name})';
 }
 
 class CAS extends StatefulWidget {
@@ -164,12 +164,14 @@ class _PageDownloadState extends State<PageDownload> {
       String? id = data[0];
       DownloadTaskStatus? status = data[1];
       int? progress = data[2];
-      if (_tasks != null && _tasks!.isNotEmpty) {
-        final task = _tasks!.firstWhere((_task) => _task.taskId == id);
-
-        task.status = status;
-        task.progress = progress;
-        task.key?.currentState?.setState(() {});
+      if (_data.isNotEmpty) {
+        final task = _data.firstWhere((_task) => _task.task?.taskId == id);
+        print("Found :: $task");
+        task.task?.status = status;
+        task.task?.progress = progress;
+        task.key?.currentState?.setState(() {
+          print("Changed state");
+        });
       }
     });
   }
@@ -237,6 +239,8 @@ class _PageDownloadState extends State<PageDownload> {
             ditem.task?.link = t.url;
             ditem.task?.name = t.filename;
             ditem.task?.progress = t.progress;
+            ditem.task?.status = t.status;
+            print(ditem);
           }
         }
       }
@@ -463,7 +467,6 @@ class _DownloadItemState extends State<DownloadItem> {
                     }
                   },
                   child: Container(
-                    key: widget.item.key,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                     child: Row(
@@ -489,86 +492,156 @@ class _DownloadItemState extends State<DownloadItem> {
                             children: [
                               Row(
                                 children: [
-                                  Text(
-                                    "File name not available sadsadsad sadsa dsadsad",
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w500),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 12),
-                                    child: RichText(
-                                      text: TextSpan(
-                                        style: TextStyle(
-                                          color: Colors.black.withOpacity(0.7),
-                                          fontSize: 14,
-                                        ),
-                                        children: [
-                                          TextSpan(
-                                            text: int.parse(widget.item.task
-                                                            ?.fileSize ??
-                                                        "0") ==
-                                                    0
-                                                ? "NA"
-                                                : (((int.parse(widget.item.task
-                                                                            ?.fileSize ??
-                                                                        "0") /
-                                                                    1024) /
-                                                                1024) *
-                                                            ((widget.item.task
-                                                                        ?.progress ??
-                                                                    1) /
-                                                                100))
-                                                        .toString() +
-                                                    "MB",
-                                          ),
-                                          TextSpan(text: "/"),
-                                          TextSpan(
-                                            text: int.parse(widget.item.task
-                                                            ?.fileSize ??
-                                                        "0") ==
-                                                    0
-                                                ? "NA"
-                                                : (((int.parse(widget.item.task
-                                                                        ?.fileSize ??
-                                                                    "0") /
-                                                                1024) /
-                                                            1024))
-                                                        .toString() +
-                                                    "MB",
-                                          ),
-                                        ],
-                                      ),
+                                  Expanded(
+                                    child: Text(
+                                      (widget.item.task?.name ?? "NA"),
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  longPressed
+                                      ? SizedBox(
+                                          width: 28,
+                                        )
+                                      : _buildRemoveItem(index),
                                 ],
                               ),
-                              item.task!.link != null
-                                  ? Text(
-                                      item.task!.link.toString().startsWith(
-                                              RegExp("http[s]{0,1}:[/]{2}"))
-                                          ? (item.task!.link ?? "")
-                                              .replaceFirst(
-                                                  RegExp("http[s]{0,1}:[/]{2}"),
-                                                  "")
-                                          : "",
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(fontSize: 16),
-                                    )
-                                  : SizedBox.shrink(),
-                              LinearProgressIndicator(
-                                value: (widget.item.task?.progress ?? 0) / 100,
+                              SizedBox(
+                                height: 2,
                               ),
+
+                              // (widget.item.task?.status ==
+                              //             DownloadTaskStatus.complete ||
+                              //         widget.item.task?.status ==
+                              //             DownloadTaskStatus.failed ||
+                              //         widget.item.task?.status == null)
+                              //     ? SizedBox.shrink()
+                              //     :
+                              Row(
+                                children: [
+                                  (widget.item.task?.status ==
+                                              DownloadTaskStatus.complete ||
+                                          widget.item.task?.status ==
+                                              DownloadTaskStatus.failed ||
+                                          widget.item.task?.status ==
+                                              DownloadTaskStatus.canceled ||
+                                          widget.item.task?.status == null)
+                                      ? SizedBox.shrink()
+                                      : Text(
+                                          int.parse(widget.item.task
+                                                          ?.fileSize ??
+                                                      "0") ==
+                                                  0
+                                              ? "NA"
+                                              : (((int.parse(widget.item.task
+                                                                          ?.fileSize ??
+                                                                      "0") /
+                                                                  1000) /
+                                                              1000) *
+                                                          ((widget.item.task
+                                                                      ?.progress ??
+                                                                  1) /
+                                                              100))
+                                                      .toStringAsFixed(2) +
+                                                  "MB",
+                                          style: TextStyle(
+                                              color: (widget
+                                                          .item.task?.status ==
+                                                      DownloadTaskStatus
+                                                          .running)
+                                                  ? Color(0xff8dc149)
+                                                  : (widget.item.task?.status ==
+                                                          DownloadTaskStatus
+                                                              .paused)
+                                                      ? Color(0xff519aba)
+                                                      : (widget.item.task
+                                                                      ?.status ==
+                                                                  DownloadTaskStatus
+                                                                      .failed ||
+                                                              widget.item.task
+                                                                      ?.status ==
+                                                                  DownloadTaskStatus
+                                                                      .canceled)
+                                                          ? Color(0xffcc3e44)
+                                                          : Colors.black,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                  (widget.item.task?.status ==
+                                              DownloadTaskStatus.complete ||
+                                          widget.item.task?.status ==
+                                              DownloadTaskStatus.failed ||
+                                          widget.item.task?.status == null)
+                                      ? SizedBox.shrink()
+                                      : Text(
+                                          "/",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                  Text(
+                                    int.parse(widget.item.task?.fileSize ??
+                                                "0") ==
+                                            0
+                                        ? "NA"
+                                        : (((int.parse(widget.item.task
+                                                                ?.fileSize ??
+                                                            "0") /
+                                                        1000) /
+                                                    1000))
+                                                .toStringAsFixed(2) +
+                                            "MB",
+                                    style: TextStyle(
+                                      color: (widget.item.task?.status ==
+                                              DownloadTaskStatus.complete)
+                                          ? Color(0xff8dc149)
+                                          : (widget.item.task?.status ==
+                                                      DownloadTaskStatus
+                                                          .failed ||
+                                                  widget.item.task?.status ==
+                                                      DownloadTaskStatus
+                                                          .canceled)
+                                              ? Color(0xffcc3e44)
+                                              : Colors.black,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 4,
+                                  ),
+                                  item.task!.link != null
+                                      ? Expanded(
+                                          child: Text(
+                                            item.task!.link.toString(),
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.black54),
+                                          ),
+                                        )
+                                      : SizedBox.shrink(),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                              (widget.item.task?.status ==
+                                          DownloadTaskStatus.complete ||
+                                      widget.item.task?.status ==
+                                          DownloadTaskStatus.failed ||
+                                      widget.item.task?.status == null)
+                                  ? SizedBox.shrink()
+                                  : LinearProgressIndicator(
+                                      value: (widget.item.task?.progress ?? 0) /
+                                          100,
+                                    ),
                             ],
                           ),
                         ),
-                        longPressed
-                            ? SizedBox(
-                                width: 28,
-                              )
-                            : _buildRemoveItem(index),
                       ],
                     ),
                   ),
@@ -869,7 +942,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
     return Container(
       key: key,
       color: Colors.redAccent,
-      padding: EdgeInsets.only(left: 16, top: 16, bottom: 16, right: 0),
+      padding: EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,

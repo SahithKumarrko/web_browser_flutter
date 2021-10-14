@@ -880,3 +880,49 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
     }
 
   }
+
+
+
+FaIcon(
+                                    (widget.item.task?.status ==
+                                            DownloadTaskStatus.running)
+                                        ? FontAwesomeIcons.download
+                                        : (widget.item.task?.status ==
+                                                DownloadTaskStatus.paused)
+                                            ? FontAwesomeIcons.pauseCircle
+                                            : (widget.item.task?.status ==
+                                                    DownloadTaskStatus.complete)
+                                                ? FontAwesomeIcons.checkCircle
+                                                : (widget.item.task?.status ==
+                                                            DownloadTaskStatus
+                                                                .failed ||
+                                                        widget.item.task
+                                                                ?.status ==
+                                                            DownloadTaskStatus
+                                                                .canceled)
+                                                    ? FontAwesomeIcons
+                                                        .timesCircle
+                                                    : FontAwesomeIcons.question,
+                                    color: (widget.item.task?.status ==
+                                            DownloadTaskStatus.complete)
+                                        ? Color(0xff8dc149)
+                                        : (widget.item.task?.status ==
+                                                DownloadTaskStatus.running)
+                                            ? Color(0xff8dc149)
+                                            : (widget.item.task?.status ==
+                                                    DownloadTaskStatus.paused)
+                                                ? Color(0xff519aba)
+                                                : (widget.item.task?.status ==
+                                                            DownloadTaskStatus
+                                                                .failed ||
+                                                        widget.item.task
+                                                                ?.status ==
+                                                            DownloadTaskStatus
+                                                                .canceled)
+                                                    ? Color(0xffcc3e44)
+                                                    : Colors.black,
+                                    size: 14,
+                                  ),
+                                  SizedBox(
+                                    width: 4,
+                                  ),

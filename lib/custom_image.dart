@@ -66,11 +66,6 @@ class _CustomImageState extends State<CustomImage> {
 
   Widget? getImage() {
     if (widget.isDownload) {
-      print("Getting for :: ${widget.fileName}");
-      // var ext = widget.fileName.split(".").last.toLowerCase();
-      // if( ["apk"].contains(ext) || ['.dot','.dotm','.wps','.odt'].contains(ext)){
-
-      // }
       return Container(
         key: imageKey,
         child: FileIcon(

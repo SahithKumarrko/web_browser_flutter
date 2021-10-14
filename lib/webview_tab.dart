@@ -720,7 +720,9 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         var errorUrl =
             url ?? widget.webViewModel.url ?? Uri.parse('about:blank');
 
-        _webViewController?.loadData(data: """
+        _webViewController?.loadData(
+            data:
+                """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -749,7 +751,9 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
       <p>$message</p>
     </div>
 </body>
-    """, baseUrl: errorUrl, androidHistoryUrl: errorUrl);
+    """,
+            baseUrl: errorUrl,
+            androidHistoryUrl: errorUrl);
 
         widget.webViewModel.url = url;
         widget.webViewModel.isSecure = false;

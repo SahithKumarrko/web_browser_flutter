@@ -26,7 +26,7 @@ public class TaskDao {
             TaskContract.TaskEntry.COLUMN_NAME_SHOW_NOTIFICATION,
             TaskContract.TaskEntry.COLUMN_NAME_TIME_CREATED,
             TaskContract.TaskEntry.COLUMN_SAVE_IN_PUBLIC_STORAGE,
-            TaskContract.TaskEntry.COLUMN_FILE_SIZE
+            TaskContract.TaskEntry.COLUMN_NAME_FILE_SIZE
     };
 
     public TaskDao(TaskDbHelper helper) {
@@ -239,13 +239,15 @@ public class TaskDao {
         String savedDir = cursor.getString(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_NAME_SAVED_DIR));
         String headers = cursor.getString(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_NAME_HEADERS));
         String mimeType = cursor.getString(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_NAME_MIME_TYPE));
+        String fileSize = cursor.getString(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_NAME_FILE_SIZE));
+        
         int resumable = cursor.getShort(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_NAME_RESUMABLE));
         int showNotification = cursor.getShort(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_NAME_SHOW_NOTIFICATION));
         int clickToOpenDownloadedFile = cursor.getShort(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_NAME_OPEN_FILE_FROM_NOTIFICATION));
         long timeCreated = cursor.getLong(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_NAME_TIME_CREATED));
         int saveInPublicStorage = cursor.getShort(cursor.getColumnIndexOrThrow(TaskContract.TaskEntry.COLUMN_SAVE_IN_PUBLIC_STORAGE));
         return new DownloadTask(primaryId, taskId, status, progress, url, filename, savedDir, headers,
-                mimeType, resumable == 1, showNotification == 1, clickToOpenDownloadedFile == 1, timeCreated, saveInPublicStorage == 1);
+                mimeType,fileSize, resumable == 1, showNotification == 1, clickToOpenDownloadedFile == 1, timeCreated, saveInPublicStorage == 1);
     }
 
 }

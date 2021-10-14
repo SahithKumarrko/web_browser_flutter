@@ -21,6 +21,8 @@ public class TaskContract {
         public static final String COLUMN_NAME_OPEN_FILE_FROM_NOTIFICATION = "open_file_from_notification";
         public static final String COLUMN_NAME_TIME_CREATED = "time_created";
         public static final String COLUMN_SAVE_IN_PUBLIC_STORAGE = "save_in_public_storage";
+        
+        public static final String COLUMN_NAME_FILE_SIZE = "file_size";
     }
 
 }
