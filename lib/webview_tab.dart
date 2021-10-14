@@ -451,6 +451,10 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
                 "document.querySelector('meta[name=\"viewport\"]').setAttribute('content', 'width=1024px, initial-scale=' + (document.documentElement.clientWidth / 1024));";
             widget.webViewModel.webViewController
                 ?.evaluateJavascript(source: js);
+            double? pzz =
+                await widget.webViewModel.webViewController?.getZoomScale();
+
+            print("Zoom :: $pzz");
           }
         } else if (widget.webViewModel.needsToCompleteInitialLoad) {
           controller.stopLoading();
@@ -474,6 +478,13 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         if (widget.webViewModel.progress >= 1.0) {
           isHisUpdated = false;
           widget.webViewModel.isLoading = false;
+          if (widget.webViewModel.isDesktopMode) {
+            await widget.webViewModel.webViewController
+                ?.zoomBy(zoomFactor: 0.02);
+            double? pzz2 =
+                await widget.webViewModel.webViewController?.getZoomScale();
+            print("ZoomAfter :: $pzz2");
+          }
         }
 
         // print("RT :: " +
