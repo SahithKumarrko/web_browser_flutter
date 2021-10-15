@@ -191,6 +191,7 @@ class FlutterDownloader {
     assert(_initialized, 'FlutterDownloader.initialize() must be called first');
 
     try {
+      print("Canceling Download :: $taskId");
       return await _channel.invokeMethod('cancel', {'task_id': taskId});
     } on PlatformException catch (e) {
       print(e.message);

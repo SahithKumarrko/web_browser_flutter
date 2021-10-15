@@ -41,6 +41,7 @@ class CustomImage extends StatefulWidget {
 class _CustomImageState extends State<CustomImage> {
   GlobalKey imageKey = GlobalKey();
   GlobalKey noImageKey = GlobalKey();
+  GlobalKey downloadKey = GlobalKey();
 
   GlobalKey selectedImage = GlobalKey();
   @override
@@ -67,7 +68,7 @@ class _CustomImageState extends State<CustomImage> {
   Widget? getImage() {
     if (widget.isDownload) {
       return Container(
-        key: imageKey,
+        key: downloadKey,
         child: FileIcon(
           fileName: widget.fileName,
           size: this.widget.width ?? this.widget.height ?? this.widget.maxWidth,

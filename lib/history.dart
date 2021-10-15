@@ -155,9 +155,16 @@ class _HistoryState extends State<History> {
     return SafeArea(
       child: WillPopScope(
         onWillPop: () async {
-          if (!showSearchField)
+          if (!showSearchField && !longPressed)
             Navigator.pop(context);
-          else {
+          else if (longPressed) {
+            _selectedList.clear();
+            longPressed = false;
+            generateHistoryValues("", true);
+            clearAllSwitcher.currentState?.setState(() {});
+            nohist.currentState?.setState(() {});
+            appBarKey.currentState?.setState(() {});
+          } else {
             appBarKey.currentState?.setState(() {
               showSearchField = false;
             });
@@ -165,6 +172,7 @@ class _HistoryState extends State<History> {
             txtc.clear();
             clearAllSwitcher.currentState?.setState(() {});
           }
+
           return false;
         },
         child: Scaffold(

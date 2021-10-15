@@ -117,9 +117,14 @@ class Helper {
     );
   }
 
-  static void cancelDownload(TaskInfo task) async {
+  static void cancelDownload(
+      {required TaskInfo task, bool removeFromStorage = true}) async {
     print("Canceling");
-    await FlutterDownloader.cancel(taskId: task.taskId!);
+    if (task.status != DownloadTaskStatus.complete) {
+      await FlutterDownloader.cancel(taskId: task.taskId!);
+    }
+    await FlutterDownloader.remove(
+        taskId: task.taskId!, shouldDeleteContent: removeFromStorage);
   }
 
   static void pauseDownload(TaskInfo task) async {

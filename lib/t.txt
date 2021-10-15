@@ -926,3 +926,125 @@ FaIcon(
                                   SizedBox(
                                     width: 4,
                                   ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  Widget _buildClearAllHistory(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextButton(
+            child: Text(
+              (!showSearchField)
+                  ? "Clear All Downloads From History"
+                  : "Clear All Searched Downloads From History",
+              style: TextStyle(
+                color: (!longPressed) ? Colors.blue : Colors.grey,
+                decoration: TextDecoration.underline,
+                fontSize: 16,
+              ),
+            ),
+            onPressed: _clearDownloadsFromHistory(1),
+          ),
+          SizedBox(
+            height: 8,
+          ),
+          TextButton(
+            child: Text(
+              (!showSearchField)
+                  ? "Clear All Downloads From History and Stoarage"
+                  : "Clear All Searched Downloads From History and Stoarage",
+              style: TextStyle(
+                color: (!longPressed) ? Colors.red : Colors.grey,
+                decoration: TextDecoration.underline,
+                fontSize: 16,
+              ),
+            ),
+            onPressed: _clearDownloadsFromHistory(2),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _removeFromStorage(List<DItem> dat) {
+    nohist.currentState?.setState(() {
+      isLoadingSearch = true;
+    });
+    for (var t in dat) {
+      if (t.task != null) {
+        Helper.cancelDownload(t.task!);
+      }
+    }
+    nohist.currentState?.setState(() {
+      isLoadingSearch = false;
+    });
+  }
+
+  _clearDownloadsFromHistory(int type) {
+    if (!longPressed) {
+      showDialog(
+          context: context,
+          builder: (_) {
+            return AlertDialog(
+              title: Text('Warning'),
+              content: Text(!showSearchField
+                  ? 'Do you really want to clear all your downloads?'
+                  : 'Do you really want to clear these downloads?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    if (!showSearchField) {
+                      widget.hbrowserModel.addListOfDownlods = LinkedHashMap();
+                    } else {
+                      var prevd = widget.hbrowserModel.tasks;
+                      for (DItem ditem in _data) {
+                        if (ditem.task != null) {
+                          prevd[ditem.date]?.removeWhere((t) =>
+                              (t.fileName != ditem.task?.fileName &&
+                                  t.taskId != ditem.task?.taskId));
+                        }
+                      }
+                      widget.hbrowserModel.addListOfDownlods = prevd;
+                    }
+                    if (type == 2) {
+                      _removeFromStorage(_data);
+                    }
+                    widget.hbrowserModel.save();
+                    _data.clear();
+                    setState(() => _listKey = GlobalKey());
+                    nohist.currentState?.setState(() {});
+
+                    Navigator.pop(context);
+                  },
+                  child: Text('YES'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('NO'),
+                ),
+              ],
+            );
+          });
+    }
+    return null;
+  }

@@ -244,16 +244,9 @@ class _PageDownloadState extends State<PageDownload> {
     return SafeArea(
       child: WillPopScope(
         onWillPop: () async {
-          if (!showSearchField && !longPressed)
+          if (!showSearchField)
             Navigator.pop(context);
-          else if (longPressed) {
-            _selectedList.clear();
-            longPressed = false;
-            generateHistoryValues("", true);
-            clearAllSwitcher.currentState?.setState(() {});
-            nohist.currentState?.setState(() {});
-            appBarKey.currentState?.setState(() {});
-          } else {
+          else {
             appBarKey.currentState?.setState(() {
               showSearchField = false;
             });
@@ -282,20 +275,31 @@ class _PageDownloadState extends State<PageDownload> {
               } else {
                 // Loading is done, return the app:
 
-                return Column(
-                  children: [
-                    ClearAllH(
-                        dataLen: _data.length,
-                        key: clearAllSwitcher,
-                        generateHistoryValues: generateHistoryValues),
-                    Expanded(
-                      child: CAS(
-                        buildNoHistory: _buildNoHistory,
-                        buildDownloadList: _buildDownloadList,
-                        key: nohist,
+                return Container(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // ClearAllH(
+                      //   dataLen: _data.length,
+                      //   hbrowserModel: browserModel,
+                      //   key: clearAllSwitcher,
+                      // ),
+                      Expanded(
+                        child: ClearAllH(
+                          dataLen: _data.length,
+                          hbrowserModel: browserModel,
+                          key: clearAllSwitcher,
+                        ),
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: CAS(
+                          buildNoHistory: _buildNoHistory,
+                          buildDownloadList: _buildDownloadList,
+                          key: nohist,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }
             },
@@ -439,8 +443,6 @@ class _DownloadItemState extends State<DownloadItem> {
                     }
                   },
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -641,7 +643,7 @@ class _DownloadItemState extends State<DownloadItem> {
         removeItem(widget.index);
         break;
       case "Delete From Storage and History":
-        Helper.cancelDownload(task: task, removeFromStorage: true);
+        Helper.cancelDownload(task);
         removeItem(widget.index);
         break;
     }
@@ -815,7 +817,7 @@ class _DownloadItemState extends State<DownloadItem> {
   IconButton _cancelTask(TaskInfo task) {
     return IconButton(
       onPressed: () {
-        Helper.cancelDownload(task: task);
+        Helper.cancelDownload(task);
         removeItem(widget.index);
       },
       icon: Icon(
@@ -889,142 +891,10 @@ class _DownloadItemState extends State<DownloadItem> {
   }
 }
 
-class CustomDeleteDownloadsAlertdialog extends StatefulWidget {
-  final Function(String, bool) generateHistoryValues;
-  const CustomDeleteDownloadsAlertdialog(
-      {required this.generateHistoryValues, Key? key})
-      : super(key: key);
-
-  @override
-  _CustomDeleteDownloadsAlertdialogState createState() =>
-      _CustomDeleteDownloadsAlertdialogState();
-}
-
-class _CustomDeleteDownloadsAlertdialogState
-    extends State<CustomDeleteDownloadsAlertdialog> {
-  bool deleteFromStorage = false;
-  GlobalKey alertDialogKey = GlobalKey();
-  _removeFromStorage(List<DItem> dat) {
-    nohist.currentState?.setState(() {
-      isLoadingSearch = true;
-    });
-    for (var t in dat) {
-      if (t.task != null) {
-        Helper.cancelDownload(task: t.task!);
-      }
-    }
-    nohist.currentState?.setState(() {
-      isLoadingSearch = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      key: alertDialogKey,
-      title: Row(
-        children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            color: Colors.red,
-          ),
-          SizedBox(
-            width: 8,
-          ),
-          Text('Warning!'),
-        ],
-      ),
-      contentPadding: EdgeInsets.fromLTRB(24, 24, 0, 0),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(!showSearchField
-              ? 'Do you really want to clear all your downloads?'
-              : 'Do you really want to clear these downloads?'),
-          SizedBox(
-            height: 24,
-            child: CheckboxListTile(
-              value: deleteFromStorage,
-              controlAffinity: ListTileControlAffinity.leading,
-              onChanged: (v) {
-                this.setState(() {
-                  deleteFromStorage = !deleteFromStorage;
-                });
-              },
-              title: Text(
-                "Also Delete From Storage",
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 12,
-          )
-        ],
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () {
-            List<DItem> deleteData = longPressed ? _selectedList : _data;
-            if (!showSearchField) {
-              browserModel.addListOfDownlods = LinkedHashMap();
-            } else {
-              var prevd = browserModel.tasks;
-              for (DItem ditem in deleteData) {
-                if (ditem.task != null) {
-                  prevd[ditem.date]?.removeWhere((element) =>
-                      element.taskId == ditem.task?.taskId &&
-                      element.fileName == ditem.task?.fileName);
-                }
-              }
-              browserModel.addListOfDownlods = prevd;
-            }
-            if (deleteFromStorage) {
-              print("deleting From storage");
-              _removeFromStorage(deleteData);
-            }
-            browserModel.save();
-            if (!longPressed) {
-              _data.clear();
-
-              setState(() => _listKey = GlobalKey());
-            } else {
-              _selectedList.clear();
-              longPressed = false;
-              widget.generateHistoryValues("", true);
-              appBarKey.currentState?.setState(() {});
-            }
-
-            clearAllSwitcher.currentState?.setState(() {});
-            nohist.currentState?.setState(() {});
-
-            Navigator.pop(context);
-          },
-          child: Text(
-            'YES',
-            style: TextStyle(color: Colors.red),
-          ),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Text('NO'),
-        ),
-      ],
-    );
-  }
-}
-
 class ClearAllH extends StatefulWidget {
   final int dataLen;
-  final Function(String, bool) generateHistoryValues;
-
-  ClearAllH(
-      {required this.dataLen, required this.generateHistoryValues, Key? key})
+  final BrowserModel hbrowserModel;
+  ClearAllH({required this.dataLen, required this.hbrowserModel, Key? key})
       : super(key: key);
 
   @override
@@ -1033,42 +903,129 @@ class ClearAllH extends StatefulWidget {
 
 class _ClearAllHState extends State<ClearAllH> {
   ValueKey vk = ValueKey("specificDeletion");
-
-  GlobalKey alertDialogKey = GlobalKey();
   Widget _buildClearAllHistory(BuildContext context) {
-    return Row(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextButton(
-            child: Text(
-              (!showSearchField)
-                  ? "Clear All Downloads"
-                  : "Clear All Searched Downloads",
-              key: vk,
-              style: TextStyle(
-                color: (!longPressed) ? Colors.blue : Colors.grey,
-                decoration: TextDecoration.underline,
-                fontSize: 16,
-              ),
-            ),
-            onPressed: () {
-              if (!longPressed) {
-                showDialog(
-                    context: context,
-                    builder: (_) {
-                      return CustomDeleteDownloadsAlertdialog(
-                        key: alertDialogKey,
-                        generateHistoryValues: widget.generateHistoryValues,
-                      );
-                    });
-              }
-              return null;
-            },
+    return ListView.builder(
+      shrinkWrap: true,
+      scrollDirection: Axis.horizontal,
+      itemCount: 15,
+      itemBuilder: (BuildContext context, int index) => Card(
+        child: Center(child: Text('Dummy Card Text')),
+      ),
+    );
+  }
+
+  Widget asd() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextButton(
+        child: Text(
+          (!showSearchField)
+              ? "Clear All Downloads"
+              : "Clear All Searched Downloads",
+          key: vk,
+          style: TextStyle(
+            color: (!longPressed) ? Colors.blue : Colors.grey,
+            decoration: TextDecoration.underline,
+            fontSize: 16,
           ),
         ),
-      ],
+        onPressed: () {
+          if (!longPressed) {
+            showDialog(
+                context: context,
+                builder: (_) {
+                  return AlertDialog(
+                    title: Text('Warning'),
+                    content: Text(!showSearchField
+                        ? 'Do you really want to clear all your downloads?'
+                        : 'Do you really want to clear this downloads?'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          if (!showSearchField) {
+                            widget.hbrowserModel.addListOfDownlods =
+                                LinkedHashMap();
+                          } else {
+                            var prevd = widget.hbrowserModel.tasks;
+                            for (DItem ditem in _data) {
+                              if (ditem.task != null) {
+                                prevd[ditem.date]?.removeWhere((element) =>
+                                    element.taskId == ditem.task?.taskId &&
+                                    element.fileName == ditem.task?.fileName);
+                              }
+                            }
+                            widget.hbrowserModel.addListOfDownlods = prevd;
+                          }
+                          widget.hbrowserModel.save();
+                          _data.clear();
+                          setState(() => _listKey = GlobalKey());
+                          nohist.currentState?.setState(() {});
+                          Navigator.pop(context);
+                        },
+                        child: Text('YES'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('NO'),
+                      ),
+                    ],
+                  );
+                });
+          }
+          return null;
+        },
+      ),
     );
+  }
+
+  _clearDownloadsFromHistory() {
+    if (!longPressed) {
+      showDialog(
+          context: context,
+          builder: (_) {
+            return AlertDialog(
+              title: Text('Warning'),
+              content: Text(!showSearchField
+                  ? 'Do you really want to clear all your downloads?'
+                  : 'Do you really want to clear these downloads?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    if (!showSearchField) {
+                      widget.hbrowserModel.addListOfDownlods = LinkedHashMap();
+                    } else {
+                      var prevd = widget.hbrowserModel.tasks;
+                      for (DItem ditem in _data) {
+                        if (ditem.task != null) {
+                          prevd[ditem.date]?.removeWhere((element) =>
+                              element.taskId == ditem.task?.taskId &&
+                              element.link == ditem.task?.link &&
+                              element.name == ditem.task?.name);
+                        }
+                      }
+                      widget.hbrowserModel.addListOfDownlods = prevd;
+                    }
+                    widget.hbrowserModel.save();
+                    _data.clear();
+                    setState(() => _listKey = GlobalKey());
+                    nohist.currentState?.setState(() {});
+                    Navigator.pop(context);
+                  },
+                  child: Text('YES'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('NO'),
+                ),
+              ],
+            );
+          });
+    }
+    return null;
   }
 
   @override
@@ -1328,9 +1285,43 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   showDialog(
                       context: context,
                       builder: (_) {
-                        return CustomDeleteDownloadsAlertdialog(
-                            generateHistoryValues:
-                                widget.generateHistoryValues);
+                        return AlertDialog(
+                          title: Text('Warning'),
+                          content: Text(
+                              'Do you really want to clear all the selected downloads?'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                var prevD = browserModel.tasks;
+                                for (DItem ditem in _selectedList) {
+                                  if (ditem.task != null) {
+                                    prevD[ditem.date]?.removeWhere((element) =>
+                                        element.taskId == ditem.task?.taskId &&
+                                        element.fileName ==
+                                            ditem.task?.fileName);
+                                  }
+                                }
+                                browserModel.addListOfDownlods = prevD;
+
+                                browserModel.save();
+                                _selectedList.clear();
+                                longPressed = false;
+                                widget.generateHistoryValues("", true);
+                                clearAllSwitcher.currentState?.setState(() {});
+                                nohist.currentState?.setState(() {});
+                                appBarKey.currentState?.setState(() {});
+                                Navigator.pop(context);
+                              },
+                              child: Text('YES'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text('NO'),
+                            ),
+                          ],
+                        );
                       });
                 },
                 child: Icon(
