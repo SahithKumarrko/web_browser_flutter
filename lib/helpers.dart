@@ -117,20 +117,21 @@ class Helper {
     );
   }
 
-  static void _cancelDownload(TaskInfo task) async {
+  static void cancelDownload(TaskInfo task) async {
+    print("Canceling");
     await FlutterDownloader.cancel(taskId: task.taskId!);
   }
 
-  static void _pauseDownload(TaskInfo task) async {
+  static void pauseDownload(TaskInfo task) async {
     await FlutterDownloader.pause(taskId: task.taskId!);
   }
 
-  static void _resumeDownload(TaskInfo task) async {
+  static void resumeDownload(TaskInfo task) async {
     String? newTaskId = await FlutterDownloader.resume(taskId: task.taskId!);
     task.taskId = newTaskId;
   }
 
-  static void _retryDownload(TaskInfo task) async {
+  static void retryDownload(TaskInfo task) async {
     String? newTaskId = await FlutterDownloader.retry(taskId: task.taskId!);
     task.taskId = newTaskId;
   }
@@ -140,11 +141,11 @@ class Helper {
     if (task.status == DownloadTaskStatus.undefined) {
       browserModel.requestDownload(task, _localPath, task.name.toString());
     } else if (task.status == DownloadTaskStatus.running) {
-      _pauseDownload(task);
+      pauseDownload(task);
     } else if (task.status == DownloadTaskStatus.paused) {
-      _resumeDownload(task);
+      resumeDownload(task);
     } else if (task.status == DownloadTaskStatus.failed) {
-      _retryDownload(task);
+      retryDownload(task);
     }
   }
 }

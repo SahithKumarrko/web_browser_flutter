@@ -358,7 +358,7 @@ class DownloadItem extends StatefulWidget {
 class _DownloadItemState extends State<DownloadItem> {
   Widget _buildItem(DItem item, int index, Animation<double> animation) {
     print(
-        "File Name :: ${item.task?.fileName} , Size :: ${item.task?.fileSize}");
+        "File Name :: ${item.task?.fileName} , Size :: ${item.task?.fileSize}, Date :: ${item.date}");
     return Column(
       children: [
         item.task == null
@@ -540,6 +540,8 @@ class _DownloadItemState extends State<DownloadItem> {
                                               DownloadTaskStatus.complete ||
                                           widget.item.task?.status ==
                                               DownloadTaskStatus.failed ||
+                                          widget.item.task?.status ==
+                                              DownloadTaskStatus.canceled ||
                                           widget.item.task?.status == null)
                                       ? SizedBox.shrink()
                                       : Text(
@@ -599,6 +601,8 @@ class _DownloadItemState extends State<DownloadItem> {
                                           DownloadTaskStatus.complete ||
                                       widget.item.task?.status ==
                                           DownloadTaskStatus.failed ||
+                                      widget.item.task?.status ==
+                                          DownloadTaskStatus.canceled ||
                                       widget.item.task?.status == null)
                                   ? SizedBox.shrink()
                                   : LinearProgressIndicator(
@@ -675,43 +679,67 @@ class _DownloadItemState extends State<DownloadItem> {
 
   Widget _buildActionForTask(TaskInfo task) {
     if (task.status == DownloadTaskStatus.undefined) {
-      return IconButton(
-        onPressed: () {
-          Helper.downloadActionclick(task, browserModel, _localPath);
-        },
-        icon: Icon(
-          Icons.refresh,
-          color: Colors.red,
-          size: 24,
-        ),
-        constraints: BoxConstraints(),
-        padding: EdgeInsets.zero,
+      return Row(
+        children: [
+          IconButton(
+            onPressed: () {
+              Helper.downloadActionclick(task, browserModel, _localPath);
+            },
+            icon: Icon(
+              Icons.refresh,
+              color: Colors.red,
+              size: 24,
+            ),
+            constraints: BoxConstraints(),
+            padding: EdgeInsets.zero,
+          ),
+          SizedBox(
+            width: 8,
+          ),
+          _cancelTask(task),
+        ],
       );
     } else if (task.status == DownloadTaskStatus.running) {
-      return IconButton(
-        onPressed: () {
-          Helper.downloadActionclick(task, browserModel, _localPath);
-        },
-        icon: Icon(
-          Icons.pause,
-          color: Colors.blue,
-          size: 24,
-        ),
-        constraints: BoxConstraints(),
-        padding: EdgeInsets.zero,
+      return Row(
+        children: [
+          IconButton(
+            onPressed: () {
+              Helper.downloadActionclick(task, browserModel, _localPath);
+            },
+            icon: Icon(
+              Icons.pause,
+              color: Colors.blue,
+              size: 24,
+            ),
+            constraints: BoxConstraints(),
+            padding: EdgeInsets.zero,
+          ),
+          SizedBox(
+            width: 8,
+          ),
+          _cancelTask(task),
+        ],
       );
     } else if (task.status == DownloadTaskStatus.paused) {
-      return IconButton(
-        onPressed: () {
-          Helper.downloadActionclick(task, browserModel, _localPath);
-        },
-        icon: Icon(
-          Icons.play_arrow,
-          color: Colors.green,
-          size: 24,
-        ),
-        constraints: BoxConstraints(),
-        padding: EdgeInsets.zero,
+      return Row(
+        children: [
+          IconButton(
+            onPressed: () {
+              Helper.downloadActionclick(task, browserModel, _localPath);
+            },
+            icon: Icon(
+              Icons.play_arrow,
+              color: Colors.green,
+              size: 24,
+            ),
+            constraints: BoxConstraints(),
+            padding: EdgeInsets.zero,
+          ),
+          SizedBox(
+            width: 8,
+          ),
+          _cancelTask(task),
+        ],
       );
     } else if (task.status == DownloadTaskStatus.complete) {
       return _buildoptionsMenu(task);
@@ -735,33 +763,76 @@ class _DownloadItemState extends State<DownloadItem> {
           color: Colors.blue,
         ),
       );
+    } else if (task.status == DownloadTaskStatus.canceled) {
+      return Row(
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.red,
+            size: 24,
+          ),
+          SizedBox(
+            width: 8,
+          ),
+          IconButton(
+            onPressed: () {
+              removeItem(widget.index);
+            },
+            icon: Icon(
+              Icons.delete_forever_rounded,
+              color: Colors.red,
+              size: 24,
+            ),
+            constraints: BoxConstraints(),
+            padding: EdgeInsets.zero,
+          ),
+        ],
+      );
     } else {
       return Icon(
         Icons.warning_amber_rounded,
         color: Colors.red,
-        size: 32,
+        size: 24,
       );
     }
   }
 
+  IconButton _cancelTask(TaskInfo task) {
+    return IconButton(
+      onPressed: () {
+        Helper.cancelDownload(task);
+      },
+      icon: Icon(
+        Icons.close_rounded,
+        color: Colors.red,
+        size: 24,
+      ),
+      constraints: BoxConstraints(),
+      padding: EdgeInsets.zero,
+    );
+  }
+
   removeItem(int index) {
     ritem = _data.removeAt(index);
+    print("Removing ritem :: $ritem");
     for (int i = 0; i < _data.length; i++) {
       if (_data[i].task == null) {
         items[_data[i].date]![1] = i;
       }
     }
     AnimatedListRemovedItemBuilder builder = (context, animation) {
-      browserModel.tasks[ritem.date] = _data
-          .where((element) => element.task != null)
-          .toList()
-          .where((element) => (element.date == ritem.date &&
-              element.task!.name != ritem.task!.name &&
-              element.task!.link != ritem.task!.link))
-          .toList()
-          .map((e) => e.task!)
-          .toList();
-      browserModel.save();
+      if (browserModel.tasks[ritem.date] != null) {
+        List<TaskInfo> d = browserModel.tasks[ritem.date] ?? [];
+
+        browserModel.tasks[ritem.date] = d
+            .where((t) => (t.fileName != ritem.task?.fileName &&
+                t.taskId != ritem.task?.taskId))
+            .toList();
+        print("data :: ");
+        print(browserModel.tasks[ritem.date]);
+        browserModel.save();
+      }
+
       items[ritem.date]![0] = (items[ritem.date]![0] - 1);
       ritem.isDeleted = true;
 

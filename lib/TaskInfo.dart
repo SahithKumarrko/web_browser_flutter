@@ -27,7 +27,7 @@ class TaskInfo {
 
   @override
   String toString() {
-    return "TaskInfo(taskId: $taskId,name: $name,link: $link, filesize: $fileSize ,status: $status)";
+    return "TaskInfo(taskId: $taskId,name: $name, savedDir: $savedDir ,link: $link, filesize: $fileSize ,status: $status)";
   }
 
   static TaskInfo? fromMap(Map<String, dynamic>? map) {
