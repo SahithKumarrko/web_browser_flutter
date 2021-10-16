@@ -345,6 +345,26 @@ class FlutterDownloader {
     }
   }
 
+  static Future<bool> openFile(
+      {required String taskId,
+      required String url,
+      required String savedDir,
+      required String fileName}) async {
+    assert(_initialized, 'FlutterDownloader.initialize() must be called first');
+
+    try {
+      return await _channel.invokeMethod('open_file', {
+        'task_id': taskId,
+        "url": url,
+        "file_name": fileName,
+        "saved_dir": savedDir
+      });
+    } on PlatformException catch (e) {
+      print(e.message);
+      return false;
+    }
+  }
+
   ///
   /// Register a callback to track status and progress of download task
   ///

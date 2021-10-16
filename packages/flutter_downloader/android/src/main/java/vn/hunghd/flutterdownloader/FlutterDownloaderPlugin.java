@@ -96,7 +96,11 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
             retry(call, result);
         } else if (call.method.equals("open")) {
             open(call, result);
-        } else if (call.method.equals("remove")) {
+        } 
+        else if (call.method.equals("open_file")) {
+            open_file(call, result);
+        } 
+        else if (call.method.equals("remove")) {
             remove(call, result);
         } else {
             result.notImplemented();
@@ -310,6 +314,33 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
                 String fileURL = task.url;
                 String savedDir = task.savedDir;
                 String filename = task.filename;
+                if (filename == null) {
+                    filename = fileURL.substring(fileURL.lastIndexOf("/") + 1, fileURL.length());
+                }
+                String saveFilePath = savedDir + File.separator + filename;
+                Intent intent = IntentUtils.validatedFileIntent(context, saveFilePath, task.mimeType);
+                if (intent != null) {
+                    context.startActivity(intent);
+                    result.success(true);
+                } else {
+                    result.success(false);
+                }
+            } else {
+                result.error("invalid_status", "only success task can be opened", null);
+            }
+        } else {
+            result.error("invalid_task_id", "not found task corresponding to given task id", null);
+        }
+    }
+
+    private void open_file(MethodCall call, MethodChannel.Result result) {
+        String taskId = call.argument("task_id");
+        DownloadTask task = taskDao.loadTask(taskId);
+        if (task != null) {
+            if (task.status == DownloadStatus.COMPLETE) {
+                String fileURL = call.argument("url");
+                String savedDir = call.argument("saved_dir");
+                String filename = call.argument("file_name");
                 if (filename == null) {
                     filename = fileURL.substring(fileURL.lastIndexOf("/") + 1, fileURL.length());
                 }

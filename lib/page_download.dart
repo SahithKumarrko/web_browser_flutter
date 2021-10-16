@@ -38,7 +38,7 @@ Map<String, List<int>> items = {};
 late DItem ritem;
 GlobalKey appBarKey = GlobalKey();
 bool isLoadingSearch = false;
-
+TextEditingController frController = TextEditingController();
 late String _localPath;
 late bool _permissionReady;
 
@@ -123,6 +123,8 @@ class _PageDownloadState extends State<PageDownload> {
   void dispose() {
     super.dispose();
     unbindBackgroundIsolate();
+
+    frController.dispose();
   }
 
   @override
@@ -216,7 +218,7 @@ class _PageDownloadState extends State<PageDownload> {
     for (DItem ditem in _data) {
       if (ditem.task != null) {
         for (DownloadTask t in tasks ?? []) {
-          if (t.filename == ditem.task?.name && t.url == ditem.task?.link) {
+          if (t.filename == ditem.task?.fileName && t.url == ditem.task?.link) {
             ditem.task?.taskId = t.taskId;
             ditem.task?.fileSize = t.fileSize;
             ditem.task?.link = t.url;
@@ -337,6 +339,7 @@ class _PageDownloadState extends State<PageDownload> {
               index: index,
               animation: animation,
               key: item.key,
+              generateHistoryValues: generateHistoryValues,
             )
           ]);
         }
@@ -350,10 +353,12 @@ class DownloadItem extends StatefulWidget {
   final DItem item;
   final int index;
   final Animation<double> animation;
+  final Function(String, bool) generateHistoryValues;
   DownloadItem(
       {required this.item,
       required this.animation,
       required this.index,
+      required this.generateHistoryValues,
       Key? key})
       : super(key: key);
 
@@ -362,6 +367,11 @@ class DownloadItem extends StatefulWidget {
 }
 
 class _DownloadItemState extends State<DownloadItem> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Widget _buildItem(DItem item, int index, Animation<double> animation) {
     print(
         "File Name :: ${item.task?.fileName} , Size :: ${item.task?.fileSize}, Date :: ${item.date}");
@@ -417,9 +427,46 @@ class _DownloadItemState extends State<DownloadItem> {
                     });
                     appBarKey.currentState?.setState(() {});
                   },
-                  onTap: () {
+                  onTap: () async {
                     if (!longPressed) {
-                      Navigator.pop(context);
+                      File f =
+                          File("${item.task?.savedDir}/${item.task?.fileName}");
+                      bool opened = false;
+                      if (await f.exists()) {
+                        opened = await FlutterDownloader.openFile(
+                            fileName: item.task?.fileName ?? "",
+                            taskId: item.task?.taskId ?? "",
+                            savedDir: item.task?.savedDir ?? "",
+                            url: item.task?.link ?? "");
+                      }
+
+                      if (!opened) {
+                        String msg = "";
+                        Color msgColor = Colors.red;
+                        if (item.task?.status == DownloadTaskStatus.running ||
+                            item.task?.status == DownloadTaskStatus.enqueued ||
+                            item.task?.status == DownloadTaskStatus.paused) {
+                          msg = "File is downloading...";
+                          msgColor = Colors.blue;
+                        } else if (item.task?.status ==
+                                DownloadTaskStatus.failed ||
+                            item.task?.status == DownloadTaskStatus.canceled) {
+                          msg = "Not able to open file.";
+                          msgColor = Colors.red;
+                        } else if (item.task?.status ==
+                            DownloadTaskStatus.complete) {
+                          msg = "Not able to open file.";
+                          msgColor = Colors.red;
+                        }
+                        Helper.showBasicFlash(
+                            msg: msg,
+                            context: context,
+                            backgroundColor: msgColor,
+                            textColor: Colors.white,
+                            duration: Duration(seconds: 3),
+                            position: FlashPosition.top);
+                      }
+                      // Navigator.pop(context);
                     } else {
                       if (item.isSelected) {
                         _selectedList.remove(item);
@@ -627,11 +674,96 @@ class _DownloadItemState extends State<DownloadItem> {
     );
   }
 
-  void _popupMenuChoiceAction(String choice, TaskInfo task) {
-    switch (choice) {
-      case "Open in File Explorer":
+  _renameFile(File f, BuildContext actx, TaskInfo task, String renamed) async {
+    if (renamed != task.fileName) {
+      File f = new File(task.savedDir + "/" + renamed);
+      if (await f.exists()) {
+        Helper.showBasicFlash(
+            msg: "File Already Present. Try with giving a different name.",
+            context: actx,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            duration: Duration(seconds: 3),
+            position: FlashPosition.top);
+        return;
+      }
+    }
+    Navigator.pop(actx);
+
+    await FileUtil.changeFileNameOnly(f, renamed);
+    var prevD = browserModel.tasks;
+    List<TaskInfo> tinfo = prevD[widget.item.date] ?? [];
+    for (var i = 0; i < tinfo.length; i++) {
+      if (tinfo[i].fileName == task.fileName &&
+          tinfo[i].savedDir == task.savedDir &&
+          tinfo[i].taskId == task.taskId) {
+        tinfo[i].fileName = renamed;
+        tinfo[i].name = renamed;
+
         break;
+      }
+    }
+    browserModel.addListOfDownlods = prevD;
+
+    await browserModel.save();
+    Helper.showBasicFlash(
+        msg: "Renamed Successfully.",
+        context: context,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        duration: Duration(seconds: 3),
+        position: FlashPosition.top);
+    widget.generateHistoryValues("", true);
+  }
+
+  void _popupMenuChoiceAction(String choice, TaskInfo task) async {
+    switch (choice) {
       case "Rename":
+        File f = File(task.savedDir + "/" + task.fileName);
+        if (!(await f.exists())) {
+          Helper.showBasicFlash(
+              msg:
+                  "Not able to perform file rename action.\nReason: File is not present.",
+              context: context,
+              duration: Duration(seconds: 5),
+              backgroundColor: Colors.redAccent,
+              textColor: Colors.white,
+              position: FlashPosition.top);
+          removeItem(widget.index);
+        } else {
+          showDialog(
+              context: context,
+              barrierDismissible: true,
+              builder: (actx) {
+                var ff = task.fileName.split(".");
+                String fn = ff.sublist(0, ff.length - 1).join(".");
+                frController = new TextEditingController(text: task.fileName);
+                frController.selection = new TextSelection(
+                  baseOffset: 0,
+                  extentOffset: fn.length,
+                );
+                return AlertDialog(
+                  title: Text("Rename File"),
+                  content: TextField(
+                    controller: frController,
+                    autofocus: true,
+                    autocorrect: false,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (v) {
+                      _renameFile(f, actx, task, frController.value.text);
+                    },
+                    decoration: InputDecoration(
+                        suffixIcon: InkWell(
+                            onTap: () {
+                              _renameFile(
+                                  f, actx, task, frController.value.text);
+                            },
+                            child: Icon(FontAwesomeIcons.edit))),
+                  ),
+                );
+              });
+        }
         break;
       case "Share":
         print("Sharing .. ${task.savedDir}/${task.fileName}");
@@ -643,6 +775,19 @@ class _DownloadItemState extends State<DownloadItem> {
       case "Delete From Storage and History":
         Helper.cancelDownload(task: task, removeFromStorage: true);
         removeItem(widget.index);
+        break;
+      case "Copy Download Url":
+        Clipboard.setData(ClipboardData(text: task.link.toString()));
+        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        //   content: Text("Copied!"),
+        // ));
+        Helper.showBasicFlash(
+            duration: Duration(seconds: 2),
+            msg: "Copied!",
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            position: FlashPosition.top,
+            context: context);
         break;
     }
   }
@@ -660,11 +805,10 @@ class _DownloadItemState extends State<DownloadItem> {
             )),
         itemBuilder: (popupMenuContext) {
           var popupitems = <PopupMenuEntry<String>>[];
-
           popupitems.add(CustomPopupMenuItem<String>(
             enabled: true,
-            value: "Open in File Explorer",
-            child: Text("Open in File Explorer"),
+            value: "Copy Download Url",
+            child: Text("Copy Download Url"),
           ));
           popupitems.add(CustomPopupMenuItem<String>(
             enabled: true,
@@ -758,33 +902,21 @@ class _DownloadItemState extends State<DownloadItem> {
       );
     } else if (task.status == DownloadTaskStatus.complete) {
       return _buildoptionsMenu(task);
-    } else if (task.status == DownloadTaskStatus.failed) {
-      return IconButton(
-        onPressed: () {
-          Helper.downloadActionclick(task, browserModel, _localPath);
-        },
-        icon: Icon(
-          Icons.refresh,
-          color: Colors.red,
-          size: 24,
-        ),
-        constraints: BoxConstraints(),
-        padding: EdgeInsets.zero,
-      );
-    } else if (task.status == DownloadTaskStatus.enqueued) {
-      return Container(
-        constraints: BoxConstraints(minHeight: 32.0, minWidth: 32.0),
-        child: CircularProgressIndicator(
-          color: Colors.blue,
-        ),
-      );
-    } else if (task.status == DownloadTaskStatus.canceled) {
+    } else if (task.status == DownloadTaskStatus.failed ||
+        task.status == DownloadTaskStatus.canceled) {
       return Row(
         children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            color: Colors.red,
-            size: 24,
+          IconButton(
+            onPressed: () {
+              Helper.downloadActionclick(task, browserModel, _localPath);
+            },
+            icon: Icon(
+              Icons.refresh,
+              color: Colors.red,
+              size: 24,
+            ),
+            constraints: BoxConstraints(),
+            padding: EdgeInsets.zero,
           ),
           SizedBox(
             width: 8,
@@ -792,6 +924,7 @@ class _DownloadItemState extends State<DownloadItem> {
           IconButton(
             onPressed: () {
               removeItem(widget.index);
+              Helper.cancelDownload(task: task);
             },
             icon: Icon(
               Icons.delete_forever_rounded,
@@ -802,6 +935,13 @@ class _DownloadItemState extends State<DownloadItem> {
             padding: EdgeInsets.zero,
           ),
         ],
+      );
+    } else if (task.status == DownloadTaskStatus.enqueued) {
+      return Container(
+        constraints: BoxConstraints(minHeight: 32.0, minWidth: 32.0),
+        child: CircularProgressIndicator(
+          color: Colors.blue,
+        ),
       );
     } else {
       return Icon(
@@ -1218,64 +1358,6 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
     );
   }
 
-  void _popupMenuChoiceActionForSelected(String choice) async {
-    switch (choice) {
-      case "Share":
-        List<String> filePaths = [];
-        var c = 0;
-        for (var i in _selectedList) {
-          var fp = "${i.task?.savedDir}/${i.task?.fileName}";
-          File file = File(fp);
-          if (await file.exists()) {
-            filePaths.add(fp);
-            c += 1;
-          }
-        }
-        if (c != _selectedList.length) {
-          Helper.showBasicFlash(
-              msg: "Not able to share few files.",
-              context: context,
-              duration: Duration(seconds: 5),
-              backgroundColor: Colors.redAccent,
-              textColor: Colors.white,
-              position: FlashPosition.top);
-        }
-        Helper.shareFiles(filePaths);
-        break;
-      case "Delete":
-        break;
-    }
-  }
-
-  Widget _buildoptionsMenu() {
-    return PopupMenuButton<String>(
-        onSelected: (choice) => _popupMenuChoiceActionForSelected(choice),
-        padding: EdgeInsets.zero,
-        child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 4),
-            child: Icon(
-              Icons.more_vert_rounded,
-              color: Colors.white,
-              size: 24,
-            )),
-        itemBuilder: (popupMenuContext) {
-          var popupitems = <PopupMenuEntry<String>>[];
-
-          popupitems.add(CustomPopupMenuItem<String>(
-            enabled: true,
-            value: "Share",
-            child: Text("Share"),
-          ));
-
-          popupitems.add(CustomPopupMenuItem<String>(
-            enabled: true,
-            value: "Delete",
-            child: Text("Delete"),
-          ));
-          return popupitems;
-        });
-  }
-
   Widget _buildLongPressed({required Key key}) {
     return Container(
       key: key,
@@ -1320,6 +1402,37 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               InkWell(
+                onTap: () async {
+                  List<String> filePaths = [];
+                  var c = 0;
+                  for (var i in _selectedList) {
+                    var fp = "${i.task?.savedDir}/${i.task?.fileName}";
+                    File file = File(fp);
+                    if (await file.exists()) {
+                      filePaths.add(fp);
+                      c += 1;
+                    }
+                  }
+                  if (c != _selectedList.length) {
+                    Helper.showBasicFlash(
+                        msg: "Not able to share few files.",
+                        context: context,
+                        duration: Duration(seconds: 5),
+                        backgroundColor: Colors.redAccent,
+                        textColor: Colors.white,
+                        position: FlashPosition.top);
+                  }
+                  Helper.shareFiles(filePaths);
+                },
+                child: FaIcon(
+                  FontAwesomeIcons.shareAlt,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(
+                width: 12,
+              ),
+              InkWell(
                 onTap: () {
                   setState(() {
                     showSearchField = false;
@@ -1338,10 +1451,6 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(
-                width: 8,
-              ),
-              _buildoptionsMenu(),
             ],
           ),
         ],

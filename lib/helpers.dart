@@ -149,7 +149,8 @@ class Helper {
       pauseDownload(task);
     } else if (task.status == DownloadTaskStatus.paused) {
       resumeDownload(task);
-    } else if (task.status == DownloadTaskStatus.failed) {
+    } else if (task.status == DownloadTaskStatus.failed ||
+        task.status == DownloadTaskStatus.canceled) {
       retryDownload(task);
     }
   }
@@ -423,6 +424,13 @@ class FileUtil {
                     fontSize: 20.0),
               ));
         });
+  }
+
+  static Future<File> changeFileNameOnly(File file, String newFileName) {
+    var path = file.path;
+    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+    return file.rename(newPath);
   }
 
   static Future<String> retryDownload(
