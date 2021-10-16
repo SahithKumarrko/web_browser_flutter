@@ -10,6 +10,7 @@ class TaskInfo {
   String? taskId;
   int? progress = 0;
   String fileSize = "";
+  bool notFromDownload = false;
   DownloadTaskStatus? status = DownloadTaskStatus.undefined;
 
   GlobalKey? key = GlobalKey();
@@ -23,6 +24,7 @@ class TaskInfo {
       this.fileSize = "",
       required this.fileName,
       required this.savedDir,
+      this.notFromDownload = false,
       this.status});
 
   @override
@@ -40,6 +42,7 @@ class TaskInfo {
             fileSize: map["fileSize"],
             fileName: map["fileName"],
             savedDir: map["savedDir"],
+            notFromDownload: map["notFromDownload"],
             status: DownloadTaskStatus(map["status"] ?? 0))
         : null;
   }
@@ -53,7 +56,8 @@ class TaskInfo {
       "status": status?.value ?? 0,
       "fileSize": fileSize,
       "fileName": fileName,
-      "savedDir": savedDir
+      "savedDir": savedDir,
+      "notFromDownload": notFromDownload
     };
   }
 }

@@ -11,7 +11,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 
 import androidx.core.app.NotificationManagerCompat;
-
+import android.util.Log;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -124,6 +124,7 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
     private WorkRequest buildRequest(String url, String savedDir, String filename, String headers,
                                      boolean showNotification, boolean openFileFromNotification,
                                      boolean isResume, boolean requiresStorageNotLow, boolean saveInPublicStorage) {
+        
         WorkRequest request = new OneTimeWorkRequest.Builder(DownloadWorker.class)
                 .setConstraints(new Constraints.Builder()
                         .setRequiresStorageNotLow(requiresStorageNotLow)
@@ -173,6 +174,12 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
         result.success(null);
     }
 
+    private void log(String message) {
+        
+            Log.d(TAG, message);
+        
+    }
+
     private void enqueue(MethodCall call, MethodChannel.Result result) {
         String url = call.argument("url");
         String savedDir = call.argument("saved_dir");
@@ -182,8 +189,10 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
         boolean openFileFromNotification = call.argument("open_file_from_notification");
         boolean requiresStorageNotLow = call.argument("requires_storage_not_low");
         boolean saveInPublicStorage = call.argument("save_in_public_storage");
+        log("Creating request");
         WorkRequest request = buildRequest(url, savedDir, filename, headers, showNotification,
                 openFileFromNotification, false, requiresStorageNotLow, saveInPublicStorage);
+        log("Enqued");
         WorkManager.getInstance(context).enqueue(request);
         String taskId = request.getId().toString();
         result.success(taskId);

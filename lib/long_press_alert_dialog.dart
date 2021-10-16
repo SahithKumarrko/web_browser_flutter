@@ -1,9 +1,19 @@
 // import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:flash/flash.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/custom_image.dart';
+import 'package:webpage_dev_console/helpers.dart';
+import 'package:webpage_dev_console/history.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -38,6 +48,15 @@ class LongPressAlertDialog extends StatefulWidget {
 
 class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
   var _isLinkPreviewReady = false;
+  late String _localPath;
+  late PermissionStatus _permissionReady;
+  bool _checkPermissionAfterSettingsPage = false;
+  String fileName = "", durl = "";
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,11 +84,9 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
             widget.requestFocusNodeHrefResult != null &&
             widget.requestFocusNodeHrefResult!.url != null &&
             widget.requestFocusNodeHrefResult!.url.toString().isNotEmpty)) {
+      // print("Type Returning Image");
+      // print("Type2 :: ${widget.requestFocusNodeHrefResult?.url}");
       return <Widget>[
-        _buildLinkTile(),
-        Divider(),
-        _buildLinkPreview(),
-        Divider(),
         _buildOpenNewTab(),
         _buildOpenNewIncognitoTab(),
         _buildCopyAddressLink(),
@@ -77,11 +94,15 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       ];
     } else if (widget.hitTestResult.type ==
         InAppWebViewHitTestResultType.IMAGE_TYPE) {
+      // print("Type :: ${widget.requestFocusNodeHrefResult?.url}");
+      // print("TTT :: ${widget.hitTestResult.extra}");
+      // String aa = widget.requestFocusNodeHrefResult?.src ?? "";
+      // print("TTT :: ${base64.decode(aa)}");
       return <Widget>[
-        _buildImageTile(),
-        Divider(),
+        // _buildImageTile(),
+        // Divider(),
         _buildOpenImageNewTab(),
-        _buildDownloadImage(),
+        _buildDownload(),
         _buildSearchImageOnGoogle(),
         _buildShareImage(),
       ];
@@ -261,24 +282,170 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     );
   }
 
-  Widget _buildDownloadImage() {
-    return ListTile(
-      title: const Text("Download image"),
-      onTap: () async {
-        if (widget.hitTestResult.extra != null) {
-          var uri = Uri.parse(widget.hitTestResult.extra!);
-          String path = uri.path;
-          String fileName = path.substring(path.lastIndexOf('/') + 1);
+  void resume() async {
+    if (Platform.isAndroid) {
+      widget.webViewModel.webViewController?.android.resume();
+    }
+    if (_checkPermissionAfterSettingsPage) {
+      _checkPermissionAfterSettingsPage = false;
+      fileName =
+          await FileUtil.retryDownload(context: context, fileName: fileName);
+    }
+  }
 
-          final taskId = await FlutterDownloader.enqueue(
-            url: widget.hitTestResult.extra ?? "",
-            fileName: fileName,
-            savedDir: (await getExternalStorageDirectory())?.path ?? "./",
-            showNotification: true,
-            openFileFromNotification: true,
-          );
+  TextEditingController frController = TextEditingController();
+  Future<void> download(bool isImage) async {
+    var browserModel = Provider.of<BrowserModel>(context, listen: false);
+    if (fileName == "") {
+      print("TTT :: Openming");
+      showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (actx) {
+            return AlertDialog(
+              title: Text("Save as"),
+              content: TextField(
+                controller: frController,
+                autofocus: true,
+                autocorrect: false,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (v) {
+                  fileName = frController.value.text;
+
+                  download(isImage);
+                  Navigator.pop(actx);
+                },
+                decoration: InputDecoration(
+                    suffixIcon: InkWell(
+                        onTap: () {
+                          fileName = frController.value.text;
+
+                          download(isImage);
+                          Navigator.pop(actx);
+                        },
+                        child: Icon(FontAwesomeIcons.edit))),
+              ),
+            );
+          });
+    } else if (!isImage) {
+      var task;
+
+      task = TaskInfo(
+          link: durl.toString(),
+          name: fileName,
+          fileName: fileName,
+          savedDir: _localPath);
+
+      browserModel.requestDownload(task, _localPath, fileName);
+      browserModel.addDownloadTask = task;
+      browserModel.save();
+    } else {
+      String p = widget.requestFocusNodeHrefResult?.src ?? "";
+      if (p.startsWith("data")) {
+        var pp = p.split("/");
+        if (pp.length >= 2) {
+          var p2 = pp[1];
+          var t = p2.split(";").first;
+          print("File type :: $t");
+          Uint8List bytes = Base64Decoder()
+              .convert(p.replaceFirst("${pp[0]}/$t;base64,", ""));
+
+          File f = File(_localPath + "/" + fileName);
+          f.writeAsBytes(bytes);
+          int fl = await f.length();
+          var task = TaskInfo(
+              link: durl.toString(),
+              name: fileName,
+              fileName: fileName,
+              fileSize: fl.toString(),
+              status: DownloadTaskStatus.complete,
+              progress: 100,
+              notFromDownload: true,
+              savedDir: _localPath);
+          browserModel.addDownloadTask = task;
+          browserModel.save();
+          Helper.showBasicFlash(
+              msg: "Saved Successfully.",
+              context: context,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              position: FlashPosition.top,
+              duration: Duration(seconds: 3));
+        } else {
+          Helper.showBasicFlash(
+              msg: "Not able to download file. 2",
+              context: context,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              position: FlashPosition.top,
+              duration: Duration(seconds: 3));
         }
-        Navigator.pop(context);
+      }
+    }
+  }
+
+  Widget _buildDownload() {
+    var browserModel = Provider.of<BrowserModel>(context, listen: false);
+    return ListTile(
+      title: const Text("Save"),
+      onTap: () async {
+        // Navigator.pop(context);
+        bool isImage = false;
+        fileName = "";
+        if (widget.requestFocusNodeHrefResult?.src != null) {
+          if ((widget.requestFocusNodeHrefResult?.src ?? "")
+              .startsWith("data")) {
+            isImage = true;
+          } else {
+            durl = widget.requestFocusNodeHrefResult?.src.toString() ?? "";
+          }
+        } else if (widget.requestFocusNodeHrefResult?.url != null) {
+          String path = widget.requestFocusNodeHrefResult?.url?.path ?? "";
+          fileName = path.substring(path.lastIndexOf('/') + 1);
+
+          durl = widget.requestFocusNodeHrefResult?.url.toString() ?? "";
+          fileName = path.substring(path.lastIndexOf('/') + 1);
+        } else {
+          print("${widget.requestFocusNodeHrefResult?.toString()}");
+          Helper.showBasicFlash(
+              msg: "Not able to download file. 1",
+              context: context,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              position: FlashPosition.top,
+              duration: Duration(seconds: 3));
+
+          return;
+        }
+
+        _permissionReady = await FileUtil.checkPermission(context: context);
+
+        if (_permissionReady == PermissionStatus.granted) {
+          _localPath = await FileUtil.findLocalPath();
+          // print("Checking in :: $_localPath");
+
+          bool fileExists = await File(_localPath + "/" + fileName).exists();
+          if (fileExists) {
+            FileUtil.showAlreadyFileExistsError(
+                context: context,
+                action: () async {
+                  fileName = await FileUtil.getFileName(
+                      context: context, fileName: fileName);
+                  download(isImage);
+                });
+          } else {
+            download(isImage);
+          }
+        } else {
+          if (_permissionReady == PermissionStatus.permanentlyDenied) {
+            FileUtil.showPermissionError(
+                context: context,
+                action: () {
+                  _checkPermissionAfterSettingsPage = true;
+                });
+          }
+        }
       },
     );
   }

@@ -7,18 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html/shims/dart_ui_real.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
-import 'package:webpage_dev_console/model_search.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
-import 'package:webpage_dev_console/models/webview_model.dart';
-import 'package:webpage_dev_console/tab_viewer_popup_menu_actions.dart';
-import 'package:webpage_dev_console/util.dart';
 
 bool showSearchField = false;
 GlobalKey clearAllSwitcher = GlobalKey();
@@ -40,7 +35,6 @@ GlobalKey appBarKey = GlobalKey();
 bool isLoadingSearch = false;
 TextEditingController frController = TextEditingController();
 late String _localPath;
-late bool _permissionReady;
 
 class DItem {
   String date;
@@ -124,7 +118,7 @@ class _PageDownloadState extends State<PageDownload> {
     super.dispose();
     unbindBackgroundIsolate();
 
-    frController.dispose();
+    // frController.dispose();
   }
 
   @override
@@ -218,7 +212,9 @@ class _PageDownloadState extends State<PageDownload> {
     for (DItem ditem in _data) {
       if (ditem.task != null) {
         for (DownloadTask t in tasks ?? []) {
-          if (t.filename == ditem.task?.fileName && t.url == ditem.task?.link) {
+          if (t.filename == ditem.task?.fileName &&
+              t.url == ditem.task?.link &&
+              !(ditem.task?.notFromDownload ?? true)) {
             ditem.task?.taskId = t.taskId;
             ditem.task?.fileSize = t.fileSize;
             ditem.task?.link = t.url;
@@ -373,8 +369,30 @@ class _DownloadItemState extends State<DownloadItem> {
   }
 
   Widget _buildItem(DItem item, int index, Animation<double> animation) {
-    print(
-        "File Name :: ${item.task?.fileName} , Size :: ${item.task?.fileSize}, Date :: ${item.date}");
+    num downloadSize = num.parse(widget.item.task?.fileSize ?? "0") == 0
+        ? 0
+        : (((num.parse(widget.item.task?.fileSize ?? "0") / 1024) / 1024) *
+            ((widget.item.task?.progress ?? 1) / 100));
+    num actual = num.parse(widget.item.task?.fileSize ?? "0") == 0
+        ? 0
+        : (((num.parse(widget.item.task?.fileSize ?? "0") / 1024) / 1024));
+    String downloaded = "";
+    String actualSize = "";
+    if (downloadSize <= 0) {
+      downloaded = downloadSize.toStringAsFixed(2) + "KB";
+    } else if (downloadSize > 1023) {
+      downloaded = (downloadSize / 1024).toStringAsFixed(2) + "GB";
+    } else {
+      downloaded = downloadSize.toStringAsFixed(2) + "MB";
+    }
+
+    if (actual <= 0) {
+      actualSize = actual.toStringAsFixed(2) + "KB";
+    } else if (actual > 1023) {
+      actualSize = (actual / 1024).toStringAsFixed(2) + "GB";
+    } else {
+      actualSize = actual.toStringAsFixed(2) + "MB";
+    }
     return Column(
       children: [
         item.task == null
@@ -550,22 +568,7 @@ class _DownloadItemState extends State<DownloadItem> {
                                           widget.item.task?.status == null)
                                       ? SizedBox.shrink()
                                       : Text(
-                                          num.parse(widget.item.task
-                                                          ?.fileSize ??
-                                                      "0") ==
-                                                  0
-                                              ? "NA"
-                                              : (((num.parse(widget.item.task
-                                                                          ?.fileSize ??
-                                                                      "0") /
-                                                                  1024) /
-                                                              1024) *
-                                                          ((widget.item.task
-                                                                      ?.progress ??
-                                                                  1) /
-                                                              100))
-                                                      .toStringAsFixed(2) +
-                                                  "MB",
+                                          downloaded,
                                           style: TextStyle(
                                               color: (widget
                                                           .item.task?.status ==
@@ -605,17 +608,7 @@ class _DownloadItemState extends State<DownloadItem> {
                                           ),
                                         ),
                                   Text(
-                                    num.parse(widget.item.task?.fileSize ??
-                                                "0") ==
-                                            0
-                                        ? "NA"
-                                        : (((num.parse(widget.item.task
-                                                                ?.fileSize ??
-                                                            "0") /
-                                                        1024) /
-                                                    1024))
-                                                .toStringAsFixed(2) +
-                                            "MB",
+                                    actualSize,
                                     style: TextStyle(
                                       color: (widget.item.task?.status ==
                                               DownloadTaskStatus.complete)
