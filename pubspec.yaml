@@ -27,6 +27,7 @@ dependencies:
     path: packages/file_icon
   device_info: ^2.0.2
   extended_image: ^4.0.0
+  filesystem_picker: ^2.0.0
   flash: ^2.0.1
   flutter:
     sdk: flutter

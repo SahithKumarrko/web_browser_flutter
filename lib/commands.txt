@@ -1,0 +1,2 @@
+flutter run --profile --cache-sksl --purge-persistent-cache
+flutter build apk --bundle-sksl-path flutter_01.sksl.json

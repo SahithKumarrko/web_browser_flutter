@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:extended_image/extended_image.dart';
 import 'package:custom_file_icons/file_icon.dart';
 import 'package:flutter/cupertino.dart';
@@ -76,6 +79,19 @@ class _CustomImageState extends State<CustomImage> {
       );
     }
     if (widget.url != null) {
+      if (widget.url.toString().startsWith("data")) {
+        String p = widget.url.toString();
+        var pp = p.split("/");
+        var p2 = pp[1];
+        var t = p2.split(";").first;
+        Uint8List bytes =
+            Base64Decoder().convert(p.replaceFirst("${pp[0]}/$t;base64,", ""));
+        return Image.memory(
+          bytes,
+          width:
+              this.widget.width ?? this.widget.height ?? this.widget.maxWidth,
+        );
+      }
       return Container(
         key: imageKey,
         child: ExtendedImage.network(
@@ -84,6 +100,8 @@ class _CustomImageState extends State<CustomImage> {
           width:
               this.widget.width ?? this.widget.height ?? this.widget.maxWidth,
           imageCacheName: widget.url?.origin,
+          retries: 1,
+          timeRetry: Duration(seconds: 5),
           loadStateChanged: (state) {
             switch (state.extendedImageLoadState) {
               case LoadState.loading:

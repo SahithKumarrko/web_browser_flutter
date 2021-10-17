@@ -487,9 +487,15 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                 if (url == null) {
                                   return;
                                 }
-
-                                String webArchivePath = WEB_ARCHIVE_DIR +
-                                    Platform.pathSeparator +
+                                // Directory p =
+                                //     Directory("storage/emulated/0/Download");
+                                // print("PP :: $p");
+                                // String? path = await FileUtil.getFolder(
+                                //     context: context, rootPath: p);
+                                String path = await FileUtil.findLocalPath();
+                                print("Path :: $path");
+                                String webArchivePath = path.toString() +
+                                    "/" +
                                     url.scheme +
                                     "-" +
                                     url.host +
@@ -502,7 +508,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                         ? WebArchiveFormat.MHT.toValue()
                                         : WebArchiveFormat.WEBARCHIVE
                                             .toValue());
-
+                                print("webArchivePath :: $webArchivePath");
                                 String? savedPath =
                                     (await _webViewController?.saveWebArchive(
                                         filePath: webArchivePath,

@@ -14,6 +14,7 @@ import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
+import 'package:filesystem_picker/filesystem_picker.dart';
 
 class Helper {
   static String getTitle(String title) {
@@ -488,5 +489,19 @@ class FileUtil {
     browserModel.requestDownload(task, localPath, fileName);
     browserModel.addDownloadTask = task;
     browserModel.save();
+  }
+
+  static Future<String?> getFolder(
+      {required BuildContext context, required Directory rootPath}) async {
+    return await FilesystemPicker.open(
+      title: 'Save to folder',
+      context: context,
+      rootDirectory: rootPath,
+      fsType: FilesystemType.folder,
+      pickText: 'Save file to this folder',
+      folderIconColor: Colors.teal,
+      requestPermission: () async =>
+          await Permission.storage.request().isGranted,
+    );
   }
 }

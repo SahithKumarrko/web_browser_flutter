@@ -89,6 +89,11 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       // print("Type Returning Image");
       // print("Type2 :: ${widget.requestFocusNodeHrefResult?.url}");
       return <Widget>[
+        SizedBox(
+          height: 8,
+        ),
+        _buildLinkTile(),
+        Divider(),
         _buildOpenNewTab(),
         _buildOpenNewIncognitoTab(),
         _buildCopyAddressLink(),
@@ -102,7 +107,6 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       // print("TTT :: ${base64.decode(aa)}");
       return <Widget>[
         // _buildImageTile(),
-        // Divider(),
         _buildOpenImageNewTab(),
         _buildDownload(),
         _buildSearchImageOnGoogle(),
@@ -124,17 +128,21 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     }
 
     return ListTile(
-      leading: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          CustomImage(
-            url: widget.requestFocusNodeHrefResult?.src != null
-                ? Uri.parse(widget.requestFocusNodeHrefResult!.src!)
-                : faviconUrl,
-            maxWidth: 30.0,
-            height: 30.0,
-          )
-        ],
+      leading: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            CustomImage(
+              url: widget.requestFocusNodeHrefResult?.src != null
+                  ? Uri.parse(widget.requestFocusNodeHrefResult!.src!)
+                  : faviconUrl,
+              maxWidth: 30.0,
+              height: 30.0,
+            ),
+            // FaIcon(FontAwesomeIcons.globe),
+          ],
+        ),
       ),
       title: Text(
         title,
@@ -146,7 +154,6 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
-      isThreeLine: true,
     );
   }
 
@@ -234,7 +241,10 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     return ListTile(
       title: const Text("Copy address link"),
       onTap: () {
-        Clipboard.setData(ClipboardData(text: widget.hitTestResult.extra));
+        Clipboard.setData(ClipboardData(
+            text: widget.requestFocusNodeHrefResult?.url.toString() ??
+                widget.requestFocusNodeHrefResult?.src.toString() ??
+                ""));
         Navigator.pop(context);
       },
     );
@@ -255,7 +265,9 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       ]),
       onTap: () {
         if (widget.hitTestResult.extra != null) {
-          Share.share(widget.hitTestResult.extra!);
+          Share.share(widget.requestFocusNodeHrefResult?.url.toString() ??
+              widget.requestFocusNodeHrefResult?.src.toString() ??
+              "");
         }
         Navigator.pop(context);
       },
