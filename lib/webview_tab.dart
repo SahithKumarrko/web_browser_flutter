@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -17,6 +18,7 @@ import 'package:webpage_dev_console/util.dart';
 import 'javascript_console_result.dart';
 import 'long_press_alert_dialog.dart';
 import 'models/browser_model.dart';
+import 'package:http/http.dart' as http;
 
 class WebViewTab extends StatefulWidget {
   final GlobalKey<WebViewTabState> key;
@@ -418,6 +420,15 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         durl = url.toString();
         fileName = path.substring(path.lastIndexOf('/') + 1);
 
+        RegExp unspupportedRegex = RegExp(r'[@$%&\/:*?"<>|~`^+={}[];!]');
+        if (unspupportedRegex.hasMatch(fileName) || fileName.contains("'")) {
+          final response = await http.head(Uri.parse("$durl"));
+          if (response.headers.containsKey("content-type")) {
+            var t = response.headers["content-type"] ?? "";
+            fileName = "download." + t.split("/").last;
+          }
+        }
+
         // final taskId = await FlutterDownloader.enqueue(
         //   url: url.toString(),
         //   fileName: fileName,
@@ -495,9 +506,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         var errorUrl =
             url ?? widget.webViewModel.url ?? Uri.parse('about:blank');
 
-        _webViewController?.loadData(
-            data:
-                """
+        _webViewController?.loadData(data: """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -526,9 +535,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
       <p>$message</p>
     </div>
 </body>
-    """,
-            baseUrl: errorUrl,
-            androidHistoryUrl: errorUrl);
+    """, baseUrl: errorUrl, androidHistoryUrl: errorUrl);
 
         widget.webViewModel.url = url;
         widget.webViewModel.isSecure = false;

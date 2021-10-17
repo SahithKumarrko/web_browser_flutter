@@ -23,10 +23,10 @@ environment:
 dependencies:
   crypto: ^3.0.1
   cupertino_icons: ^1.0.3
-  device_info: ^2.0.2
-  extended_image: ^4.0.0
   custom_file_icons:
     path: packages/file_icon
+  device_info: ^2.0.2
+  extended_image: ^4.0.0
   flash: ^2.0.1
   flutter:
     sdk: flutter
@@ -37,7 +37,7 @@ dependencies:
   flutter_native_splash: ^1.2.4
   flutter_svg: ^0.22.0
   font_awesome_flutter: ^9.0.0-nullsafety
-  http: ^0.13.3
+  http: ^0.13.4
   implicitly_animated_reorderable_list: ^0.4.1
   intl: ^0.17.0
   material_floating_search_bar: ^0.3.4

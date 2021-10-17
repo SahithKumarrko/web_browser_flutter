@@ -22,7 +22,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share/share.dart';
-
+import 'package:http/http.dart' as http;
 import 'models/browser_model.dart';
 import 'models/webview_model.dart';
 
@@ -301,21 +301,23 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
   }
 
   TextEditingController frController = TextEditingController();
+  var t = "";
   Future<void> download({required bool isImage, bool redo = false}) async {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
     String p = widget.requestFocusNodeHrefResult?.src ?? "";
     var pp = p.split("/");
     var p2 = pp[1];
-    var t = p2.split(";").first;
-    print("File type :: $t");
-    if (durl.isNotEmpty) {
-      String ct =
-          await FlutterDownloader.getContenttype(url: durl.toString()) ?? "";
-      print("CT :: $ct");
+    if (t != "") {
+      t = p2.split(";").first;
     }
 
+    // if (durl.isNotEmpty) {
+    //   String ct =
+    //       await FlutterDownloader.getContenttype(url: durl.toString()) ?? "";
+    //   print("CT :: $ct");
+    // }
+
     if (fileName == "" || redo) {
-      print("TTT :: Openming");
       fileName = fileName.replaceAll(".$t", "");
       frController = new TextEditingController(text: fileName + ".$t");
       frController.selection = new TextSelection(
@@ -387,9 +389,6 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
             );
           });
     } else if (!isImage) {
-      Helper.showLoadingDialog(context: context, msg: "Saving file...");
-
-      await Future.delayed(Duration(seconds: 1));
       var task;
       task = TaskInfo(
           link: durl.toString(),
@@ -400,7 +399,6 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       browserModel.requestDownload(task, _localPath, fileName);
       browserModel.addDownloadTask = task;
       browserModel.save();
-      Navigator.pop(context);
       Navigator.pop(context);
     } else {
       if (p.startsWith("data")) {
@@ -461,6 +459,26 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     }
   }
 
+  _setupUrl() async {
+    // Helper.showLoadingDialog(context: context, msg: "Saving file...");
+
+    // await Future.delayed(Duration(seconds: 1));
+    String path = widget.requestFocusNodeHrefResult?.src ??
+        widget.requestFocusNodeHrefResult?.url?.path ??
+        "";
+    // fileName = path.substring(path.lastIndexOf('/') + 1);
+
+    durl = path;
+    if (fileName.isEmpty) {
+      final response = await http.head(Uri.parse("$durl"));
+      if (response.headers.containsKey("content-type")) {
+        t = response.headers["content-type"] ?? "";
+        fileName = "download." + t.split("/").last;
+      }
+    }
+    // Navigator.pop(context);
+  }
+
   Widget _buildDownload() {
     return ListTile(
       title: const Text("Save"),
@@ -471,19 +489,16 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
         log("HH : ${widget.hitTestResult.toString()}");
         fileName = "";
         durl = "";
+        t = "";
         if (widget.requestFocusNodeHrefResult?.src != null) {
           if ((widget.requestFocusNodeHrefResult?.src ?? "")
               .startsWith("data")) {
             isImage = true;
           } else {
-            durl = widget.requestFocusNodeHrefResult?.src.toString() ?? "";
+            await _setupUrl();
           }
         } else if (widget.requestFocusNodeHrefResult?.url != null) {
-          String path = widget.requestFocusNodeHrefResult?.url?.path ?? "";
-          fileName = path.substring(path.lastIndexOf('/') + 1);
-
-          durl = widget.requestFocusNodeHrefResult?.url.toString() ?? "";
-          fileName = path.substring(path.lastIndexOf('/') + 1);
+          await _setupUrl();
         } else {
           print("${widget.requestFocusNodeHrefResult?.toString()}");
           Helper.showBasicFlash(

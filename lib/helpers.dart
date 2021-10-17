@@ -275,7 +275,7 @@ class FileUtil {
       var l2 = await l.toList();
       l2.forEach((element) {
         var fp = element.path.split("/").last;
-        if (fp.contains(fname)) {
+        if (fp.contains(fname) && fn1.last == fp.split(".").last) {
           count += 1;
         }
       });
