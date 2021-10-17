@@ -307,7 +307,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     String p = widget.requestFocusNodeHrefResult?.src ?? "";
     var pp = p.split("/");
     var p2 = pp[1];
-    if (t != "") {
+    if (t == "") {
       t = p2.split(";").first;
     }
 
@@ -399,6 +399,13 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       browserModel.requestDownload(task, _localPath, fileName);
       browserModel.addDownloadTask = task;
       browserModel.save();
+      Helper.showBasicFlash(
+          msg: "Downloading...",
+          context: context,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          position: FlashPosition.top,
+          duration: Duration(seconds: 2));
       Navigator.pop(context);
     } else {
       if (p.startsWith("data")) {
@@ -485,8 +492,6 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       onTap: () async {
         // Navigator.pop(context);
         bool isImage = false;
-        log("${widget.requestFocusNodeHrefResult?.toString()}");
-        log("HH : ${widget.hitTestResult.toString()}");
         fileName = "";
         durl = "";
         t = "";
@@ -500,7 +505,6 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
         } else if (widget.requestFocusNodeHrefResult?.url != null) {
           await _setupUrl();
         } else {
-          print("${widget.requestFocusNodeHrefResult?.toString()}");
           Helper.showBasicFlash(
               msg: "Not able to download file. 1",
               context: context,
