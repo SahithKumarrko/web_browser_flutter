@@ -1,2 +1,3 @@
 flutter run --profile --cache-sksl --purge-persistent-cache
 flutter build apk --bundle-sksl-path flutter_01.sksl.json
+flutter build apk --no-tree-shake-icons --bundle-sksl-path flutter_04.sksl.json

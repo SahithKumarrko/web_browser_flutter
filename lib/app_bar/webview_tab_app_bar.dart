@@ -1,15 +1,19 @@
+import 'dart:developer';
 import 'dart:io';
 
 // import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flash/flash.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share/share.dart';
 import 'package:share_extend/share_extend.dart';
+import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/app_bar/url_info_popup.dart';
 import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
@@ -492,14 +496,23 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                 // print("PP :: $p");
                                 // String? path = await FileUtil.getFolder(
                                 //     context: context, rootPath: p);
-                                String path = await FileUtil.findLocalPath();
+                                Directory? path =
+                                    await getExternalStorageDirectory();
                                 print("Path :: $path");
-                                String webArchivePath = path.toString() +
-                                    "/" +
-                                    url.scheme +
-                                    "-" +
-                                    url.host +
-                                    url.path.replaceAll("/", "-") +
+// path.toString() +
+//                                     "/" +
+//                                     url.scheme +
+//                                     "-" +
+//                                     url.host +
+//                                     url.path.replaceAll("/", "-") +
+//                                     DateTime.now()
+//                                         .microsecondsSinceEpoch
+//                                         .toString() +
+//                                     "." +
+                                String gg = await webViewModel.webViewController
+                                        ?.getTitle() ??
+                                    "offline";
+                                String fileName = gg +
                                     DateTime.now()
                                         .microsecondsSinceEpoch
                                         .toString() +
@@ -508,33 +521,54 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                         ? WebArchiveFormat.MHT.toValue()
                                         : WebArchiveFormat.WEBARCHIVE
                                             .toValue());
+                                String webArchivePath =
+                                    (path?.path ?? "") + "/" + fileName;
+
                                 print("webArchivePath :: $webArchivePath");
                                 String? savedPath =
                                     (await _webViewController?.saveWebArchive(
                                         filePath: webArchivePath,
                                         autoname: false));
 
-                                var webArchiveModel = WebArchiveModel(
-                                    url: url,
-                                    path: savedPath,
-                                    title: webViewModel.title,
-                                    favicon: webViewModel.favicon,
-                                    timestamp: DateTime.now());
+                                // var webArchiveModel = WebArchiveModel(
+                                //     url: url,
+                                //     path: savedPath,
+                                //     title: webViewModel.title,
+                                //     favicon: webViewModel.url.toString(),
+                                //     timestamp: DateTime.now());
+
+                                var task = TaskInfo(
+                                    link: webViewModel.url.toString(),
+                                    name: fileName,
+                                    fileName: fileName,
+                                    status: DownloadTaskStatus.complete,
+                                    webArchivePath: savedPath ?? webArchivePath,
+                                    isWebArchive: true,
+                                    progress: 100,
+                                    notFromDownload: false,
+                                    savedDir: (path?.path ?? ""));
 
                                 if (savedPath != null) {
-                                  browserModel.addWebArchive(
-                                      url.toString(), webArchiveModel);
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Text(
-                                        "${webViewModel.url} saved offline!"),
-                                  ));
+                                  File f = File(savedPath);
+                                  int fs = await f.length();
+                                  task.fileSize = fs.toString();
+                                  browserModel.addDownloadTask = task;
+                                  Helper.showBasicFlash(
+                                      msg: "Saved Successfully.",
+                                      context: context,
+                                      backgroundColor: Colors.green,
+                                      textColor: Colors.white,
+                                      position: FlashPosition.top,
+                                      duration: Duration(seconds: 3));
                                   browserModel.save();
                                 } else {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Text("Unable to save!"),
-                                  ));
+                                  Helper.showBasicFlash(
+                                      msg: "Not able to save webpage offline.",
+                                      context: context,
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
+                                      position: FlashPosition.top,
+                                      duration: Duration(seconds: 3));
                                 }
                               }
                             })),
@@ -598,20 +632,6 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                         )
                       ]),
                 );
-              case PopupMenuActions.NEW_TAB:
-                return CustomPopupMenuItem<String>(
-                  enabled: true,
-                  value: choice,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(choice),
-                        Icon(
-                          Icons.add,
-                          color: Colors.black,
-                        )
-                      ]),
-                );
               case PopupMenuActions.NEW_INCOGNITO_TAB:
                 return CustomPopupMenuItem<String>(
                   enabled: true,
@@ -640,6 +660,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                         )
                       ]),
                 );
+
               case PopupMenuActions.DOWNLOADS:
                 return CustomPopupMenuItem<String>(
                   enabled: true,
@@ -801,6 +822,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
         // );
         Navigator.of(context).push(_goToHistory(PageDownload()));
         break;
+
       case PopupMenuActions.FIND_ON_PAGE:
         if (widget.showFindOnPage != null) {
           widget.showFindOnPage!();

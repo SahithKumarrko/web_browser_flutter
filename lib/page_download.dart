@@ -14,6 +14,8 @@ import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
+import 'package:webpage_dev_console/models/webview_model.dart';
+import 'package:webpage_dev_console/webview_tab.dart';
 
 bool showSearchField = false;
 GlobalKey clearAllSwitcher = GlobalKey();
@@ -145,7 +147,7 @@ class _PageDownloadState extends State<PageDownload> {
       String? id = data[0];
       DownloadTaskStatus? status = data[1];
       int? progress = data[2];
-      if (_data.isNotEmpty) {
+      if (_data.isNotEmpty && id != null) {
         final task = _data.firstWhere((_task) => _task.task?.taskId == id);
 
         task.task?.status = status;
@@ -214,7 +216,8 @@ class _PageDownloadState extends State<PageDownload> {
         for (DownloadTask t in tasks ?? []) {
           if (t.filename == ditem.task?.fileName &&
               t.url == ditem.task?.link &&
-              !(ditem.task?.notFromDownload ?? true)) {
+              !(ditem.task?.notFromDownload ?? true) &&
+              !(ditem.task?.isWebArchive ?? true)) {
             ditem.task?.taskId = t.taskId;
             ditem.task?.fileSize = t.fileSize;
             ditem.task?.link = t.url;
@@ -451,14 +454,27 @@ class _DownloadItemState extends State<DownloadItem> {
                           File("${item.task?.savedDir}/${item.task?.fileName}");
                       bool opened = false;
                       if (await f.exists()) {
-                        opened = await FlutterDownloader.openFile(
-                            fileName: item.task?.fileName ?? "",
-                            taskId: item.task?.taskId ?? "",
-                            savedDir: item.task?.savedDir ?? "",
-                            url: item.task?.link ?? "");
+                        if (item.task?.isWebArchive ?? false) {
+                          browserModel.addTab(
+                              WebViewTab(
+                                key: GlobalKey(),
+                                webViewModel: WebViewModel(
+                                    url: Uri.parse("file://" +
+                                        (item.task?.webArchivePath ?? "")),
+                                    openedByUser: true),
+                              ),
+                              true);
+                          Navigator.pop(context);
+                        } else {
+                          opened = await FlutterDownloader.openFile(
+                              fileName: item.task?.fileName ?? "",
+                              taskId: item.task?.taskId ?? "",
+                              savedDir: item.task?.savedDir ?? "",
+                              url: item.task?.link ?? "");
+                        }
                       }
 
-                      if (!opened) {
+                      if (!opened && !(item.task?.isWebArchive ?? false)) {
                         String msg = "";
                         Color msgColor = Colors.red;
                         if (item.task?.status == DownloadTaskStatus.running ||

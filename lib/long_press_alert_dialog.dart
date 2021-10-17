@@ -454,7 +454,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
           } catch (e) {
             tryagain = true;
             Helper.showBasicFlash(
-                msg: "Not able to save file. 3",
+                msg: "Not able to save file.",
                 context: context,
                 backgroundColor: Colors.red,
                 textColor: Colors.white,
@@ -466,7 +466,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
           }
         } else {
           Helper.showBasicFlash(
-              msg: "Not able to save file. 2",
+              msg: "Not able to save file.",
               context: context,
               backgroundColor: Colors.red,
               textColor: Colors.white,
@@ -518,7 +518,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
           await _setupUrl();
         } else {
           Helper.showBasicFlash(
-              msg: "Not able to download file. 1",
+              msg: "Not able to download file.",
               context: context,
               backgroundColor: Colors.red,
               textColor: Colors.white,

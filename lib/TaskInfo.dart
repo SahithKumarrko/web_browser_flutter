@@ -11,6 +11,8 @@ class TaskInfo {
   int? progress = 0;
   String fileSize = "";
   bool notFromDownload = false;
+  bool isWebArchive = false;
+  String webArchivePath;
   DownloadTaskStatus? status = DownloadTaskStatus.undefined;
 
   GlobalKey? key = GlobalKey();
@@ -25,11 +27,13 @@ class TaskInfo {
       required this.fileName,
       required this.savedDir,
       this.notFromDownload = false,
+      this.isWebArchive = false,
+      this.webArchivePath = "",
       this.status});
 
   @override
   String toString() {
-    return "TaskInfo(taskId: $taskId,name: $name, savedDir: $savedDir ,link: $link, filesize: $fileSize ,status: $status)";
+    return "TaskInfo(taskId: $taskId,name: $name, savedDir: $savedDir ,link: $link, filesize: $fileSize ,status: $status, isWebArchive: $isWebArchive,webArchivePath: $webArchivePath)";
   }
 
   static TaskInfo? fromMap(Map<String, dynamic>? map) {
@@ -43,6 +47,8 @@ class TaskInfo {
             fileName: map["fileName"],
             savedDir: map["savedDir"],
             notFromDownload: map["notFromDownload"],
+            isWebArchive: map["isWebArchive"],
+            webArchivePath: map["webArchivePath"],
             status: DownloadTaskStatus(map["status"] ?? 0))
         : null;
   }
@@ -57,6 +63,8 @@ class TaskInfo {
       "fileSize": fileSize,
       "fileName": fileName,
       "savedDir": savedDir,
+      "isWebArchive": isWebArchive,
+      "webArchivePath": webArchivePath,
       "notFromDownload": notFromDownload
     };
   }
