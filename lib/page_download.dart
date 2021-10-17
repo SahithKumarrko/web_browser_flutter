@@ -371,27 +371,27 @@ class _DownloadItemState extends State<DownloadItem> {
   Widget _buildItem(DItem item, int index, Animation<double> animation) {
     num downloadSize = num.parse(widget.item.task?.fileSize ?? "0") == 0
         ? 0
-        : (((num.parse(widget.item.task?.fileSize ?? "0") / 1024) / 1024) *
+        : (((num.parse(widget.item.task?.fileSize ?? "0") / 1024)) *
             ((widget.item.task?.progress ?? 1) / 100));
     num actual = num.parse(widget.item.task?.fileSize ?? "0") == 0
         ? 0
-        : (((num.parse(widget.item.task?.fileSize ?? "0") / 1024) / 1024));
+        : (((num.parse(widget.item.task?.fileSize ?? "0") / 1024)));
     String downloaded = "";
     String actualSize = "";
-    if (downloadSize <= 0) {
+    if (downloadSize <= 1023) {
       downloaded = downloadSize.toStringAsFixed(2) + "KB";
-    } else if (downloadSize > 1023) {
-      downloaded = (downloadSize / 1024).toStringAsFixed(2) + "GB";
+    } else if (downloadSize >= (1024 * 1000)) {
+      downloaded = ((downloadSize / 1024) / 1024).toStringAsFixed(2) + "GB";
     } else {
-      downloaded = downloadSize.toStringAsFixed(2) + "MB";
+      downloaded = (downloadSize / 1024).toStringAsFixed(2) + "MB";
     }
 
-    if (actual <= 0) {
+    if (actual <= 1023) {
       actualSize = actual.toStringAsFixed(2) + "KB";
-    } else if (actual > 1023) {
-      actualSize = (actual / 1024).toStringAsFixed(2) + "GB";
+    } else if (actual >= (1024 * 1000)) {
+      actualSize = ((actual / 1024) / 1024).toStringAsFixed(2) + "GB";
     } else {
-      actualSize = actual.toStringAsFixed(2) + "MB";
+      actualSize = (actual / 1024).toStringAsFixed(2) + "MB";
     }
     return Column(
       children: [
@@ -798,11 +798,12 @@ class _DownloadItemState extends State<DownloadItem> {
             )),
         itemBuilder: (popupMenuContext) {
           var popupitems = <PopupMenuEntry<String>>[];
-          popupitems.add(CustomPopupMenuItem<String>(
-            enabled: true,
-            value: "Copy Download Url",
-            child: Text("Copy Download Url"),
-          ));
+          if ((task.link ?? "").isNotEmpty)
+            popupitems.add(CustomPopupMenuItem<String>(
+              enabled: true,
+              value: "Copy Download Url",
+              child: Text("Copy Download Url"),
+            ));
           popupitems.add(CustomPopupMenuItem<String>(
             enabled: true,
             value: "Rename",

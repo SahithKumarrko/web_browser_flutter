@@ -1,5 +1,7 @@
 // import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -293,11 +295,33 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     }
   }
 
+  Future<bool> _checkIfFileExists(String path) async {
+    File f = File(path);
+    return await f.exists();
+  }
+
   TextEditingController frController = TextEditingController();
-  Future<void> download(bool isImage) async {
+  Future<void> download({required bool isImage, bool redo = false}) async {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
-    if (fileName == "") {
+    String p = widget.requestFocusNodeHrefResult?.src ?? "";
+    var pp = p.split("/");
+    var p2 = pp[1];
+    var t = p2.split(";").first;
+    print("File type :: $t");
+    if (durl.isNotEmpty) {
+      String ct =
+          await FlutterDownloader.getContenttype(url: durl.toString()) ?? "";
+      print("CT :: $ct");
+    }
+
+    if (fileName == "" || redo) {
       print("TTT :: Openming");
+      fileName = fileName.replaceAll(".$t", "");
+      frController = new TextEditingController(text: fileName + ".$t");
+      frController.selection = new TextSelection(
+        baseOffset: 0,
+        extentOffset: fileName.length,
+      );
       showDialog(
           context: context,
           barrierDismissible: true,
@@ -310,27 +334,63 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
                 autocorrect: false,
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.done,
-                onSubmitted: (v) {
+                onSubmitted: (v) async {
                   fileName = frController.value.text;
-
-                  download(isImage);
-                  Navigator.pop(actx);
+                  if (await _checkIfFileExists(_localPath + "/" + fileName)) {
+                    var ff = fileName.split(".");
+                    var ff2 = ff.sublist(0, ff.length - 1).join(".");
+                    Helper.showBasicFlash(
+                        msg:
+                            "File already exists. Try giving a different name.",
+                        context: context,
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                        position: FlashPosition.top,
+                        duration: Duration(seconds: 3));
+                    frController.selection = new TextSelection(
+                      baseOffset: 0,
+                      extentOffset: ff2.length,
+                    );
+                  } else {
+                    Navigator.pop(actx);
+                    download(isImage: isImage);
+                  }
                 },
                 decoration: InputDecoration(
                     suffixIcon: InkWell(
-                        onTap: () {
+                        onTap: () async {
                           fileName = frController.value.text;
+                          if (await _checkIfFileExists(
+                              _localPath + "/" + fileName)) {
+                            var ff = fileName.split(".");
+                            var ff2 = ff.sublist(0, ff.length - 1).join(".");
 
-                          download(isImage);
-                          Navigator.pop(actx);
+                            Helper.showBasicFlash(
+                                msg:
+                                    "File already exists. Try giving a different name.",
+                                context: context,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                                position: FlashPosition.top,
+                                duration: Duration(seconds: 3));
+                            frController.selection = new TextSelection(
+                              baseOffset: 0,
+                              extentOffset: ff2.length,
+                            );
+                          } else {
+                            Navigator.pop(actx);
+                            download(isImage: isImage);
+                          }
                         },
                         child: Icon(FontAwesomeIcons.edit))),
               ),
             );
           });
     } else if (!isImage) {
-      var task;
+      Helper.showLoadingDialog(context: context, msg: "Saving file...");
 
+      await Future.delayed(Duration(seconds: 1));
+      var task;
       task = TaskInfo(
           link: durl.toString(),
           name: fileName,
@@ -340,59 +400,77 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       browserModel.requestDownload(task, _localPath, fileName);
       browserModel.addDownloadTask = task;
       browserModel.save();
+      Navigator.pop(context);
+      Navigator.pop(context);
     } else {
-      String p = widget.requestFocusNodeHrefResult?.src ?? "";
       if (p.startsWith("data")) {
-        var pp = p.split("/");
         if (pp.length >= 2) {
-          var p2 = pp[1];
-          var t = p2.split(";").first;
-          print("File type :: $t");
-          Uint8List bytes = Base64Decoder()
-              .convert(p.replaceFirst("${pp[0]}/$t;base64,", ""));
-
-          File f = File(_localPath + "/" + fileName);
-          f.writeAsBytes(bytes);
-          int fl = await f.length();
-          var task = TaskInfo(
-              link: durl.toString(),
-              name: fileName,
-              fileName: fileName,
-              fileSize: fl.toString(),
-              status: DownloadTaskStatus.complete,
-              progress: 100,
-              notFromDownload: true,
-              savedDir: _localPath);
-          browserModel.addDownloadTask = task;
-          browserModel.save();
-          Helper.showBasicFlash(
-              msg: "Saved Successfully.",
-              context: context,
-              backgroundColor: Colors.green,
-              textColor: Colors.white,
-              position: FlashPosition.top,
-              duration: Duration(seconds: 3));
+          Helper.showLoadingDialog(context: context, msg: "Saving file...");
+          bool tryagain = false;
+          await Future.delayed(Duration(seconds: 1));
+          try {
+            Uint8List bytes = Base64Decoder()
+                .convert(p.replaceFirst("${pp[0]}/$t;base64,", ""));
+            File f = File(_localPath + "/" + fileName);
+            await f.writeAsBytes(bytes);
+            File f2 = File(_localPath + "/" + fileName);
+            int fl = await f2.length();
+            var task = TaskInfo(
+                link: durl.toString(),
+                name: fileName,
+                fileName: fileName,
+                fileSize: fl.toString(),
+                status: DownloadTaskStatus.complete,
+                progress: 100,
+                notFromDownload: true,
+                savedDir: _localPath);
+            browserModel.addDownloadTask = task;
+            browserModel.save();
+            Helper.showBasicFlash(
+                msg: "Saved Successfully.",
+                context: context,
+                backgroundColor: Colors.green,
+                textColor: Colors.white,
+                position: FlashPosition.top,
+                duration: Duration(seconds: 3));
+            Navigator.pop(context);
+          } catch (e) {
+            tryagain = true;
+            Helper.showBasicFlash(
+                msg: "Not able to save file. 3",
+                context: context,
+                backgroundColor: Colors.red,
+                textColor: Colors.white,
+                position: FlashPosition.top,
+                duration: Duration(seconds: 3));
+          } finally {
+            Navigator.pop(context);
+            if (tryagain) download(isImage: isImage, redo: true);
+          }
         } else {
           Helper.showBasicFlash(
-              msg: "Not able to download file. 2",
+              msg: "Not able to save file. 2",
               context: context,
               backgroundColor: Colors.red,
               textColor: Colors.white,
               position: FlashPosition.top,
               duration: Duration(seconds: 3));
+          Navigator.pop(context);
         }
       }
     }
   }
 
   Widget _buildDownload() {
-    var browserModel = Provider.of<BrowserModel>(context, listen: false);
     return ListTile(
       title: const Text("Save"),
       onTap: () async {
         // Navigator.pop(context);
         bool isImage = false;
+        log("${widget.requestFocusNodeHrefResult?.toString()}");
+        log("HH : ${widget.hitTestResult.toString()}");
         fileName = "";
+        durl = "";
         if (widget.requestFocusNodeHrefResult?.src != null) {
           if ((widget.requestFocusNodeHrefResult?.src ?? "")
               .startsWith("data")) {
@@ -432,10 +510,10 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
                 action: () async {
                   fileName = await FileUtil.getFileName(
                       context: context, fileName: fileName);
-                  download(isImage);
+                  download(isImage: isImage);
                 });
           } else {
-            download(isImage);
+            download(isImage: isImage);
           }
         } else {
           if (_permissionReady == PermissionStatus.permanentlyDenied) {

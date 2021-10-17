@@ -28,6 +28,8 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
@@ -102,7 +104,11 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
         } 
         else if (call.method.equals("remove")) {
             remove(call, result);
-        } else {
+        } 
+        else if (call.method.equals("get_content_type")) {
+            getcontentType(call, result);
+        } 
+        else {
             result.notImplemented();
         }
     }
@@ -179,6 +185,35 @@ public class FlutterDownloaderPlugin implements MethodCallHandler, FlutterPlugin
             Log.d(TAG, message);
         
     }
+
+     private void getcontentType(MethodCall call, MethodChannel.Result result){
+         String url = call.argument("url");
+        URL resourceUrl;
+        String contentType="";
+        HttpURLConnection httpConn = null;
+        int responseCode;
+        try{
+            resourceUrl = new URL(url);
+            log("Open connection to " + url);
+            httpConn = (HttpURLConnection) resourceUrl.openConnection();
+
+            httpConn.setConnectTimeout(15000);
+            httpConn.setReadTimeout(15000);
+            httpConn.setInstanceFollowRedirects(false);   // Make the logic below easier to detect redirections
+            httpConn.setRequestProperty("User-Agent", "Mozilla/5.0...");
+            httpConn.connect();
+            responseCode = httpConn.getResponseCode();
+            if ((responseCode == HttpURLConnection.HTTP_OK ||  responseCode == HttpURLConnection.HTTP_PARTIAL)) {
+                contentType = httpConn.getContentType();
+                
+            }
+            if (httpConn != null) {
+                httpConn.disconnect();
+            }
+        }catch(Exception e){}
+         
+         result.success(contentType);
+     }
 
     private void enqueue(MethodCall call, MethodChannel.Result result) {
         String url = call.argument("url");

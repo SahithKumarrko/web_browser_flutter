@@ -49,6 +49,30 @@ class Helper {
         subject: "Share the selected files to");
   }
 
+  static showLoadingDialog(
+      {required BuildContext context, required String msg}) {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) {
+          return AlertDialog(
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  color: Colors.blue,
+                ),
+                SizedBox(
+                  width: 16,
+                ),
+                Text(msg),
+              ],
+            ),
+          );
+        });
+  }
+
   static void addNewTab({Uri? url, required BuildContext context}) {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
     var settings = browserModel.getSettings();

@@ -68,6 +68,8 @@ class FlutterDownloader {
   ///
   /// an unique identifier of the new download task
   ///
+  ///
+  ///
   static Future<String?> enqueue(
       {required String url,
       required String savedDir,
@@ -130,6 +132,18 @@ class FlutterDownloader {
               savedDir: item['saved_dir'],
               timeCreated: item['time_created']))
           .toList();
+    } on PlatformException catch (e) {
+      print(e.message);
+      return null;
+    }
+  }
+
+  static Future<String?> getContenttype({required String url}) async {
+    assert(_initialized, 'FlutterDownloader.initialize() must be called first');
+    try {
+      dynamic result =
+          await _channel.invokeMethod('get_content_type', {'url': url});
+      return result.toString();
     } on PlatformException catch (e) {
       print(e.message);
       return null;
