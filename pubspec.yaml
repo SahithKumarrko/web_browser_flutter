@@ -42,6 +42,8 @@ dependencies:
   implicitly_animated_reorderable_list: ^0.4.1
   intl: ^0.17.0
   material_floating_search_bar: ^0.3.4
+  multi_select_flutter:
+    path: packages/multi_select_flutter
   package_info: ^2.0.2
   path_provider: ^2.0.5
   permission_handler: ^8.2.2

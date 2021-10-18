@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer';
 import 'dart:isolate';
 
 import 'package:extended_image/extended_image.dart';
@@ -8,11 +9,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html/shims/dart_ui_real.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
+import 'package:webpage_dev_console/item_selector.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
@@ -37,6 +40,7 @@ GlobalKey appBarKey = GlobalKey();
 bool isLoadingSearch = false;
 TextEditingController frController = TextEditingController();
 late String _localPath;
+List<String?> _filter = [];
 
 class DItem {
   String date;
@@ -84,6 +88,52 @@ class _CASState extends State<CAS> {
           : (_data.length > 1)
               ? widget.buildDownloadList()
               : widget.buildNoHistory(),
+    );
+  }
+}
+
+class ItemSelect {
+  String value;
+  bool isSelected;
+  ItemSelect({this.isSelected = false, required this.value});
+}
+
+class ISelector extends StatefulWidget {
+  const ISelector({Key? key}) : super(key: key);
+
+  @override
+  _ISelectorState createState() => _ISelectorState();
+}
+
+class _ISelectorState extends State<ISelector> {
+  @override
+  Widget build(BuildContext context) {
+    return MultiSelectChipField<String?>(
+      showHeader: false,
+      items: [
+        "All",
+        "Saved Offline",
+        "Videos",
+        "Photos",
+      ].map((v) => MultiSelectItem<String?>(v, v)).toList(),
+      initialValue: ["All", "Saved Offline"],
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blue, width: 1.8),
+      ),
+      selectedChipColor: Colors.blue.withOpacity(0.5),
+      selectedTextStyle: TextStyle(color: Colors.blue[800]),
+      icon: Icon(
+        Icons.check,
+        color: Colors.green,
+      ),
+      onTap: (values) {
+        _filter = values;
+        log(_filter.toString());
+        if (_filter.length == 0) {
+          this.setState(() {});
+        }
+        //_selectedAnimals4 = values;
+      },
     );
   }
 }
@@ -241,6 +291,8 @@ class _PageDownloadState extends State<PageDownload> {
     return buildDownload();
   }
 
+  List<ItemSelect> selectItems = [];
+
   SafeArea buildDownload() {
     return SafeArea(
       child: WillPopScope(
@@ -282,9 +334,9 @@ class _PageDownloadState extends State<PageDownload> {
                 );
               } else {
                 // Loading is done, return the app:
-
                 return Column(
                   children: [
+                    ISelector(),
                     ClearAllH(
                         dataLen: _data.length,
                         key: clearAllSwitcher,

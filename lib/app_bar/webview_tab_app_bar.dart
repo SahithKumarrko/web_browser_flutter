@@ -546,6 +546,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                     isWebArchive: true,
                                     progress: 100,
                                     notFromDownload: false,
+                                    taskId: "",
                                     savedDir: (path?.path ?? ""));
 
                                 if (savedPath != null) {
