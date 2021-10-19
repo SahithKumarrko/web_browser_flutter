@@ -57,6 +57,8 @@ class MultiSelectChipField<V> extends FormField<List<V>> {
   /// Set the TextStyle of the text that gets typed into the search bar.
   final TextStyle? searchTextStyle;
 
+  final Map<String, Icon>? defaultIcon;
+
   /// Set the header color.
   final Color? headerColor;
 
@@ -119,6 +121,7 @@ class MultiSelectChipField<V> extends FormField<List<V>> {
     this.defaultValue = "",
     this.showHeader = true,
     this.chipWidth,
+    this.defaultIcon,
   }) : super(
             key: key,
             onSaved: onSaved,
@@ -154,6 +157,7 @@ class MultiSelectChipField<V> extends FormField<List<V>> {
                 showHeader: showHeader,
                 defaultValue: defaultValue,
                 chipWidth: chipWidth,
+                defaultIcon: defaultIcon,
               );
               return _MultiSelectChipFieldView<V?>.withState(
                   view as _MultiSelectChipFieldView<V?>, state);
@@ -192,6 +196,7 @@ class _MultiSelectChipFieldView<V> extends StatefulWidget
   final Function(ScrollController)? scrollControl;
   final HorizontalScrollBar? scrollBar;
   final bool showHeader;
+  final Map<String, Icon>? defaultIcon;
   final double? chipWidth;
 
   _MultiSelectChipFieldView({
@@ -223,6 +228,7 @@ class _MultiSelectChipFieldView<V> extends StatefulWidget
     this.showHeader = true,
     this.chipWidth,
     this.defaultValue = "",
+    this.defaultIcon,
   });
 
   /// This constructor allows a FormFieldState to be passed in. Called by MultiSelectChipField.
@@ -256,6 +262,7 @@ class _MultiSelectChipFieldView<V> extends StatefulWidget
         showHeader = field.showHeader,
         chipWidth = field.chipWidth,
         defaultValue = field.defaultValue,
+        defaultIcon = field.defaultIcon,
         state = state;
 
   @override
@@ -290,11 +297,11 @@ class __MultiSelectChipFieldViewState<V>
     return Column(
       children: [
         Container(
-          decoration: widget.decoration ??
-              BoxDecoration(
-                border:
-                    Border.all(width: 1, color: Theme.of(context).primaryColor),
-              ),
+          // decoration: widget.decoration ??
+          //     BoxDecoration(
+          //       border:
+          //           Border.all(width: 1, color: Theme.of(context).primaryColor),
+          //     ),
           child: Column(
             children: [
               widget.showHeader
@@ -407,6 +414,7 @@ class __MultiSelectChipFieldViewState<V>
                               controller: _scrollController,
                               scrollDirection: Axis.horizontal,
                               itemCount: _items.length,
+                              physics: BouncingScrollPhysics(),
                               itemBuilder: (ctx, index) {
                                 return widget.itemBuilder != null
                                     ? widget.itemBuilder!(
@@ -458,7 +466,7 @@ class __MultiSelectChipFieldViewState<V>
 
   Widget _buildItem(MultiSelectItem<V?> item) {
     return Container(
-      margin: EdgeInsets.all(0),
+      margin: EdgeInsets.only(right: 4),
       padding: const EdgeInsets.all(2.0),
       child: ChoiceChip(
         shape: widget.chipShape as OutlinedBorder? ??
@@ -487,7 +495,18 @@ class __MultiSelectChipFieldViewState<V>
                             Theme.of(context).primaryColor,
                   )
                 : null
-            : null,
+            : widget.defaultIcon!.containsKey(item.value)
+                ? Icon(
+                    widget.defaultIcon![item.value]!.icon ??
+                        Icons.add_alert_rounded,
+                    color: widget.colorator != null &&
+                            widget.colorator!(item.value) != null
+                        ? widget.colorator!(item.value)!.withOpacity(1)
+                        : widget.icon!.color ??
+                            widget.selectedChipColor ??
+                            Theme.of(context).primaryColor,
+                  )
+                : null,
         label: Container(
           width: widget.chipWidth,
           child: Text(
@@ -520,26 +539,34 @@ class __MultiSelectChipFieldViewState<V>
                     ? widget.selectedChipColor
                     : Theme.of(context).primaryColor.withOpacity(0.33),
         onSelected: (_) {
-          if (_) {
-            _selectedValues.add(item.value);
-            if (widget.state != null) {
-              widget.state!.didChange(_selectedValues);
-            }
-          } else {
-            _selectedValues.remove(item.value);
-            if (widget.state != null) {
-              widget.state!.didChange(_selectedValues);
-            }
+          _selectedValues = [];
+          if (widget.state != null) {
+            widget.state!.didChange(_selectedValues);
           }
-          if (_selectedValues.isEmpty) {
-            print("Changing");
-            widget.initialValue?.forEach((element) {
-              _selectedValues.add(element);
-              if (widget.state != null) {
-                widget.state!.didChange(_selectedValues);
-              }
-            });
+          _selectedValues.add(item.value);
+          if (widget.state != null) {
+            widget.state!.didChange(_selectedValues);
           }
+          // if (_) {
+          //   _selectedValues.add(item.value);
+          //   if (widget.state != null) {
+          //     widget.state!.didChange(_selectedValues);
+          //   }
+          // } else {
+          //   _selectedValues.remove(item.value);
+          //   if (widget.state != null) {
+          //     widget.state!.didChange(_selectedValues);
+          //   }
+          // }
+          // if (_selectedValues.isEmpty) {
+          //   print("Changing");
+          //   widget.initialValue?.forEach((element) {
+          //     _selectedValues.add(element);
+          //     if (widget.state != null) {
+          //       widget.state!.didChange(_selectedValues);
+          //     }
+          //   });
+          // }
           if (widget.onTap != null) widget.onTap!(_selectedValues);
         },
       ),

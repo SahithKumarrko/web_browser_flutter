@@ -106,34 +106,51 @@ class ISelector extends StatefulWidget {
 }
 
 class _ISelectorState extends State<ISelector> {
+  LinkedHashMap<String, Icon> data = LinkedHashMap();
+  @override
+  void initState() {
+    super.initState();
+    data["All"] = Icon(
+      Icons.select_all_rounded,
+      color: Colors.redAccent,
+    );
+    data["Saved Offline"] = Icon(
+      Icons.offline_pin_rounded,
+      color: Colors.redAccent,
+    );
+    data["Videos"] = Icon(
+      Icons.video_collection_rounded,
+      color: Colors.redAccent,
+    );
+    data["Photos"] = Icon(
+      Icons.photo_library_rounded,
+      color: Colors.redAccent,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MultiSelectChipField<String?>(
-      showHeader: false,
-      items: [
-        "All",
-        "Saved Offline",
-        "Videos",
-        "Photos",
-      ].map((v) => MultiSelectItem<String?>(v, v)).toList(),
-      initialValue: ["All", "Saved Offline"],
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.blue, width: 1.8),
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8),
+      child: MultiSelectChipField<String?>(
+        showHeader: false,
+        items: data.keys
+            .toList()
+            .map((v) => MultiSelectItem<String?>(v, v))
+            .toList(),
+        initialValue: ["All"],
+        selectedChipColor: Colors.blue.withOpacity(0.5),
+        selectedTextStyle: TextStyle(color: Colors.blue[800]),
+        icon: Icon(
+          Icons.check,
+          color: Colors.green,
+        ),
+        defaultIcon: data,
+        onTap: (values) {
+          _filter = values;
+          log(_filter.toString());
+        },
       ),
-      selectedChipColor: Colors.blue.withOpacity(0.5),
-      selectedTextStyle: TextStyle(color: Colors.blue[800]),
-      icon: Icon(
-        Icons.check,
-        color: Colors.green,
-      ),
-      onTap: (values) {
-        _filter = values;
-        log(_filter.toString());
-        if (_filter.length == 0) {
-          this.setState(() {});
-        }
-        //_selectedAnimals4 = values;
-      },
     );
   }
 }
@@ -1241,7 +1258,7 @@ class _ClearAllHState extends State<ClearAllH> {
     return Row(
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: TextButton(
             child: Text(
               (!showSearchField)
