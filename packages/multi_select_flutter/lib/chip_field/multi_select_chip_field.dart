@@ -466,7 +466,7 @@ class __MultiSelectChipFieldViewState<V>
 
   Widget _buildItem(MultiSelectItem<V?> item) {
     return Container(
-      margin: EdgeInsets.only(right: 4),
+      margin: EdgeInsets.only(right: 2),
       padding: const EdgeInsets.all(2.0),
       child: ChoiceChip(
         shape: widget.chipShape as OutlinedBorder? ??
@@ -505,6 +505,7 @@ class __MultiSelectChipFieldViewState<V>
                         : widget.icon!.color ??
                             widget.selectedChipColor ??
                             Theme.of(context).primaryColor,
+                    size: widget.defaultIcon![item.value]!.size ?? 18,
                   )
                 : null,
         label: Container(

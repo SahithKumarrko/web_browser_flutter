@@ -92,14 +92,10 @@ class _CASState extends State<CAS> {
   }
 }
 
-class ItemSelect {
-  String value;
-  bool isSelected;
-  ItemSelect({this.isSelected = false, required this.value});
-}
-
 class ISelector extends StatefulWidget {
-  const ISelector({Key? key}) : super(key: key);
+  final Function(String, bool) generateHistoryValues;
+  const ISelector({required this.generateHistoryValues, Key? key})
+      : super(key: key);
 
   @override
   _ISelectorState createState() => _ISelectorState();
@@ -114,16 +110,26 @@ class _ISelectorState extends State<ISelector> {
       Icons.select_all_rounded,
       color: Colors.redAccent,
     );
-    data["Saved Offline"] = Icon(
-      Icons.offline_pin_rounded,
-      color: Colors.redAccent,
-    );
     data["Videos"] = Icon(
       Icons.video_collection_rounded,
       color: Colors.redAccent,
     );
     data["Photos"] = Icon(
       Icons.photo_library_rounded,
+      color: Colors.redAccent,
+    );
+
+    data["Audios"] = Icon(
+      Icons.audiotrack_rounded,
+      color: Colors.redAccent,
+    );
+
+    data["Saved Offline"] = Icon(
+      Icons.offline_pin_rounded,
+      color: Colors.redAccent,
+    );
+    data["Other"] = Icon(
+      Icons.insert_drive_file_rounded,
       color: Colors.redAccent,
     );
   }
@@ -139,16 +145,19 @@ class _ISelectorState extends State<ISelector> {
             .map((v) => MultiSelectItem<String?>(v, v))
             .toList(),
         initialValue: ["All"],
-        selectedChipColor: Colors.blue.withOpacity(0.5),
-        selectedTextStyle: TextStyle(color: Colors.blue[800]),
+        selectedChipColor: Colors.blue[200],
+        selectedTextStyle: TextStyle(color: Colors.black),
         icon: Icon(
           Icons.check,
-          color: Colors.green,
+          color: Colors.black,
         ),
         defaultIcon: data,
         onTap: (values) {
           _filter = values;
-          log(_filter.toString());
+          print("Calling");
+          widget.generateHistoryValues(
+              "fjumpmPuvqLlrPAvshJXtCYxe6T+Ph55teaNScgI44ZY7S9z0nE3enRnLkBTQj6XHVGNI39cUhndFZYzcTT5cA==",
+              true);
         },
       ),
     );
@@ -239,6 +248,160 @@ class _PageDownloadState extends State<PageDownload> {
     send.send([id, status, progress]);
   }
 
+  List<String> _getListOfFileTypes() {
+    var searchType = _filter[0];
+    List<String> res = [];
+    switch (searchType) {
+      case "Videos":
+        res = [
+          ".mp4",
+          ".webm",
+          ".mpg",
+          ".mp2",
+          ".mpeg",
+          ".mpe",
+          ".mpv",
+          ".ogg",
+          ".mp4",
+          ".m4p",
+          ".m4v",
+          ".avi",
+          ".wmv",
+          ".mov",
+          ".qt",
+          ".flv",
+          ".swf",
+          ".avchd",
+          ".mpg",
+          ".3gp",
+          ".3gp2"
+        ];
+        break;
+      case "Photos":
+        res = [
+          ".jpg",
+          ".png",
+          ".gif",
+          ".webp",
+          ".tiff",
+          ".psd",
+          ".bmp",
+          ".heif",
+          ".indd",
+          ".jpeg",
+          ".svg",
+          ".ai",
+          ".eps",
+          ".exif",
+          ".jfif",
+          ".tiff",
+          ".ppm",
+          ".pgm",
+          ".pbm",
+          ".pnm"
+        ];
+        break;
+      case "Audios":
+        res = [
+          ".wav",
+          ".mp3",
+          ".ogg",
+          ".flac",
+          ".mpc",
+          ".aiff",
+          ".mid",
+          ".m4a",
+          ".gsm",
+          ".dct",
+          ".aac",
+          ".vox",
+          ".wma",
+          ".mmf",
+          ".atrac",
+          ".ra",
+          ".iklax",
+          ".mxp4"
+        ];
+        break;
+      case "Other":
+        res = [
+              ".mp4",
+              ".webm",
+              ".mpg",
+              ".mp2",
+              ".mpeg",
+              ".mpe",
+              ".mpv",
+              ".ogg",
+              ".mp4",
+              ".m4p",
+              ".m4v",
+              ".avi",
+              ".wmv",
+              ".mov",
+              ".qt",
+              ".flv",
+              ".swf",
+              ".avchd",
+              ".mpg",
+              ".3gp",
+              ".3gp2"
+            ] +
+            [
+              ".jpg",
+              ".png",
+              ".gif",
+              ".webp",
+              ".tiff",
+              ".psd",
+              ".raw",
+              ".bmp",
+              ".heif",
+              ".indd",
+              ".jpeg",
+              ".svg",
+              ".ai",
+              ".eps",
+              ".exif",
+              ".jfif",
+              ".tiff",
+              ".ppm",
+              ".pgm",
+              ".pbm",
+              ".pnm"
+            ] +
+            [
+              ".wav",
+              ".mp3",
+              ".ogg",
+              ".flac",
+              ".mpc",
+              ".aiff",
+              ".mid",
+              ".m4a",
+              ".gsm",
+              ".dct",
+              ".aac",
+              ".vox",
+              ".wma",
+              ".mmf",
+              ".atrac",
+              ".ra",
+              ".iklax",
+              ".mxp4"
+            ] +
+            [".mht", ".html"];
+        break;
+      case "Saved Offline":
+        res = [".mht", ".html"];
+        break;
+      default:
+        break;
+    }
+    print("Called :: $res");
+    return res;
+  }
+
   generateHistoryValues(String searchValue, bool needUpdate) async {
     if (needUpdate) {
       nohist.currentState?.setState(() {
@@ -250,18 +413,43 @@ class _PageDownloadState extends State<PageDownload> {
     int ind = 0;
     _data = [];
     items = {};
-    searchValue = searchValue.toLowerCase();
+    var st = [];
+    if (searchValue !=
+        "fjumpmPuvqLlrPAvshJXtCYxe6T+Ph55teaNScgI44ZY7S9z0nE3enRnLkBTQj6XHVGNI39cUhndFZYzcTT5cA==") {
+      searchValue = searchValue.toLowerCase();
+    }
+
+    print("Called gg $searchValue");
     for (String k in keys) {
       var v = browserModel.tasks[k];
       if (v!.length != 0) {
         var c = 0;
         _data.add(DItem(date: k, task: null));
-
+        print("VV");
         items[k] = [];
         items[k]!.addAll([c, ind]);
         ind = ind + 1;
         for (TaskInfo s in v) {
-          if (searchValue == "" ||
+          if (searchValue ==
+              "fjumpmPuvqLlrPAvshJXtCYxe6T+Ph55teaNScgI44ZY7S9z0nE3enRnLkBTQj6XHVGNI39cUhndFZYzcTT5cA==") {
+            print("check");
+            var f = "." + s.fileName.split(".").last;
+            st = _getListOfFileTypes();
+            if (_filter[0] == "Other") {
+              if (!st.contains(f)) {
+                _data.add(DItem(date: k, task: s, key: GlobalKey()));
+                c += 1;
+                ind = ind + 1;
+              }
+            } else if (st.contains(f)) {
+              _data.add(DItem(date: k, task: s, key: GlobalKey()));
+              c += 1;
+              ind = ind + 1;
+            } else if (st.isEmpty) {
+              generateHistoryValues("", true);
+              return;
+            }
+          } else if (searchValue == "" ||
               s.name.toString().toLowerCase().contains(searchValue) ||
               s.link.toString().toLowerCase().contains(searchValue)) {
             _data.add(DItem(date: k, task: s, key: GlobalKey()));
@@ -278,6 +466,7 @@ class _PageDownloadState extends State<PageDownload> {
         }
       }
     }
+
     for (DItem ditem in _data) {
       if (ditem.task != null) {
         for (DownloadTask t in tasks ?? []) {
@@ -307,8 +496,6 @@ class _PageDownloadState extends State<PageDownload> {
   Widget build(BuildContext context) {
     return buildDownload();
   }
-
-  List<ItemSelect> selectItems = [];
 
   SafeArea buildDownload() {
     return SafeArea(
@@ -353,7 +540,6 @@ class _PageDownloadState extends State<PageDownload> {
                 // Loading is done, return the app:
                 return Column(
                   children: [
-                    ISelector(),
                     ClearAllH(
                         dataLen: _data.length,
                         key: clearAllSwitcher,
@@ -1255,36 +1441,45 @@ class _ClearAllHState extends State<ClearAllH> {
 
   GlobalKey alertDialogKey = GlobalKey();
   Widget _buildClearAllHistory(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: TextButton(
-            child: Text(
-              (!showSearchField)
-                  ? "Clear All Downloads"
-                  : "Clear All Searched Downloads",
-              key: vk,
-              style: TextStyle(
-                color: (!longPressed) ? Colors.blue : Colors.grey,
-                decoration: TextDecoration.underline,
-                fontSize: 16,
+        (!showSearchField && !longPressed)
+            ? ISelector(
+                generateHistoryValues: widget.generateHistoryValues,
+              )
+            : SizedBox.shrink(),
+        Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: TextButton(
+                child: Text(
+                  (!showSearchField)
+                      ? "Clear All Downloads"
+                      : "Clear All Searched Downloads",
+                  key: vk,
+                  style: TextStyle(
+                    color: (!longPressed) ? Colors.blue : Colors.grey,
+                    decoration: TextDecoration.underline,
+                    fontSize: 16,
+                  ),
+                ),
+                onPressed: () {
+                  if (!longPressed) {
+                    showDialog(
+                        context: context,
+                        builder: (_) {
+                          return CustomDeleteDownloadsAlertdialog(
+                            key: alertDialogKey,
+                            generateHistoryValues: widget.generateHistoryValues,
+                          );
+                        });
+                  }
+                  return null;
+                },
               ),
             ),
-            onPressed: () {
-              if (!longPressed) {
-                showDialog(
-                    context: context,
-                    builder: (_) {
-                      return CustomDeleteDownloadsAlertdialog(
-                        key: alertDialogKey,
-                        generateHistoryValues: widget.generateHistoryValues,
-                      );
-                    });
-              }
-              return null;
-            },
-          ),
+          ],
         ),
       ],
     );
@@ -1509,7 +1704,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 ),
               ),
               SizedBox(
-                width: 12,
+                width: 24,
               ),
               InkWell(
                 onTap: () {
