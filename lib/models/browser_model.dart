@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:math';
 
@@ -72,13 +73,13 @@ class BrowserSettings {
 }
 
 class BrowserModel extends ChangeNotifier {
-  final List<FavoriteModel> _favorites = [];
   final List<WebViewTab> _webViewTabs = [];
   final Map<String, WebArchiveModel> _webArchives = {};
   int _currentTabIndex = -1;
   BrowserSettings _settings = BrowserSettings();
   late WebViewModel _currentWebViewModel;
   LinkedHashMap<String, List<Search>> history = LinkedHashMap();
+  LinkedHashMap<String, List<FavoriteModel>> favorites = LinkedHashMap();
   bool _showTabScroller = false;
   LinkedHashMap<String, List<TaskInfo>> _tasks = LinkedHashMap();
 
@@ -158,8 +159,8 @@ class BrowserModel extends ChangeNotifier {
   UnmodifiableListView<WebViewTab> get webViewTabs =>
       UnmodifiableListView(_webViewTabs);
 
-  UnmodifiableListView<FavoriteModel> get favorites =>
-      UnmodifiableListView(_favorites);
+  // UnmodifiableListView<FavoriteModel> get favorites =>
+  //     UnmodifiableListView(_favorites);
 
   UnmodifiableMapView<String, WebArchiveModel> get webArchives =>
       UnmodifiableMapView(_webArchives);
@@ -260,42 +261,49 @@ class BrowserModel extends ChangeNotifier {
   }
 
   bool containsFavorite(FavoriteModel favorite) {
-    return _favorites.contains(favorite) ||
-        _favorites.map((e) => e as FavoriteModel?).firstWhere(
-                (element) => element!.url == favorite.url,
-                orElse: () => null) !=
-            null;
+    var keys = favorites.keys.toList();
+    for (var k in keys) {
+      for (FavoriteModel f in (favorites[k] ?? [])) {
+        if ((f.title == favorite.title || favorite.title.toString().isEmpty) &&
+            f.url == favorite.url) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   void addFavorite(FavoriteModel favorite) {
-    _favorites.add(favorite);
-
-    // notifyListeners();
+    dev.log(favorites.toString());
+    if (!containsFavorite(favorite)) {
+      print("uuu");
+      String date = DateFormat.yMMMd().format(DateTime.now());
+      if (!favorites.containsKey(date)) {
+        favorites[date] = [];
+      }
+      favorites[date]?.insert(0, favorite);
+    }
   }
 
-  void addFavorites(List<FavoriteModel> favorites) {
-    _favorites.addAll(favorites);
+  // void addFavorites(List<FavoriteModel> favorites) {
+  //   _favorites.addAll(favorites);
 
-    // notifyListeners();
-  }
+  //   // notifyListeners();
+  // }
 
   void clearFavorites() {
-    _favorites.clear();
+    favorites.clear();
 
     // notifyListeners();
   }
 
   void removeFavorite(FavoriteModel favorite) {
-    if (!_favorites.remove(favorite)) {
-      var favToRemove = _favorites.map((e) => e as FavoriteModel?).firstWhere(
-          (element) => element!.url == favorite.url,
-          orElse: () => null);
-      if (favToRemove != null) {
-        _favorites.remove(favToRemove);
-      }
+    var keys = favorites.keys.toList();
+    for (var k in keys) {
+      favorites[k]?.removeWhere((f) =>
+          ((f.title == favorite.title || favorite.title.toString().isEmpty) &&
+              f.url == favorite.url));
     }
-
-    // notifyListeners();
   }
 
   void addWebArchive(String url, WebArchiveModel webArchiveModel) {
@@ -406,14 +414,14 @@ class BrowserModel extends ChangeNotifier {
       return;
     }
 
-    this.clearFavorites();
+    // this.clearFavorites();
     this.closeAllTabs();
     this.clearWebArchives();
 
-    List<Map<String, dynamic>> favoritesList =
-        browserData["favorites"]?.cast<Map<String, dynamic>>() ?? [];
-    List<FavoriteModel> favorites =
-        favoritesList.map((e) => FavoriteModel.fromMap(e)!).toList();
+    // List<Map<String, dynamic>> favoritesList =
+    //     browserData["favorites"]?.cast<Map<String, dynamic>>() ?? [];
+    // List<FavoriteModel> favorites =
+    //     favoritesList.map((e) => FavoriteModel.fromMap(e)!).toList();
 
     Map<String, dynamic> webArchivesMap =
         browserData["webArchives"]?.cast<String, dynamic>() ?? {};
@@ -430,6 +438,15 @@ class BrowserModel extends ChangeNotifier {
     for (String key in historyList.keys) {
       List<dynamic> values = historyList[key] ?? [];
       this.history[key] = values.map((e) => Search.fromMap(e)!).toList();
+    }
+
+    Map<String, dynamic> favList =
+        browserData["favorites"]?.cast<String, dynamic>() ?? {};
+    // this.history = historyList.map((e) => Search.fromMap(e)!).toList();
+    for (String key in favList.keys) {
+      List<dynamic> values = favList[key] ?? [];
+      this.favorites[key] =
+          values.map((e) => FavoriteModel.fromMap(e)!).toList();
     }
 
     Map<String, dynamic> downloadList =
@@ -450,7 +467,7 @@ class BrowserModel extends ChangeNotifier {
     webViewTabs.sort(
         (a, b) => a.webViewModel.tabIndex!.compareTo(b.webViewModel.tabIndex!));
 
-    this.addFavorites(favorites);
+    // this.addFavorites(favorites);
     this.addWebArchives(webArchives);
     this.updateSettings(settings);
     this.addTabs(webViewTabs);
@@ -468,7 +485,7 @@ class BrowserModel extends ChangeNotifier {
 
   Map<String, dynamic> toMap() {
     return {
-      "favorites": _favorites.map((e) => e.toMap()).toList(),
+      "favorites": convertFavoriteToMap(),
       "webViewTabs": _webViewTabs.map((e) => e.webViewModel.toMap()).toList(),
       "webArchives":
           _webArchives.map((key, value) => MapEntry(key, value.toMap())),
@@ -502,6 +519,15 @@ class BrowserModel extends ChangeNotifier {
     LinkedHashMap<String, List<Map<String, dynamic>>> res = LinkedHashMap();
     for (String key in history.keys) {
       List<Search> values = history[key] ?? [];
+      res[key] = values.map((e) => e.toMap()).toList();
+    }
+    return res;
+  }
+
+  Map<String, List<Map<String, dynamic>>> convertFavoriteToMap() {
+    LinkedHashMap<String, List<Map<String, dynamic>>> res = LinkedHashMap();
+    for (String key in favorites.keys) {
+      List<FavoriteModel> values = favorites[key] ?? [];
       res[key] = values.map((e) => e.toMap()).toList();
     }
     return res;

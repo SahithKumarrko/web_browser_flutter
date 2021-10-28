@@ -19,6 +19,7 @@ import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/custom_popup_dialog.dart';
 import 'package:webpage_dev_console/developers/main.dart';
+import 'package:webpage_dev_console/favorites.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/history.dart';
 import 'package:webpage_dev_console/main.dart';
@@ -34,6 +35,8 @@ import 'package:webpage_dev_console/tab_popup_menu_actions.dart';
 
 import '../popup_menu_actions.dart';
 import '../webview_tab.dart';
+
+GlobalKey favKey = GlobalKey();
 
 class WebViewTabAppBar extends StatefulWidget {
   final void Function()? showFindOnPage;
@@ -454,27 +457,9 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                       urlRequest: URLRequest(url: hitem?.url));
                               Navigator.pop(popupMenuContext);
                             })),
-                    Container(
-                        width: 35.0,
-                        child: IconButton(
-                            padding: const EdgeInsets.all(0.0),
-                            icon: Icon(
-                              isFavorite ? Icons.star : Icons.star_border,
-                              color: Colors.black,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                if (favorite != null) {
-                                  if (!browserModel
-                                      .containsFavorite(favorite)) {
-                                    browserModel.addFavorite(favorite);
-                                  } else if (browserModel
-                                      .containsFavorite(favorite)) {
-                                    browserModel.removeFavorite(favorite);
-                                  }
-                                }
-                              });
-                            })),
+                    Fav(
+                      key: favKey,
+                    ),
                     Container(
                         width: 35.0,
                         child: IconButton(
@@ -602,13 +587,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
 
                               takeScreenshotAndShow();
                             })),
-                    SizedBox(
-                      width: 16,
-                    ),
                   ]);
 
                   return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     mainAxisSize: MainAxisSize.max,
                     children: children,
                   );
@@ -811,7 +793,8 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
         Helper.addNewIncognitoTab(context: context);
         break;
       case PopupMenuActions.FAVORITES:
-        showFavorites();
+        // showFavorites();
+        Navigator.of(context).push(_goToHistory(Favorite()));
         break;
       case PopupMenuActions.HISTORY:
         Navigator.of(context).push(_goToHistory(History()));
@@ -848,75 +831,75 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
     }
   }
 
-  void showFavorites() {
-    showDialog(
-        context: context,
-        builder: (context) {
-          var browserModel = Provider.of<BrowserModel>(context, listen: true);
+  // void showFavorites() {
+  //   showDialog(
+  //       context: context,
+  //       builder: (context) {
+  //         var browserModel = Provider.of<BrowserModel>(context, listen: true);
 
-          return AlertDialog(
-              contentPadding: EdgeInsets.all(0.0),
-              content: Container(
-                  width: double.maxFinite,
-                  child: ListView(
-                    children: browserModel.favorites.map((favorite) {
-                      var url = favorite.url;
-                      var faviconUrl = favorite.favicon != null
-                          ? favorite.favicon!.url
-                          : Uri.parse((url?.origin ?? "") + "/favicon.ico");
+  //         return AlertDialog(
+  //             contentPadding: EdgeInsets.all(0.0),
+  //             content: Container(
+  //                 width: double.maxFinite,
+  //                 child: ListView(
+  //                   children: browserModel.favorites.map((favorite) {
+  //                     var url = favorite.url;
+  //                     var faviconUrl = favorite.favicon != null
+  //                         ? favorite.favicon!.url
+  //                         : Uri.parse((url?.origin ?? "") + "/favicon.ico");
 
-                      return ListTile(
-                        leading: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            // CachedNetworkImage(
-                            //   placeholder: (context, url) =>
-                            //       CircularProgressIndicator(),
-                            //   imageUrl: faviconUrl,
-                            //   height: 30,
-                            // )
-                            CustomImage(
-                              url: faviconUrl,
-                              maxWidth: 30.0,
-                              height: 30.0,
-                            )
-                          ],
-                        ),
-                        title: Text(
-                            favorite.title ?? favorite.url?.toString() ?? "",
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis),
-                        subtitle: Text(favorite.url?.toString() ?? "",
-                            maxLines: 2, overflow: TextOverflow.ellipsis),
-                        isThreeLine: true,
-                        onTap: () {
-                          setState(() {
-                            Helper.addNewTab(
-                                url: favorite.url, context: context);
-                            Navigator.pop(context);
-                          });
-                        },
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            IconButton(
-                              icon: Icon(Icons.close, size: 20.0),
-                              onPressed: () {
-                                setState(() {
-                                  browserModel.removeFavorite(favorite);
-                                  if (browserModel.favorites.length == 0) {
-                                    Navigator.pop(context);
-                                  }
-                                });
-                              },
-                            )
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  )));
-        });
-  }
+  //                     return ListTile(
+  //                       leading: Column(
+  //                         mainAxisAlignment: MainAxisAlignment.center,
+  //                         children: <Widget>[
+  //                           // CachedNetworkImage(
+  //                           //   placeholder: (context, url) =>
+  //                           //       CircularProgressIndicator(),
+  //                           //   imageUrl: faviconUrl,
+  //                           //   height: 30,
+  //                           // )
+  //                           CustomImage(
+  //                             url: faviconUrl,
+  //                             maxWidth: 30.0,
+  //                             height: 30.0,
+  //                           )
+  //                         ],
+  //                       ),
+  //                       title: Text(
+  //                           favorite.title ?? favorite.url?.toString() ?? "",
+  //                           maxLines: 2,
+  //                           overflow: TextOverflow.ellipsis),
+  //                       subtitle: Text(favorite.url?.toString() ?? "",
+  //                           maxLines: 2, overflow: TextOverflow.ellipsis),
+  //                       isThreeLine: true,
+  //                       onTap: () {
+  //                         setState(() {
+  //                           Helper.addNewTab(
+  //                               url: favorite.url, context: context);
+  //                           Navigator.pop(context);
+  //                         });
+  //                       },
+  //                       trailing: Row(
+  //                         mainAxisSize: MainAxisSize.min,
+  //                         children: <Widget>[
+  //                           IconButton(
+  //                             icon: Icon(Icons.close, size: 20.0),
+  //                             onPressed: () {
+  //                               setState(() {
+  //                                 browserModel.removeFavorite(favorite);
+  //                                 if (browserModel.favorites.length == 0) {
+  //                                   Navigator.pop(context);
+  //                                 }
+  //                               });
+  //                             },
+  //                           )
+  //                         ],
+  //                       ),
+  //                     );
+  //                   }).toList(),
+  //                 )));
+  //       });
+  // }
 
   void showHistory() {
     showDialog(
@@ -1147,5 +1130,67 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
 
       file.delete();
     }
+  }
+}
+
+class Fav extends StatefulWidget {
+  const Fav({Key? key}) : super(key: key);
+
+  @override
+  _FavState createState() => _FavState();
+}
+
+class _FavState extends State<Fav> {
+  @override
+  Widget build(BuildContext context) {
+    var browserModel = Provider.of<BrowserModel>(context, listen: true);
+    var webViewModel = browserModel.getCurrentTab()?.webViewModel;
+    var isFavorite = false;
+    var favorite;
+    if (webViewModel?.url != null &&
+        (webViewModel?.url ?? "").toString().isNotEmpty) {
+      favorite = FavoriteModel(
+          url: webViewModel?.url,
+          title: webViewModel?.title ?? "",
+          favicon: webViewModel?.favicon);
+      isFavorite = browserModel.containsFavorite(favorite);
+    }
+    print("Settting");
+    return Container(
+        width: 35.0,
+        child: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: Icon(
+              isFavorite ? Icons.star : Icons.star_border,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              if (favorite != null) {
+                log(browserModel.favorites.toString());
+                if (!browserModel.containsFavorite(favorite)) {
+                  browserModel.addFavorite(favorite);
+                  browserModel.save();
+                  print("Added");
+                  // favKey.currentState?.setState(() {
+                  //   isFavorite = true;
+                  //   print("Called");
+                  // });
+                  this.setState(() {
+                    isFavorite = true;
+                  });
+                } else {
+                  print("Removing");
+                  browserModel.removeFavorite(favorite);
+                  browserModel.save();
+                  // favKey.currentState?.setState(() {
+                  //   isFavorite = false;
+                  // });
+                  this.setState(() {
+                    print("rrrrrrr");
+                    isFavorite = false;
+                  });
+                }
+              }
+            }));
   }
 }

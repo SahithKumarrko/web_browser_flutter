@@ -1,7 +1,7 @@
 class PopupMenuActions {
   static const String NEW_TAB = "New tab";
   static const String NEW_INCOGNITO_TAB = "New incognito tab";
-  static const String FAVORITES = "Favorites";
+  static const String FAVORITES = "Bookmarks";
   static const String HISTORY = "History";
   static const String DOWNLOADS = "Downloads";
   static const String SHARE = "Share";

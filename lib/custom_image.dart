@@ -101,7 +101,7 @@ class _CustomImageState extends State<CustomImage> {
               this.widget.width ?? this.widget.height ?? this.widget.maxWidth,
           imageCacheName: widget.url?.origin,
           retries: 1,
-          timeRetry: Duration(seconds: 5),
+          timeRetry: Duration(seconds: 2),
           loadStateChanged: (state) {
             switch (state.extendedImageLoadState) {
               case LoadState.loading:
