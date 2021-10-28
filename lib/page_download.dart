@@ -43,11 +43,6 @@ late String _localPath;
 List<String?> _filter = [];
 
 class DItem {
-  String date;
-  TaskInfo? task;
-  bool isDeleted;
-  GlobalKey? key;
-  bool isSelected;
   DItem(
       {required this.date,
       required this.task,
@@ -55,16 +50,23 @@ class DItem {
       this.isSelected = false,
       this.key});
 
+  String date;
+  bool isDeleted;
+  bool isSelected;
+  GlobalKey? key;
+  TaskInfo? task;
+
   @override
   String toString() =>
       'DItem(title: $date,fileSize : ${task?.fileSize}, taskId: ${task?.taskId}, url: ${task?.link},"name":${task?.name},isSelected : $isSelected,"name":${task?.name})';
 }
 
 class CAS extends StatefulWidget {
-  final Function() buildDownloadList;
-  final Function() buildNoHistory;
   CAS({required this.buildDownloadList, required this.buildNoHistory, Key? key})
       : super(key: key);
+
+  final Function() buildDownloadList;
+  final Function() buildNoHistory;
 
   @override
   _CASState createState() => _CASState();
@@ -93,9 +95,10 @@ class _CASState extends State<CAS> {
 }
 
 class ISelector extends StatefulWidget {
-  final Function(String, bool) generateHistoryValues;
   const ISelector({required this.generateHistoryValues, Key? key})
       : super(key: key);
+
+  final Function(String, bool) generateHistoryValues;
 
   @override
   _ISelectorState createState() => _ISelectorState();
@@ -103,6 +106,7 @@ class ISelector extends StatefulWidget {
 
 class _ISelectorState extends State<ISelector> {
   LinkedHashMap<String, Icon> data = LinkedHashMap();
+
   @override
   void initState() {
     super.initState();
@@ -177,18 +181,6 @@ class PageDownload extends StatefulWidget {
 }
 
 class _PageDownloadState extends State<PageDownload> {
-  Future initialize(BuildContext context) async {
-    // This is where you can initialize the resources needed by your app while
-    // the splash screen is displayed.  Remove the following example because
-    // delaying the user experience is a bad design practice!
-    await Future.delayed(const Duration(seconds: 1), () async {
-      await generateHistoryValues("", false);
-      bindBackgroundIsolate();
-      FlutterDownloader.registerCallback(downloadCallback);
-      _localPath = await FileUtil.findLocalPath();
-    });
-  }
-
   ReceivePort _port = ReceivePort();
 
   @override
@@ -206,6 +198,18 @@ class _PageDownloadState extends State<PageDownload> {
     browserModel = Provider.of<BrowserModel>(context, listen: false);
 
     settings = browserModel.getSettings();
+  }
+
+  Future initialize(BuildContext context) async {
+    // This is where you can initialize the resources needed by your app while
+    // the splash screen is displayed.  Remove the following example because
+    // delaying the user experience is a bad design practice!
+    await Future.delayed(const Duration(seconds: 1), () async {
+      await generateHistoryValues("", false);
+      bindBackgroundIsolate();
+      FlutterDownloader.registerCallback(downloadCallback);
+      _localPath = await FileUtil.findLocalPath();
+    });
   }
 
   void bindBackgroundIsolate() {
@@ -492,11 +496,6 @@ class _PageDownloadState extends State<PageDownload> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return buildDownload();
-  }
-
   SafeArea buildDownload() {
     return SafeArea(
       child: WillPopScope(
@@ -601,13 +600,14 @@ class _PageDownloadState extends State<PageDownload> {
       },
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return buildDownload();
+  }
 }
 
 class DownloadItem extends StatefulWidget {
-  final DItem item;
-  final int index;
-  final Animation<double> animation;
-  final Function(String, bool) generateHistoryValues;
   DownloadItem(
       {required this.item,
       required this.animation,
@@ -615,6 +615,11 @@ class DownloadItem extends StatefulWidget {
       required this.generateHistoryValues,
       Key? key})
       : super(key: key);
+
+  final Function(String, bool) generateHistoryValues;
+  final Animation<double> animation;
+  final int index;
+  final DItem item;
 
   @override
   _DownloadItemState createState() => _DownloadItemState();
@@ -1295,10 +1300,11 @@ class _DownloadItemState extends State<DownloadItem> {
 }
 
 class CustomDeleteDownloadsAlertdialog extends StatefulWidget {
-  final Function(String, bool) generateHistoryValues;
   const CustomDeleteDownloadsAlertdialog(
       {required this.generateHistoryValues, Key? key})
       : super(key: key);
+
+  final Function(String, bool) generateHistoryValues;
 
   @override
   _CustomDeleteDownloadsAlertdialogState createState() =>
@@ -1307,8 +1313,9 @@ class CustomDeleteDownloadsAlertdialog extends StatefulWidget {
 
 class _CustomDeleteDownloadsAlertdialogState
     extends State<CustomDeleteDownloadsAlertdialog> {
-  bool deleteFromStorage = false;
   GlobalKey alertDialogKey = GlobalKey();
+  bool deleteFromStorage = false;
+
   _removeFromStorage(List<DItem> dat) {
     nohist.currentState?.setState(() {
       isLoadingSearch = true;
@@ -1425,21 +1432,21 @@ class _CustomDeleteDownloadsAlertdialogState
 }
 
 class ClearAllH extends StatefulWidget {
-  final int dataLen;
-  final Function(String, bool) generateHistoryValues;
-
   ClearAllH(
       {required this.dataLen, required this.generateHistoryValues, Key? key})
       : super(key: key);
+
+  final Function(String, bool) generateHistoryValues;
+  final int dataLen;
 
   @override
   _ClearAllHState createState() => _ClearAllHState();
 }
 
 class _ClearAllHState extends State<ClearAllH> {
+  GlobalKey alertDialogKey = GlobalKey();
   ValueKey vk = ValueKey("specificDeletion");
 
-  GlobalKey alertDialogKey = GlobalKey();
   Widget _buildClearAllHistory(BuildContext context) {
     return Column(
       children: [
@@ -1497,9 +1504,10 @@ class _ClearAllHState extends State<ClearAllH> {
 }
 
 class HistoryAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final Function(String, bool) generateHistoryValues;
   HistoryAppBar({required this.generateHistoryValues, Key? key})
       : super(key: key);
+
+  final Function(String, bool) generateHistoryValues;
 
   @override
   _HistoryAppBarState createState() => _HistoryAppBarState();
@@ -1509,19 +1517,20 @@ class HistoryAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _HistoryAppBarState extends State<HistoryAppBar> {
-  GlobalKey ktab = GlobalKey();
-  GlobalKey ksf = GlobalKey();
   GlobalKey deleteBar = GlobalKey();
-  @override
-  void initState() {
-    super.initState();
-    txtc = TextEditingController();
-  }
+  GlobalKey ksf = GlobalKey();
+  GlobalKey ktab = GlobalKey();
 
   @override
   void dispose() {
     txtc.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    txtc = TextEditingController();
   }
 
   Widget _buildSTF({required Key key}) {

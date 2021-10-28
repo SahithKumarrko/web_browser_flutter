@@ -45,17 +45,20 @@ class History extends StatefulWidget {
 }
 
 class HItem {
-  String date;
-  Search? search;
-  bool isDeleted;
-  GlobalKey? key;
-  bool isSelected;
   HItem(
       {required this.date,
       required this.search,
       this.isDeleted = false,
       this.isSelected = false,
+      this.ikey,
       this.key});
+
+  String date;
+  bool isDeleted;
+  bool isSelected;
+  GlobalKey? key;
+  GlobalKey? ikey;
+  Search? search;
 
   @override
   String toString() =>
@@ -63,10 +66,11 @@ class HItem {
 }
 
 class CAS extends StatefulWidget {
-  final Function() buildhistoryList;
-  final Function() buildNoHistory;
   CAS({required this.buildhistoryList, required this.buildNoHistory, Key? key})
       : super(key: key);
+
+  final Function() buildhistoryList;
+  final Function() buildNoHistory;
 
   @override
   _CASState createState() => _CASState();
@@ -85,6 +89,19 @@ class _CASState extends State<CAS> {
 }
 
 class _HistoryState extends State<History> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    browserModel = Provider.of<BrowserModel>(context, listen: false);
+
+    settings = browserModel.getSettings();
+  }
+
   Future initialize(BuildContext context) async {
     // This is where you can initialize the resources needed by your app while
     // the splash screen is displayed.  Remove the following example because
@@ -113,7 +130,8 @@ class _HistoryState extends State<History> {
           if (searchValue == "" ||
               s.title.toLowerCase().contains(searchValue) ||
               s.url!.origin.toString().toLowerCase().contains(searchValue)) {
-            _data.add(HItem(date: k, search: s, key: GlobalKey()));
+            _data.add(
+                HItem(date: k, search: s, key: GlobalKey(), ikey: GlobalKey()));
             c += 1;
             ind = ind + 1;
           }
@@ -131,24 +149,6 @@ class _HistoryState extends State<History> {
       _listKey.currentState?.setState(() {});
       nohist.currentState?.setState(() {});
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    browserModel = Provider.of<BrowserModel>(context, listen: false);
-
-    settings = browserModel.getSettings();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return buildHistory();
   }
 
   SafeArea buildHistory() {
@@ -257,18 +257,24 @@ class _HistoryState extends State<History> {
       },
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return buildHistory();
+  }
 }
 
 class HisItem extends StatefulWidget {
-  final HItem item;
-  final int index;
-  final Animation<double> animation;
   HisItem(
       {required this.item,
       required this.animation,
       required this.index,
       Key? key})
       : super(key: key);
+
+  final Animation<double> animation;
+  final int index;
+  final HItem item;
 
   @override
   _HisItemState createState() => _HisItemState();
@@ -394,6 +400,7 @@ class _HisItemState extends State<HisItem> {
                                           "/favicon.ico")
                                       : null,
                                   maxWidth: 24.0,
+                                  key: item.ikey,
                                   height: 24.0),
                             )
                           ],
@@ -500,10 +507,11 @@ class _HisItemState extends State<HisItem> {
 }
 
 class ClearAllH extends StatefulWidget {
-  final int dataLen;
-  final BrowserModel hbrowserModel;
   ClearAllH({required this.dataLen, required this.hbrowserModel, Key? key})
       : super(key: key);
+
+  final int dataLen;
+  final BrowserModel hbrowserModel;
 
   @override
   _ClearAllHState createState() => _ClearAllHState();
@@ -511,6 +519,7 @@ class ClearAllH extends StatefulWidget {
 
 class _ClearAllHState extends State<ClearAllH> {
   ValueKey vk = ValueKey("specificDeletion");
+
   Widget _buildClearAllHistory(BuildContext context) {
     return Row(
       children: [
@@ -593,9 +602,10 @@ class _ClearAllHState extends State<ClearAllH> {
 }
 
 class HistoryAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final Function(String, bool) generateHistoryValues;
   HistoryAppBar({required this.generateHistoryValues, Key? key})
       : super(key: key);
+
+  final Function(String, bool) generateHistoryValues;
 
   @override
   _HistoryAppBarState createState() => _HistoryAppBarState();
@@ -605,19 +615,20 @@ class HistoryAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _HistoryAppBarState extends State<HistoryAppBar> {
-  GlobalKey ktab = GlobalKey();
-  GlobalKey ksf = GlobalKey();
   GlobalKey deleteBar = GlobalKey();
-  @override
-  void initState() {
-    super.initState();
-    txtc = TextEditingController();
-  }
+  GlobalKey ksf = GlobalKey();
+  GlobalKey ktab = GlobalKey();
 
   @override
   void dispose() {
     txtc.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    txtc = TextEditingController();
   }
 
   Widget _buildSTF({required Key key}) {
