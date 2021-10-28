@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/model_search.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
+import 'package:webpage_dev_console/models/favorite_model.dart';
 
 class SearchModel extends ChangeNotifier {
   bool _isLoading = false;
@@ -49,6 +50,12 @@ class SearchModel extends ChangeNotifier {
       for (String key in sortedKeys) {
         List<Search> res = browserModel.history[key] ?? [];
         webHistory.addAll(res);
+      }
+      for (String key in browserModel.favorites.keys.toList().reversed) {
+        List<FavoriteModel> res = browserModel.favorites[key] ?? [];
+        for (FavoriteModel i in res) {
+          webHistory.add(Search(title: i.title.toString(), url: i.url));
+        }
       }
 
       if (query.isNotEmpty) _query = query;
