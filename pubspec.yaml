@@ -42,6 +42,7 @@ dependencies:
   implicitly_animated_reorderable_list: ^0.4.1
   intl: ^0.17.0
   material_floating_search_bar: ^0.3.4
+  mime: ^1.0.1
   multi_select_flutter:
     path: packages/multi_select_flutter
   package_info: ^2.0.2
@@ -52,6 +53,7 @@ dependencies:
   share_extend: ^2.0.0
   shared_preferences: ^2.0.8
   url_launcher: ^6.0.9
+  video_thumbnail: ^0.4.3
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:developer';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:extended_image/extended_image.dart';
 import 'package:flash/flash.dart';
@@ -9,8 +11,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html/shims/dart_ui_real.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:mime/mime.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
@@ -166,6 +170,105 @@ class _ISelectorState extends State<ISelector> {
       ),
     );
   }
+}
+
+class ThumbnailRequest {
+  final String video;
+  final String thumbnailPath;
+  final ImageFormat imageFormat;
+  final int maxHeight;
+  final int maxWidth;
+  final int timeMs;
+  final bool isDownloaded;
+  final int quality;
+
+  const ThumbnailRequest(
+      {required this.video,
+      required this.thumbnailPath,
+      required this.imageFormat,
+      required this.maxHeight,
+      required this.maxWidth,
+      required this.timeMs,
+      this.isDownloaded = false,
+      required this.quality});
+}
+
+class ThumbnailResult {
+  final Image? image;
+  final int dataSize;
+  final int height;
+  final int width;
+  const ThumbnailResult(
+      {required this.image,
+      required this.dataSize,
+      required this.height,
+      required this.width});
+}
+
+Future<ThumbnailResult> genThumbnail(ThumbnailRequest r) async {
+  //WidgetsFlutterBinding.ensureInitialized();
+  Uint8List bytes;
+
+  final Completer<ThumbnailResult> completer = Completer();
+  try {
+    var type = lookupMimeType(r.video)?.toLowerCase();
+    log("${r.video} :: ${type.toString()}");
+    if (type?.contains("video") ?? false) {
+      bytes = (await VideoThumbnail.thumbnailData(
+          video: r.video,
+          imageFormat: r.imageFormat,
+          maxHeight: r.maxHeight,
+          maxWidth: r.maxWidth,
+          timeMs: r.timeMs,
+          quality: r.quality))!;
+
+      int _imageDataSize = bytes.length;
+      print("image size: $_imageDataSize");
+
+      final _image = Image.memory(bytes);
+      _image.image
+          .resolve(ImageConfiguration())
+          .addListener(ImageStreamListener((ImageInfo info, bool _) {
+        completer.complete(ThumbnailResult(
+          image: _image,
+          dataSize: _imageDataSize,
+          height: info.image.height,
+          width: info.image.width,
+        ));
+      }));
+    } else if (r.isDownloaded && (type?.contains("image") ?? false)) {
+      final file = File(r.thumbnailPath);
+      bytes = file.readAsBytesSync();
+      final _image = Image.memory(bytes);
+      _image.image
+          .resolve(ImageConfiguration())
+          .addListener(ImageStreamListener((ImageInfo info, bool _) {
+        completer.complete(ThumbnailResult(
+          image: _image,
+          dataSize: bytes.length,
+          height: r.maxHeight,
+          width: r.maxWidth,
+        ));
+      }));
+    } else {
+      completer.complete(ThumbnailResult(
+        image: null,
+        dataSize: 0,
+        height: 0,
+        width: 0,
+      ));
+    }
+  } catch (e) {
+    print("ERROROROROR :::: $e");
+    completer.completeError(ThumbnailResult(
+      image: null,
+      dataSize: 0,
+      height: 0,
+      width: 0,
+    ));
+  }
+
+  return completer.future;
 }
 
 class PageDownload extends StatefulWidget {
@@ -494,6 +597,7 @@ class _PageDownloadState extends State<PageDownload> {
         isLoadingSearch = false;
       });
     }
+    log(tasks.toString());
   }
 
   SafeArea buildDownload() {
@@ -582,6 +686,8 @@ class _PageDownloadState extends State<PageDownload> {
     return AnimatedList(
       key: _listKey,
       initialItemCount: _data.length,
+      physics: BouncingScrollPhysics(),
+      padding: EdgeInsets.only(bottom: 16),
       itemBuilder: (context, index, animation) {
         if (index < _data.length) {
           DItem item = _data.elementAt(index);
@@ -632,13 +738,13 @@ class _DownloadItemState extends State<DownloadItem> {
   }
 
   Widget _buildItem(DItem item, int index, Animation<double> animation) {
-    num downloadSize = num.parse(widget.item.task?.fileSize ?? "0") == 0
+    String size = (widget.item.task?.fileSize ?? "");
+    size = size.isEmpty ? "0" : size;
+    num downloadSize = num.parse(size) == 0
         ? 0
-        : (((num.parse(widget.item.task?.fileSize ?? "0") / 1024)) *
+        : (((num.parse(size) / 1024)) *
             ((widget.item.task?.progress ?? 1) / 100));
-    num actual = num.parse(widget.item.task?.fileSize ?? "0") == 0
-        ? 0
-        : (((num.parse(widget.item.task?.fileSize ?? "0") / 1024)));
+    num actual = num.parse(size) == 0 ? 0 : (((num.parse(size) / 1024)));
     String downloaded = "";
     String actualSize = "";
     if (downloadSize <= 1023) {
@@ -656,6 +762,7 @@ class _DownloadItemState extends State<DownloadItem> {
     } else {
       actualSize = (actual / 1024).toStringAsFixed(2) + "MB";
     }
+
     return Column(
       children: [
         item.task == null
@@ -789,12 +896,65 @@ class _DownloadItemState extends State<DownloadItem> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
-                            CustomImage(
-                                isSelected: item.isSelected,
-                                isDownload: true,
-                                fileName: item.task?.name ?? "",
-                                maxWidth: 36.0,
-                                height: 36.0)
+                            // type!.contains("image") ? : type!.contains("video") ? :
+                            item.task?.status == DownloadTaskStatus.failed
+                                ? CustomImage(
+                                    isSelected: item.isSelected,
+                                    isDownload: true,
+                                    fileName: item.task?.name ?? "",
+                                    maxWidth: 36.0,
+                                    height: 36.0)
+                                : FutureBuilder<ThumbnailResult>(
+                                    future: genThumbnail(ThumbnailRequest(
+                                        video: item.task?.status ==
+                                                DownloadTaskStatus.complete
+                                            ? (item.task?.savedDir ?? "") +
+                                                "/" +
+                                                (item.task?.fileName ?? "")
+                                            : item.task?.link.toString() ?? "",
+                                        thumbnailPath:
+                                            (item.task?.savedDir ?? "") +
+                                                "/" +
+                                                (item.task?.fileName ?? ""),
+                                        imageFormat: ImageFormat.JPEG,
+                                        maxHeight: 36,
+                                        maxWidth: 36,
+                                        isDownloaded: item.task?.status ==
+                                            DownloadTaskStatus.complete,
+                                        timeMs: 0,
+                                        quality: 100)),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot snapshot) {
+                                      if (snapshot.hasData) {
+                                        if (snapshot.data.image != null) {
+                                          final _image = snapshot.data.image;
+                                          return Container(
+                                            constraints: BoxConstraints(
+                                                minWidth: 36,
+                                                minHeight: 36,
+                                                maxWidth: 36,
+                                                maxHeight: 36),
+                                            child: _image,
+                                          );
+                                        } else {
+                                          return CustomImage(
+                                              isSelected: item.isSelected,
+                                              isDownload: true,
+                                              fileName: item.task?.name ?? "",
+                                              maxWidth: 36.0,
+                                              height: 36.0);
+                                        }
+                                      } else if (snapshot.hasError) {
+                                        return Container(
+                                            padding: EdgeInsets.all(8.0),
+                                            color: Colors.red,
+                                            child: Icon(Icons
+                                                .file_download_off_rounded));
+                                      } else {
+                                        return CircularProgressIndicator();
+                                      }
+                                    },
+                                  )
                           ],
                         ),
                         const SizedBox(width: 12),

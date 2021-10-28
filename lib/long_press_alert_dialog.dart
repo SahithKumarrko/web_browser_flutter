@@ -536,13 +536,19 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
 
           bool fileExists = await File(_localPath + "/" + fileName).exists();
           if (fileExists) {
-            FileUtil.showAlreadyFileExistsError(
-                context: context,
-                action: () async {
-                  fileName = await FileUtil.getFileName(
-                      context: context, fileName: fileName);
-                  download(isImage: isImage);
-                });
+            if (isImage) {
+              FileUtil.showAlreadyFileExistsError(
+                  context: context,
+                  action: () async {
+                    fileName = await FileUtil.getFileName(
+                        context: context, fileName: fileName);
+                    download(isImage: isImage);
+                  });
+            } else {
+              fileName = await FileUtil.getFileName(
+                  context: context, fileName: fileName);
+              download(isImage: isImage);
+            }
           } else {
             download(isImage: isImage);
           }

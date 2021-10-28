@@ -240,6 +240,8 @@ class _HistoryState extends State<History> {
     return AnimatedList(
       key: _listKey,
       initialItemCount: _data.length,
+      physics: BouncingScrollPhysics(),
+      padding: EdgeInsets.only(bottom: 16),
       itemBuilder: (context, index, animation) {
         if (index < _data.length) {
           HItem item = _data.elementAt(index);
