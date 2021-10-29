@@ -74,8 +74,10 @@ class BrowserSettings {
 
 class BrowserModel extends ChangeNotifier {
   final List<WebViewTab> _webViewTabs = [];
+  final List<WebViewTab> _incognitowebViewTabs = [];
   final Map<String, WebArchiveModel> _webArchives = {};
   int _currentTabIndex = -1;
+  int _incogcurrentTabIndex = -1;
   BrowserSettings _settings = BrowserSettings();
   late WebViewModel _currentWebViewModel;
   LinkedHashMap<String, List<Search>> history = LinkedHashMap();
@@ -85,6 +87,8 @@ class BrowserModel extends ChangeNotifier {
 
   bool loadingVisible = false;
   late BuildContext loadctx;
+
+  bool isIncognito = false;
 
   bool get showTabScroller => _showTabScroller;
 
@@ -159,6 +163,9 @@ class BrowserModel extends ChangeNotifier {
   UnmodifiableListView<WebViewTab> get webViewTabs =>
       UnmodifiableListView(_webViewTabs);
 
+  UnmodifiableListView<WebViewTab> get incognitowebViewTabs =>
+      UnmodifiableListView(_incognitowebViewTabs);
+
   // UnmodifiableListView<FavoriteModel> get favorites =>
   //     UnmodifiableListView(_favorites);
 
@@ -166,14 +173,25 @@ class BrowserModel extends ChangeNotifier {
       UnmodifiableMapView(_webArchives);
 
   void addTab(WebViewTab webViewTab, bool notify) {
-    _webViewTabs.add(webViewTab);
-    _currentTabIndex = _webViewTabs.length - 1;
-    webViewTab.webViewModel.tabIndex = _currentTabIndex;
+    if (webViewTab.webViewModel.isIncognitoMode) {
+      _incognitowebViewTabs.add(webViewTab);
+      _incogcurrentTabIndex = _incognitowebViewTabs.length - 1;
+      webViewTab.webViewModel.tabIndex = _incogcurrentTabIndex;
 
-    _currentWebViewModel.updateWithValue(webViewTab.webViewModel);
-    webViewTab.webViewModel.setHistory = WebHistory(list: []);
-    webViewTab.webViewModel.history?.list?.add(WebHistoryItem());
-    webViewTab.webViewModel.curIndex = 0;
+      _currentWebViewModel.updateWithValue(webViewTab.webViewModel);
+      webViewTab.webViewModel.setHistory = WebHistory(list: []);
+      webViewTab.webViewModel.history?.list?.add(WebHistoryItem());
+      webViewTab.webViewModel.curIndex = 0;
+    } else {
+      _webViewTabs.add(webViewTab);
+      _currentTabIndex = _webViewTabs.length - 1;
+      webViewTab.webViewModel.tabIndex = _currentTabIndex;
+
+      _currentWebViewModel.updateWithValue(webViewTab.webViewModel);
+      webViewTab.webViewModel.setHistory = WebHistory(list: []);
+      webViewTab.webViewModel.history?.list?.add(WebHistoryItem());
+      webViewTab.webViewModel.curIndex = 0;
+    }
 
     if (notify) notifyListeners();
   }
@@ -188,6 +206,18 @@ class BrowserModel extends ChangeNotifier {
       _currentWebViewModel.updateWithValue(webViewTabs.last.webViewModel);
     }
 
+    // if (_incogcurrentTabIndex >= 0) {
+    //   _currentWebViewModel.updateWithValue(webViewTabs.last.webViewModel);
+    // }
+    notifyListeners();
+  }
+
+  void addIncognitoTabs(List<WebViewTab> webViewTabs) {
+    for (var webViewTab in webViewTabs) {
+      _incognitowebViewTabs.add(webViewTab);
+      webViewTab.webViewModel.tabIndex = _incognitowebViewTabs.length - 1;
+    }
+    _incogcurrentTabIndex = _incognitowebViewTabs.length - 1;
     notifyListeners();
   }
 
@@ -223,6 +253,38 @@ class BrowserModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void closeIncognitoTab(int index) {
+    // if (_webViewTabs.length == 1) {
+    //   print("Changing");
+    //   var settings = getSettings();
+
+    //   addTab(
+    //       WebViewTab(
+    //         key: GlobalKey(),
+    //         webViewModel:
+    //             WebViewModel(url: Uri.parse(settings.searchEngine.searchUrl)),
+    //       ),
+    //       false);
+    //   // return SizedBox.shrink();
+    //   print("yup");
+    // }
+    _incognitowebViewTabs.removeAt(index);
+    _incogcurrentTabIndex = _incognitowebViewTabs.length - 1;
+
+    for (int i = index; i < _incognitowebViewTabs.length; i++) {
+      _incognitowebViewTabs[i].webViewModel.tabIndex = i;
+    }
+
+    if (_incogcurrentTabIndex >= 0) {
+      _currentWebViewModel.updateWithValue(
+          _incognitowebViewTabs[_incogcurrentTabIndex].webViewModel);
+    } else {
+      _currentWebViewModel.updateWithValue(WebViewModel());
+    }
+
+    notifyListeners();
+  }
+
   void showTab(int index) {
     if (_currentTabIndex != index) {
       _currentTabIndex = index;
@@ -233,10 +295,23 @@ class BrowserModel extends ChangeNotifier {
     }
   }
 
+  void showIncognitoTab(int index) {
+    if (_incogcurrentTabIndex != index) {
+      _incogcurrentTabIndex = index;
+      _currentWebViewModel.updateWithValue(
+          _incognitowebViewTabs[_incogcurrentTabIndex].webViewModel);
+
+      notifyListeners();
+    }
+  }
+
   void closeAllTabs() {
     _webViewTabs.clear();
     _currentTabIndex = -1;
     _currentWebViewModel.updateWithValue(WebViewModel());
+
+    _incognitowebViewTabs.clear();
+    _incogcurrentTabIndex = -1;
 
     notifyListeners();
   }
@@ -256,8 +331,18 @@ class BrowserModel extends ChangeNotifier {
     return _currentTabIndex;
   }
 
+  int getCurrentIncogTabIndex() {
+    return _incogcurrentTabIndex;
+  }
+
   WebViewTab? getCurrentTab() {
     return _currentTabIndex >= 0 ? _webViewTabs[_currentTabIndex] : null;
+  }
+
+  WebViewTab? getCurrentIncognitoTab() {
+    return _incogcurrentTabIndex >= 0
+        ? _incognitowebViewTabs[_incogcurrentTabIndex]
+        : null;
   }
 
   bool containsFavorite(FavoriteModel favorite) {
@@ -423,11 +508,11 @@ class BrowserModel extends ChangeNotifier {
     // List<FavoriteModel> favorites =
     //     favoritesList.map((e) => FavoriteModel.fromMap(e)!).toList();
 
-    Map<String, dynamic> webArchivesMap =
-        browserData["webArchives"]?.cast<String, dynamic>() ?? {};
-    Map<String, WebArchiveModel> webArchives = webArchivesMap.map(
-        (key, value) => MapEntry(
-            key, WebArchiveModel.fromMap(value?.cast<String, dynamic>())!));
+    // Map<String, dynamic> webArchivesMap =
+    //     browserData["webArchives"]?.cast<String, dynamic>() ?? {};
+    // Map<String, WebArchiveModel> webArchives = webArchivesMap.map(
+    //     (key, value) => MapEntry(
+    //         key, WebArchiveModel.fromMap(value?.cast<String, dynamic>())!));
 
     BrowserSettings settings = BrowserSettings.fromMap(
             browserData["settings"]?.cast<String, dynamic>()) ??
@@ -468,12 +553,27 @@ class BrowserModel extends ChangeNotifier {
         (a, b) => a.webViewModel.tabIndex!.compareTo(b.webViewModel.tabIndex!));
 
     // this.addFavorites(favorites);
-    this.addWebArchives(webArchives);
+    // this.addWebArchives(webArchives);
     this.updateSettings(settings);
     this.addTabs(webViewTabs);
 
+    List<Map<String, dynamic>> incogwebViewTabList =
+        browserData["incognitowebViewTabs"]?.cast<Map<String, dynamic>>() ?? [];
+    List<WebViewTab> inwebViewTabs = incogwebViewTabList
+        .map((e) => WebViewTab(
+              key: GlobalKey(),
+              webViewModel: WebViewModel.fromMap(e)!,
+            ))
+        .toList();
+    inwebViewTabs.sort(
+        (a, b) => a.webViewModel.tabIndex!.compareTo(b.webViewModel.tabIndex!));
+    this.addIncognitoTabs(inwebViewTabs);
+
     int currentTabIndex =
         browserData["currentTabIndex"] ?? this._currentTabIndex;
+    _incogcurrentTabIndex =
+        browserData["incognitocurrentTabIndex"] ?? this._incogcurrentTabIndex;
+
     currentTabIndex = min(currentTabIndex, this._webViewTabs.length - 1);
 
     if (currentTabIndex >= 0) this.showTab(currentTabIndex);
@@ -487,9 +587,12 @@ class BrowserModel extends ChangeNotifier {
     return {
       "favorites": convertFavoriteToMap(),
       "webViewTabs": _webViewTabs.map((e) => e.webViewModel.toMap()).toList(),
-      "webArchives":
-          _webArchives.map((key, value) => MapEntry(key, value.toMap())),
+      "incognitowebViewTabs":
+          _incognitowebViewTabs.map((e) => e.webViewModel.toMap()).toList(),
+      // "webArchives":
+      //     _webArchives.map((key, value) => MapEntry(key, value.toMap())),
       "currentTabIndex": _currentTabIndex,
+      "incognitocurrentTabIndex": _incogcurrentTabIndex,
       "settings": _settings.toMap(),
       "currentWebViewModel": _currentWebViewModel.toMap(),
       "history": convertSearchToMap(),

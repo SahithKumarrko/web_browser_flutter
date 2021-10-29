@@ -683,6 +683,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
               case PopupMenuActions.HISTORY:
                 return CustomPopupMenuItem<String>(
                   value: choice,
+                  enabled: true,
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -763,7 +764,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
     ];
   }
 
-  Route _goToHistory(var obj) {
+  Route _goToPage(var obj) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => obj,
       transitionDuration: const Duration(milliseconds: 400),
@@ -794,17 +795,17 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
         break;
       case PopupMenuActions.FAVORITES:
         // showFavorites();
-        Navigator.of(context).push(_goToHistory(Favorite()));
+        Navigator.of(context).push(_goToPage(Favorite()));
         break;
       case PopupMenuActions.HISTORY:
-        Navigator.of(context).push(_goToHistory(History()));
+        Navigator.of(context).push(_goToPage(History()));
         break;
       case PopupMenuActions.DOWNLOADS:
         // Navigator.push(
         //   context,
         //   MaterialPageRoute(builder: (context) => PageDownload()),
         // );
-        Navigator.of(context).push(_goToHistory(PageDownload()));
+        Navigator.of(context).push(_goToPage(PageDownload()));
         break;
 
       case PopupMenuActions.FIND_ON_PAGE:
@@ -901,141 +902,141 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
   //       });
   // }
 
-  void showHistory() {
-    showDialog(
-        context: context,
-        builder: (context) {
-          var webViewModel = Provider.of<WebViewModel>(context, listen: true);
+  // void showHistory() {
+  //   showDialog(
+  //       context: context,
+  //       builder: (context) {
+  //         var webViewModel = Provider.of<WebViewModel>(context, listen: true);
 
-          return AlertDialog(
-              contentPadding: EdgeInsets.all(0.0),
-              content: FutureBuilder(
-                future:
-                    webViewModel.webViewController?.getCopyBackForwardList(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Container();
-                  }
+  //         return AlertDialog(
+  //             contentPadding: EdgeInsets.all(0.0),
+  //             content: FutureBuilder(
+  //               future:
+  //                   webViewModel.webViewController?.getCopyBackForwardList(),
+  //               builder: (context, snapshot) {
+  //                 if (!snapshot.hasData) {
+  //                   return Container();
+  //                 }
 
-                  WebHistory history = snapshot.data as WebHistory;
-                  return Container(
-                      width: double.maxFinite,
-                      child: ListView(
-                        children: history.list?.reversed.map((historyItem) {
-                              var url = historyItem.url;
+  //                 WebHistory history = snapshot.data as WebHistory;
+  //                 return Container(
+  //                     width: double.maxFinite,
+  //                     child: ListView(
+  //                       children: history.list?.reversed.map((historyItem) {
+  //                             var url = historyItem.url;
 
-                              return ListTile(
-                                leading: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    // CachedNetworkImage(
-                                    //   placeholder: (context, url) =>
-                                    //       CircularProgressIndicator(),
-                                    //   imageUrl: (url?.origin ?? "") + "/favicon.ico",
-                                    //   height: 30,
-                                    // )
-                                    CustomImage(
-                                        url: Uri.parse((url?.origin ?? "") +
-                                            "/favicon.ico"),
-                                        maxWidth: 30.0,
-                                        height: 30.0)
-                                  ],
-                                ),
-                                title: Text(historyItem.title ?? url.toString(),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis),
-                                subtitle: Text(url?.toString() ?? "",
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis),
-                                isThreeLine: true,
-                                onTap: () {
-                                  webViewModel.webViewController
-                                      ?.goTo(historyItem: historyItem);
-                                  Navigator.pop(context);
-                                },
-                              );
-                            }).toList() ??
-                            <Widget>[],
-                      ));
-                },
-              ));
-        });
-  }
+  //                             return ListTile(
+  //                               leading: Column(
+  //                                 mainAxisAlignment: MainAxisAlignment.center,
+  //                                 children: <Widget>[
+  //                                   // CachedNetworkImage(
+  //                                   //   placeholder: (context, url) =>
+  //                                   //       CircularProgressIndicator(),
+  //                                   //   imageUrl: (url?.origin ?? "") + "/favicon.ico",
+  //                                   //   height: 30,
+  //                                   // )
+  //                                   CustomImage(
+  //                                       url: Uri.parse((url?.origin ?? "") +
+  //                                           "/favicon.ico"),
+  //                                       maxWidth: 30.0,
+  //                                       height: 30.0)
+  //                                 ],
+  //                               ),
+  //                               title: Text(historyItem.title ?? url.toString(),
+  //                                   maxLines: 2,
+  //                                   overflow: TextOverflow.ellipsis),
+  //                               subtitle: Text(url?.toString() ?? "",
+  //                                   maxLines: 2,
+  //                                   overflow: TextOverflow.ellipsis),
+  //                               isThreeLine: true,
+  //                               onTap: () {
+  //                                 webViewModel.webViewController
+  //                                     ?.goTo(historyItem: historyItem);
+  //                                 Navigator.pop(context);
+  //                               },
+  //                             );
+  //                           }).toList() ??
+  //                           <Widget>[],
+  //                     ));
+  //               },
+  //             ));
+  //       });
+  // }
 
-  void showWebArchives() async {
-    showDialog(
-        context: context,
-        builder: (context) {
-          var browserModel = Provider.of<BrowserModel>(context, listen: true);
-          var webArchives = browserModel.webArchives;
+  // void showWebArchives() async {
+  //   showDialog(
+  //       context: context,
+  //       builder: (context) {
+  //         var browserModel = Provider.of<BrowserModel>(context, listen: true);
+  //         var webArchives = browserModel.webArchives;
 
-          var listViewChildren = <Widget>[];
-          webArchives.forEach((key, webArchive) {
-            var path = webArchive.path;
-            // String fileName = path.substring(path.lastIndexOf('/') + 1);
+  //         var listViewChildren = <Widget>[];
+  //         webArchives.forEach((key, webArchive) {
+  //           var path = webArchive.path;
+  //           // String fileName = path.substring(path.lastIndexOf('/') + 1);
 
-            var url = webArchive.url;
+  //           var url = webArchive.url;
 
-            listViewChildren.add(ListTile(
-              leading: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  // CachedNetworkImage(
-                  //   placeholder: (context, url) => CircularProgressIndicator(),
-                  //   imageUrl: (url?.origin ?? "") + "/favicon.ico",
-                  //   height: 30,
-                  // )
-                  CustomImage(
-                      url: Uri.parse((url?.origin ?? "") + "/favicon.ico"),
-                      maxWidth: 30.0,
-                      height: 30.0)
-                ],
-              ),
-              title: Text(webArchive.title ?? url?.toString() ?? "",
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
-              subtitle: Text(url?.toString() ?? "",
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
-              trailing: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () async {
-                  setState(() {
-                    browserModel.removeWebArchive(webArchive);
-                    browserModel.save();
-                  });
-                },
-              ),
-              isThreeLine: true,
-              onTap: () {
-                if (path != null) {
-                  var browserModel =
-                      Provider.of<BrowserModel>(context, listen: false);
-                  browserModel.addTab(
-                      WebViewTab(
-                        key: GlobalKey(),
-                        webViewModel: WebViewModel(
-                            url: Uri.parse("file://" + path),
-                            openedByUser: true),
-                      ),
-                      true);
-                }
-                Navigator.pop(context);
-              },
-            ));
-          });
+  //           listViewChildren.add(ListTile(
+  //             leading: Column(
+  //               mainAxisAlignment: MainAxisAlignment.center,
+  //               children: <Widget>[
+  //                 // CachedNetworkImage(
+  //                 //   placeholder: (context, url) => CircularProgressIndicator(),
+  //                 //   imageUrl: (url?.origin ?? "") + "/favicon.ico",
+  //                 //   height: 30,
+  //                 // )
+  //                 CustomImage(
+  //                     url: Uri.parse((url?.origin ?? "") + "/favicon.ico"),
+  //                     maxWidth: 30.0,
+  //                     height: 30.0)
+  //               ],
+  //             ),
+  //             title: Text(webArchive.title ?? url?.toString() ?? "",
+  //                 maxLines: 2, overflow: TextOverflow.ellipsis),
+  //             subtitle: Text(url?.toString() ?? "",
+  //                 maxLines: 2, overflow: TextOverflow.ellipsis),
+  //             trailing: IconButton(
+  //               icon: Icon(Icons.delete),
+  //               onPressed: () async {
+  //                 setState(() {
+  //                   browserModel.removeWebArchive(webArchive);
+  //                   browserModel.save();
+  //                 });
+  //               },
+  //             ),
+  //             isThreeLine: true,
+  //             onTap: () {
+  //               if (path != null) {
+  //                 var browserModel =
+  //                     Provider.of<BrowserModel>(context, listen: false);
+  //                 browserModel.addTab(
+  //                     WebViewTab(
+  //                       key: GlobalKey(),
+  //                       webViewModel: WebViewModel(
+  //                           url: Uri.parse("file://" + path),
+  //                           openedByUser: true),
+  //                     ),
+  //                     true);
+  //               }
+  //               Navigator.pop(context);
+  //             },
+  //           ));
+  //         });
 
-          return AlertDialog(
-              contentPadding: EdgeInsets.all(0.0),
-              content: Builder(
-                builder: (context) {
-                  return Container(
-                      width: double.maxFinite,
-                      child: ListView(
-                        children: listViewChildren,
-                      ));
-                },
-              ));
-        });
-  }
+  //         return AlertDialog(
+  //             contentPadding: EdgeInsets.all(0.0),
+  //             content: Builder(
+  //               builder: (context) {
+  //                 return Container(
+  //                     width: double.maxFinite,
+  //                     child: ListView(
+  //                       children: listViewChildren,
+  //                     ));
+  //               },
+  //             ));
+  //       });
+  // }
 
   void share() {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);

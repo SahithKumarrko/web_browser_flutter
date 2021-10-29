@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import '../tab_viewer_popup_menu_actions.dart';
 
 class TabViewerAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final PageController controller;
+  TabController controller;
   TabViewerAppBar({Key? key, required this.controller})
       : preferredSize = Size.fromHeight(kToolbarHeight),
         super(key: key);
@@ -34,71 +34,60 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
     return AppBar(
       backgroundColor: Colors.white,
       centerTitle: true,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          InkWell(
-            onTap: () {
-              widget.controller.animateToPage(0,
-                  duration: Duration(milliseconds: 200),
-                  curve: Curves.easeInOut);
-            },
-            child: Padding(
-              padding: settings.homePageEnabled
-                  ? EdgeInsets.only(
-                      left: 20.0, top: 15.0, right: 10.0, bottom: 15.0)
-                  : EdgeInsets.only(
-                      left: 10.0, top: 15.0, right: 10.0, bottom: 15.0),
-              child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(width: 2.0, color: Colors.black),
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(5.0)),
-                constraints: BoxConstraints(minWidth: 25.0),
-                child: Container(
-                    child: Center(
-                        child: Text(
-                  browserModel.webViewTabs.length.toString(),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.0),
-                ))),
-              ),
+      title: TabBar(
+        indicatorSize: TabBarIndicatorSize.label,
+        // indicator: BoxDecoration(),
+
+        controller: widget.controller,
+        tabs: [
+          Container(
+            decoration: BoxDecoration(
+                border: Border.all(width: 2.0, color: Colors.black),
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(5.0)),
+            constraints:
+                BoxConstraints(minWidth: 25.0, maxHeight: 30, maxWidth: 35),
+            // padding: EdgeInsets.only(
+            //     left: 10.0, top: 15.0, right: 10.0, bottom: 15.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    // browserModel.webViewTabs.length.toString(),
+                    "100",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.0),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(
-            width: 10,
-          ),
-          InkWell(
-            onTap: () {
-              widget.controller.animateToPage(1,
-                  duration: Duration(milliseconds: 200),
-                  curve: Curves.easeInOut);
-            },
-            child: Padding(
-              padding: settings.homePageEnabled
-                  ? EdgeInsets.only(
-                      left: 20.0, top: 15.0, right: 10.0, bottom: 15.0)
-                  : EdgeInsets.only(
-                      left: 10.0, top: 15.0, right: 10.0, bottom: 15.0),
+          Padding(
+            padding: settings.homePageEnabled
+                ? EdgeInsets.only(
+                    left: 20.0, top: 15.0, right: 10.0, bottom: 15.0)
+                : EdgeInsets.only(
+                    left: 10.0, top: 15.0, right: 10.0, bottom: 15.0),
+            child: Container(
+              decoration: BoxDecoration(
+                  border: Border.all(width: 2.0, color: Colors.black),
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(5.0)),
+              constraints: BoxConstraints(minWidth: 25.0),
               child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(width: 2.0, color: Colors.black),
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(5.0)),
-                constraints: BoxConstraints(minWidth: 25.0),
-                child: Container(
-                    child: Center(
-                        child: Text(
-                  browserModel.webViewTabs.length.toString(),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.0),
-                ))),
-              ),
+                  child: Center(
+                      child: Text(
+                browserModel.webViewTabs.length.toString(),
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.0),
+              ))),
             ),
           ),
         ],

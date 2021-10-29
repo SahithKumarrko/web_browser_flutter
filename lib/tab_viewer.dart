@@ -29,25 +29,28 @@ class _TabViewerState extends State<TabViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: BouncingScrollPhysics(),
-      slivers: <Widget>[
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  if (widget.onTap != null) {
-                    widget.onTap!(index);
-                  }
-                },
-                child: widget.children[index],
-              );
-            },
-            childCount: widget.children.length,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: CustomScrollView(
+        physics: BouncingScrollPhysics(),
+        slivers: <Widget>[
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                return GestureDetector(
+                  onTap: () {
+                    if (widget.onTap != null) {
+                      widget.onTap!(index);
+                    }
+                  },
+                  child: widget.children[index],
+                );
+              },
+              childCount: widget.children.length,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
