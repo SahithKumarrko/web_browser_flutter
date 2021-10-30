@@ -24,9 +24,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
     super.initState();
     _controller = PageController();
     _controller.addListener(() {
-      setState(() {
-        _selectedIndex = _controller.page ?? 0;
-      });
+      print("CPPP :: ${_controller.page}");
     });
   }
 
@@ -47,13 +45,18 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
 
     return Scaffold(
         appBar: TabViewerAppBar(
-          controller: _controller,
-        ),
+            controller: _controller,
+            move: () {
+              setState(() {
+                _selectedIndex = _controller.page ?? 0;
+              });
+            }),
         body: PageView.builder(
           pageSnapping: false,
           allowImplicitScrolling: false,
           physics: NeverScrollableScrollPhysics(),
           itemBuilder: (ctx, position) {
+            print(position);
             if (position == _selectedIndex.floor()) {
               return TabViewer(
                 currentIndex: browserModel.getCurrentTabIndex(),
@@ -157,8 +160,8 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
               );
             } else if (position == _selectedIndex.floor() + 1) {
               return TabViewer(
-                currentIndex: browserModel.getCurrentTabIndex(),
-                children: browserModel.webViewTabs.map((webViewTab) {
+                currentIndex: browserModel.getCurrentIncogTabIndex(),
+                children: browserModel.incognitowebViewTabs.map((webViewTab) {
                   webViewTab.key.currentState?.pause();
                   // var screenshotData = webViewTab.webViewModel.screenshot;
                   // Widget screenshotImage = Container(
@@ -176,17 +179,18 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                           ? Uri.parse(url.origin + "/favicon.ico")
                           : null);
 
-                  var isCurrentTab = browserModel.getCurrentTabIndex() ==
+                  var isCurrentTab = browserModel.getCurrentIncogTabIndex() ==
                       webViewTab.webViewModel.tabIndex;
-                  if (webViewTab.webViewModel.isIncognitoMode) {
-                    return SizedBox.shrink();
-                  }
+
                   return Container(
-                    color: isCurrentTab
-                        ? Colors.blue
-                        : (webViewTab.webViewModel.isIncognitoMode
+                    decoration: BoxDecoration(
+                        color: (webViewTab.webViewModel.isIncognitoMode &&
+                                isCurrentTab
                             ? Colors.black
-                            : Colors.white),
+                            : isCurrentTab
+                                ? Colors.blue[400]
+                                : Colors.white),
+                        borderRadius: BorderRadius.circular(15)),
                     child: ListTile(
                       leading: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -201,20 +205,15 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                               "",
                           maxLines: 1,
                           style: TextStyle(
-                            color: webViewTab.webViewModel.isIncognitoMode ||
-                                    isCurrentTab
-                                ? Colors.white
-                                : Colors.black,
+                            color: isCurrentTab ? Colors.white : Colors.black,
                           ),
                           overflow: TextOverflow.ellipsis),
                       subtitle:
                           Text(webViewTab.webViewModel.url?.toString() ?? "",
                               style: TextStyle(
-                                color:
-                                    webViewTab.webViewModel.isIncognitoMode ||
-                                            isCurrentTab
-                                        ? Colors.white60
-                                        : Colors.black54,
+                                color: isCurrentTab
+                                    ? Colors.white60
+                                    : Colors.black54,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
@@ -226,8 +225,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                             icon: FaIcon(
                               FontAwesomeIcons.timesCircle,
                               size: 24.0,
-                              color: webViewTab.webViewModel.isIncognitoMode ||
-                                      isCurrentTab
+                              color: isCurrentTab
                                   ? Colors.white60
                                   : Colors.black54,
                             ),
@@ -250,7 +248,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                 }).toList(),
                 onTap: (index) async {
                   browserModel.showTabScroller = false;
-                  browserModel.showTab(index);
+                  browserModel.showIncognitoTab(index);
                 },
               );
             }

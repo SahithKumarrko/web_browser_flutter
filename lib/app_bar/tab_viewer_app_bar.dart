@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:webpage_dev_console/c_popmenuitem.dart';
+import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/settings/main.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
 import 'package:provider/provider.dart';
-
+import 'package:badges/badges.dart';
 import '../tab_viewer_popup_menu_actions.dart';
 
 class TabViewerAppBar extends StatefulWidget implements PreferredSizeWidget {
   final PageController controller;
-  TabViewerAppBar({Key? key, required this.controller})
+  final Function move;
+  TabViewerAppBar({Key? key, required this.controller, required this.move})
       : preferredSize = Size.fromHeight(kToolbarHeight),
         super(key: key);
 
@@ -30,190 +32,248 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
   Widget build(BuildContext context) {
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
     var settings = browserModel.getSettings();
-
+    var inl = browserModel.incognitowebViewTabs.length;
     return AppBar(
       backgroundColor: Colors.white,
       centerTitle: true,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          InkWell(
-            onTap: () {
-              widget.controller.animateToPage(0,
-                  duration: Duration(milliseconds: 200),
-                  curve: Curves.easeInOut);
-            },
-            child: Padding(
-              padding: settings.homePageEnabled
-                  ? EdgeInsets.only(
-                      left: 20.0, top: 15.0, right: 10.0, bottom: 15.0)
-                  : EdgeInsets.only(
-                      left: 10.0, top: 15.0, right: 10.0, bottom: 15.0),
-              child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(width: 2.0, color: Colors.black),
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(5.0)),
-                constraints: BoxConstraints(minWidth: 25.0),
-                child: Container(
-                    child: Center(
-                        child: Text(
-                  browserModel.webViewTabs.length.toString(),
-                  style: TextStyle(
+      title: inl != 0
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  splashFactory: NoSplash.splashFactory,
+                  highlightColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  onTap: () {
+                    widget.controller.animateToPage(0,
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.easeInOut);
+                    print("Tapped :: 0");
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(width: 2.0, color: Colors.black),
+                            shape: BoxShape.rectangle,
+                            borderRadius: BorderRadius.circular(5.0)),
+                        constraints:
+                            BoxConstraints(minWidth: 25.0, maxHeight: 28),
+                        child: Container(
+                            child: Center(
+                                child: Text(
+                          browserModel.webViewTabs.length.toString(),
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.0),
+                        ))),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 16,
+                ),
+                SizedBox(
+                  width: 2,
+                  height: 25,
+                  child: Container(
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(
+                  width: 16,
+                ),
+                InkWell(
+                  splashColor: Colors.transparent,
+                  splashFactory: NoSplash.splashFactory,
+                  highlightColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  onTap: () {
+                    widget.controller.animateToPage(1,
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.easeInOut);
+                    print("Tapped :: 1");
+                  },
+                  child: Badge(
+                    badgeColor: Colors.deepPurple,
+                    shape: BadgeShape.circle,
+                    toAnimate: true,
+                    badgeContent: Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Text(
+                          browserModel.incognitowebViewTabs.length.toString(),
+                          style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ),
+                    position: BadgePosition.topEnd(
+                      end: browserModel.incognitowebViewTabs.length < 10
+                          ? -20
+                          : browserModel.incognitowebViewTabs.length < 100
+                              ? -26
+                              : -30,
+                    ),
+                    child: FaIcon(
+                      FontAwesomeIcons.userSecret,
                       color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.0),
-                ))),
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 10,
-          ),
-          InkWell(
-            onTap: () {
-              widget.controller.animateToPage(1,
-                  duration: Duration(milliseconds: 200),
-                  curve: Curves.easeInOut);
-            },
-            child: Padding(
-              padding: settings.homePageEnabled
-                  ? EdgeInsets.only(
-                      left: 20.0, top: 15.0, right: 10.0, bottom: 15.0)
-                  : EdgeInsets.only(
-                      left: 10.0, top: 15.0, right: 10.0, bottom: 15.0),
-              child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(width: 2.0, color: Colors.black),
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(5.0)),
-                constraints: BoxConstraints(minWidth: 25.0),
-                child: Container(
-                    child: Center(
-                        child: Text(
-                  browserModel.webViewTabs.length.toString(),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.0),
-                ))),
-              ),
-            ),
-          ),
-        ],
-      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : SizedBox.shrink(),
       leading: _buildAddTabButton(),
       actions: _buildActionsMenu(),
     );
   }
 
   Widget _buildAddTabButton() {
+    var browserModel = Provider.of<BrowserModel>(context, listen: false);
     return IconButton(
       icon: Icon(
         Icons.add,
         color: Colors.black,
       ),
       onPressed: () {
-        addNewTab();
+        Helper.addNewTab(context: context);
+        browserModel.showTabScroller = false;
       },
     );
   }
 
   List<Widget> _buildActionsMenu() {
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
-    var settings = browserModel.getSettings();
 
-    return <Widget>[
-      PopupMenuButton<String>(
-        onSelected: _popupMenuChoiceAction,
-        icon: Icon(Icons.more_vert_rounded, color: Colors.black),
-        iconSize: 24,
-        itemBuilder: (popupMenuContext) {
-          var items = <PopupMenuEntry<String>>[];
-
-          items.addAll(TabViewerPopupMenuActions.choices.map((choice) {
-            switch (choice) {
-              case TabViewerPopupMenuActions.NEW_TAB:
-                return CustomPopupMenuItem<String>(
-                  enabled: true,
-                  value: choice,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(choice),
-                        Icon(
-                          Icons.add,
-                          color: Colors.black,
-                        )
-                      ]),
-                );
-              case TabViewerPopupMenuActions.NEW_INCOGNITO_TAB:
-                return CustomPopupMenuItem<String>(
-                  enabled: true,
-                  value: choice,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(choice),
-                        FaIcon(
-                          FontAwesomeIcons.userSecret,
-                          color: Colors.black,
-                        )
-                      ]),
-                );
-              case TabViewerPopupMenuActions.CLOSE_ALL_TABS:
-                return CustomPopupMenuItem<String>(
-                  enabled: browserModel.webViewTabs.length > 0,
-                  value: choice,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(choice),
-                        Icon(
-                          Icons.close,
-                          color: Colors.black,
-                        )
-                      ]),
-                );
-              case TabViewerPopupMenuActions.SETTINGS:
-                return CustomPopupMenuItem<String>(
-                  enabled: true,
-                  value: choice,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(choice),
-                        Icon(
-                          Icons.settings,
-                          color: Colors.grey,
-                        )
-                      ]),
-                );
-              default:
-                return CustomPopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-            }
-          }).toList());
-
-          return items;
+    List<Widget> widgets = [];
+    if (browserModel.incognitowebViewTabs.length == 0) {
+      widgets.add(InkWell(
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        onTap: () {
+          widget.controller.animateToPage(0,
+              duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
         },
-      )
-    ];
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  border: Border.all(width: 2.0, color: Colors.black),
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(5.0)),
+              constraints: BoxConstraints(minWidth: 25.0, maxHeight: 28),
+              child: Container(
+                  child: Center(
+                      child: Text(
+                browserModel.webViewTabs.length.toString(),
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.0),
+              ))),
+            ),
+          ],
+        ),
+      ));
+      widgets.add(SizedBox(
+        width: 5,
+      ));
+    }
+    widgets.add(PopupMenuButton<String>(
+      onSelected: _popupMenuChoiceAction,
+      icon: Icon(Icons.more_vert_rounded, color: Colors.black),
+      iconSize: 24,
+      itemBuilder: (popupMenuContext) {
+        var items = <PopupMenuEntry<String>>[];
+
+        items.addAll(TabViewerPopupMenuActions.choices.map((choice) {
+          switch (choice) {
+            case TabViewerPopupMenuActions.NEW_TAB:
+              return CustomPopupMenuItem<String>(
+                enabled: true,
+                value: choice,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(choice),
+                      Icon(
+                        Icons.add,
+                        color: Colors.black,
+                      )
+                    ]),
+              );
+            case TabViewerPopupMenuActions.NEW_INCOGNITO_TAB:
+              return CustomPopupMenuItem<String>(
+                enabled: true,
+                value: choice,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(choice),
+                      FaIcon(
+                        FontAwesomeIcons.userSecret,
+                        color: Colors.black,
+                      )
+                    ]),
+              );
+            case TabViewerPopupMenuActions.CLOSE_ALL_TABS:
+              return CustomPopupMenuItem<String>(
+                enabled: browserModel.webViewTabs.length > 0,
+                value: choice,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(choice),
+                      Icon(
+                        Icons.close,
+                        color: Colors.black,
+                      )
+                    ]),
+              );
+            case TabViewerPopupMenuActions.SETTINGS:
+              return CustomPopupMenuItem<String>(
+                enabled: true,
+                value: choice,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(choice),
+                      Icon(
+                        Icons.settings,
+                        color: Colors.grey,
+                      )
+                    ]),
+              );
+            default:
+              return CustomPopupMenuItem<String>(
+                value: choice,
+                child: Text(choice),
+              );
+          }
+        }).toList());
+
+        return items;
+      },
+    ));
+    return widgets;
   }
 
   void _popupMenuChoiceAction(String choice) async {
+    var browserModel = Provider.of<BrowserModel>(context, listen: false);
     switch (choice) {
       case TabViewerPopupMenuActions.NEW_TAB:
-        Future.delayed(const Duration(milliseconds: 300), () {
-          addNewTab();
+        Future.delayed(const Duration(milliseconds: 200), () {
+          Helper.addNewTab(context: context);
+          browserModel.showTabScroller = false;
         });
         break;
       case TabViewerPopupMenuActions.NEW_INCOGNITO_TAB:
-        Future.delayed(const Duration(milliseconds: 300), () {
-          addNewIncognitoTab();
+        Future.delayed(const Duration(milliseconds: 200), () {
+          Helper.addNewIncognitoTab(context: context);
+          browserModel.showTabScroller = false;
         });
         break;
       case TabViewerPopupMenuActions.CLOSE_ALL_TABS:

@@ -212,7 +212,7 @@ Future<ThumbnailResult> genThumbnail(ThumbnailRequest r) async {
   final Completer<ThumbnailResult> completer = Completer();
   try {
     var type = lookupMimeType(r.video)?.toLowerCase();
-    log("${r.video} :: ${type.toString()}");
+
     if (type?.contains("video") ?? false) {
       bytes = (await VideoThumbnail.thumbnailData(
           video: r.video,
@@ -505,7 +505,6 @@ class _PageDownloadState extends State<PageDownload> {
       default:
         break;
     }
-    print("Called :: $res");
     return res;
   }
 
@@ -526,20 +525,18 @@ class _PageDownloadState extends State<PageDownload> {
       searchValue = searchValue.toLowerCase();
     }
 
-    print("Called gg $searchValue");
     for (String k in keys) {
       var v = browserModel.tasks[k];
       if (v!.length != 0) {
         var c = 0;
         _data.add(DItem(date: k, task: null));
-        print("VV");
+
         items[k] = [];
         items[k]!.addAll([c, ind]);
         ind = ind + 1;
         for (TaskInfo s in v) {
           if (searchValue ==
               "fjumpmPuvqLlrPAvshJXtCYxe6T+Ph55teaNScgI44ZY7S9z0nE3enRnLkBTQj6XHVGNI39cUhndFZYzcTT5cA==") {
-            print("check");
             var f = "." + s.fileName.split(".").last;
             st = _getListOfFileTypes();
             if (_filter[0] == "Other") {
@@ -597,7 +594,6 @@ class _PageDownloadState extends State<PageDownload> {
         isLoadingSearch = false;
       });
     }
-    log(tasks.toString());
   }
 
   SafeArea buildDownload() {
@@ -810,8 +806,9 @@ class _DownloadItemState extends State<DownloadItem> {
                         clearAllSwitcher.currentState?.setState(() {});
                       }
                     }
-                    widget.item.key?.currentState?.setState(() {
-                      widget.item.isSelected = !widget.item.isSelected;
+                    item.key?.currentState?.setState(() {
+                      print("Changing");
+                      item.isSelected = !item.isSelected;
                     });
                     appBarKey.currentState?.setState(() {});
                   },
@@ -897,7 +894,8 @@ class _DownloadItemState extends State<DownloadItem> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
                             // type!.contains("image") ? : type!.contains("video") ? :
-                            item.task?.status == DownloadTaskStatus.failed
+                            item.task?.status == DownloadTaskStatus.failed ||
+                                    item.isSelected
                                 ? CustomImage(
                                     isSelected: item.isSelected,
                                     isDownload: true,

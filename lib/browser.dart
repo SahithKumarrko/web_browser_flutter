@@ -122,7 +122,7 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
     super.didChangeDependencies();
     if (!_isRestored) {
       _isRestored = true;
-      restore();
+      // restore();
     }
     precacheImage(AssetImage("assets/icon/icon.png"), context);
   }

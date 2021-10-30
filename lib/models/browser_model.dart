@@ -174,6 +174,7 @@ class BrowserModel extends ChangeNotifier {
 
   void addTab(WebViewTab webViewTab, bool notify) {
     if (webViewTab.webViewModel.isIncognitoMode) {
+      print("Adding incognito");
       _incognitowebViewTabs.add(webViewTab);
       _incogcurrentTabIndex = _incognitowebViewTabs.length - 1;
       webViewTab.webViewModel.tabIndex = _incogcurrentTabIndex;
@@ -213,6 +214,7 @@ class BrowserModel extends ChangeNotifier {
   }
 
   void addIncognitoTabs(List<WebViewTab> webViewTabs) {
+    print("Adding incog tabs");
     for (var webViewTab in webViewTabs) {
       _incognitowebViewTabs.add(webViewTab);
       webViewTab.webViewModel.tabIndex = _incognitowebViewTabs.length - 1;
@@ -556,18 +558,26 @@ class BrowserModel extends ChangeNotifier {
     // this.addWebArchives(webArchives);
     this.updateSettings(settings);
     this.addTabs(webViewTabs);
-
+    dev.log("DAta :::::  ${browserData["incognitowebViewTabs"]}");
     List<Map<String, dynamic>> incogwebViewTabList =
         browserData["incognitowebViewTabs"]?.cast<Map<String, dynamic>>() ?? [];
-    List<WebViewTab> inwebViewTabs = incogwebViewTabList
-        .map((e) => WebViewTab(
-              key: GlobalKey(),
-              webViewModel: WebViewModel.fromMap(e)!,
-            ))
-        .toList();
-    inwebViewTabs.sort(
-        (a, b) => a.webViewModel.tabIndex!.compareTo(b.webViewModel.tabIndex!));
-    this.addIncognitoTabs(inwebViewTabs);
+    dev.log("CCCCCCCC :::::::  $incogwebViewTabList");
+    try {
+      List<WebViewTab> inwebViewTabs = incogwebViewTabList
+          .map((e) => WebViewTab(
+                key: GlobalKey(),
+                webViewModel: WebViewModel.fromMap(e)!,
+              ))
+          .toList();
+      print("got inco data");
+      inwebViewTabs.sort((a, b) =>
+          a.webViewModel.tabIndex!.compareTo(b.webViewModel.tabIndex!));
+      print("completed sorting");
+      dev.log("TABS :::::::::::   $inwebViewTabs");
+      this.addIncognitoTabs(inwebViewTabs);
+    } catch (e) {
+      dev.log("ERROR ::: $e");
+    }
 
     int currentTabIndex =
         browserData["currentTabIndex"] ?? this._currentTabIndex;
