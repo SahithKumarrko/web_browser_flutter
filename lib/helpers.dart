@@ -74,7 +74,8 @@ class Helper {
         });
   }
 
-  static void addNewTab({Uri? url, required BuildContext context}) {
+  static void addNewTab(
+      {Uri? url, required BuildContext context, bool needUpdate = true}) {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
     var settings = browserModel.getSettings();
 
@@ -89,10 +90,11 @@ class Helper {
           key: GlobalKey(),
           webViewModel: WebViewModel(url: url, openedByUser: true),
         ),
-        true);
+        needUpdate);
   }
 
-  static void addNewIncognitoTab({Uri? url, required BuildContext context}) {
+  static void addNewIncognitoTab(
+      {Uri? url, required BuildContext context, bool needUpdate = true}) {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
     var settings = browserModel.getSettings();
 
@@ -108,7 +110,7 @@ class Helper {
           webViewModel:
               WebViewModel(url: url, isIncognitoMode: true, openedByUser: true),
         ),
-        true);
+        needUpdate);
   }
 
   static void showBasicFlash(

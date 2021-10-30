@@ -183,12 +183,14 @@ class BrowserModel extends ChangeNotifier {
       webViewTab.webViewModel.setHistory = WebHistory(list: []);
       webViewTab.webViewModel.history?.list?.add(WebHistoryItem());
       webViewTab.webViewModel.curIndex = 0;
+      isIncognito = true;
     } else {
       _webViewTabs.add(webViewTab);
       _currentTabIndex = _webViewTabs.length - 1;
       webViewTab.webViewModel.tabIndex = _currentTabIndex;
-
-      _currentWebViewModel.updateWithValue(webViewTab.webViewModel);
+      try {
+        _currentWebViewModel.updateWithValue(webViewTab.webViewModel);
+      } catch (e) {}
       webViewTab.webViewModel.setHistory = WebHistory(list: []);
       webViewTab.webViewModel.history?.list?.add(WebHistoryItem());
       webViewTab.webViewModel.curIndex = 0;
@@ -249,7 +251,9 @@ class BrowserModel extends ChangeNotifier {
       _currentWebViewModel
           .updateWithValue(_webViewTabs[_currentTabIndex].webViewModel);
     } else {
-      _currentWebViewModel.updateWithValue(WebViewModel());
+      _currentWebViewModel.updateWithValue(_incognitowebViewTabs.length > 0
+          ? _incognitowebViewTabs[_incogcurrentTabIndex].webViewModel
+          : WebViewModel());
     }
 
     notifyListeners();
@@ -281,7 +285,9 @@ class BrowserModel extends ChangeNotifier {
       _currentWebViewModel.updateWithValue(
           _incognitowebViewTabs[_incogcurrentTabIndex].webViewModel);
     } else {
-      _currentWebViewModel.updateWithValue(WebViewModel());
+      _currentWebViewModel.updateWithValue(_webViewTabs.length > 0
+          ? _webViewTabs[_currentTabIndex].webViewModel
+          : WebViewModel());
     }
 
     notifyListeners();

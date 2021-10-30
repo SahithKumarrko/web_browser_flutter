@@ -210,6 +210,7 @@ class WebViewModel extends ChangeNotifier {
 
   void updateWithValue(WebViewModel webViewModel) async {
     tabIndex = webViewModel.tabIndex;
+    // setTabIndex(webViewModel.tabIndex, false);
     url = webViewModel.url;
     title = webViewModel.title;
     favicon = webViewModel.favicon;
@@ -293,9 +294,7 @@ class WebViewModel extends ChangeNotifier {
   }
 
   _startElementIdentification() {
-    webViewController!.evaluateJavascript(
-        source:
-            """
+    webViewController!.evaluateJavascript(source: """
                               var el = {};
                               function _elementInteraction(state){
                                 if(state){

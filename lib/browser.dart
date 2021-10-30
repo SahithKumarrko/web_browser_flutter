@@ -10,6 +10,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/app_bar/browser_app_bar.dart';
+import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/open_tabs_viewer.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
@@ -227,15 +228,25 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
     if (browserModel.webViewTabs.length == 0) {
       browserModel.showTabScroller = false;
-      return EmptyTab();
+      // browserModel.setCurrentWebViewModel(WebViewModel());
+      Future.delayed(Duration.zero, () async {
+        Helper.addNewTab(context: context, needUpdate: true);
+      });
     }
 
     var stackChildren = <Widget>[
       IndexedStack(
-        index: browserModel.getCurrentTabIndex(),
-        children: browserModel.webViewTabs.map((webViewTab) {
+        index: browserModel.isIncognito
+            ? browserModel.getCurrentIncogTabIndex()
+            : browserModel.getCurrentTabIndex(),
+        children: (browserModel.isIncognito
+                ? browserModel.incognitowebViewTabs
+                : browserModel.webViewTabs)
+            .map((webViewTab) {
           var isCurrentTab = webViewTab.webViewModel.tabIndex ==
-              browserModel.getCurrentTabIndex();
+              (browserModel.isIncognito
+                  ? browserModel.getCurrentIncogTabIndex()
+                  : browserModel.getCurrentTabIndex());
 
           if (isCurrentTab) {
             Future.delayed(const Duration(milliseconds: 100), () {
