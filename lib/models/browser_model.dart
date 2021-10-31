@@ -194,6 +194,7 @@ class BrowserModel extends ChangeNotifier {
       webViewTab.webViewModel.setHistory = WebHistory(list: []);
       webViewTab.webViewModel.history?.list?.add(WebHistoryItem());
       webViewTab.webViewModel.curIndex = 0;
+      isIncognito = false;
     }
 
     if (notify) notifyListeners();
@@ -251,9 +252,7 @@ class BrowserModel extends ChangeNotifier {
       _currentWebViewModel
           .updateWithValue(_webViewTabs[_currentTabIndex].webViewModel);
     } else {
-      _currentWebViewModel.updateWithValue(_incognitowebViewTabs.length > 0
-          ? _incognitowebViewTabs[_incogcurrentTabIndex].webViewModel
-          : WebViewModel());
+      _currentWebViewModel.updateWithValue(WebViewModel());
     }
 
     notifyListeners();

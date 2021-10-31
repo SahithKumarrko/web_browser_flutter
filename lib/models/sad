@@ -1,0 +1,13 @@
+var all = browserModel.webViewTabs + browserModel.incognitowebViewTabs;
+    var ind = 0;
+    if (browserModel.isIncognito) {
+      print("Getting");
+      ind = browserModel.webViewTabs.length +
+          browserModel.getCurrentIncogTabIndex();
+    } else {
+      print("Getting 2");
+
+      ind = browserModel.getCurrentTabIndex();
+    }
+    log("AL ::: ${all.length}  ::: CIND ::: $ind ::::  WL :: ${browserModel.webViewTabs.length} IL :: ${browserModel.incognitowebViewTabs.length}");
+    var loc = 0;

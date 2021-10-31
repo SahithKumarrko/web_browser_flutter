@@ -153,7 +153,12 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
           browserModel.showTabScroller = false;
           // return true;
         } else {
-          var wbm = browserModel.getCurrentTab()?.webViewModel;
+          var wbm;
+          if (browserModel.isIncognito) {
+            wbm = browserModel.getCurrentIncognitoTab()?.webViewModel;
+          } else {
+            wbm = browserModel.getCurrentTab()?.webViewModel;
+          }
           print(wbm?.openedByUser);
           if (wbm?.openedByUser ?? false) {
             int cind = wbm?.curIndex ?? 0;
@@ -198,7 +203,11 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
             } else {
               if (wbm != null && wbm.tabIndex != null) {
                 setState(() {
-                  browserModel.closeTab(wbm.tabIndex!);
+                  if (browserModel.isIncognito) {
+                    browserModel.closeIncognitoTab(wbm.tabIndex!);
+                  } else {
+                    browserModel.closeTab(wbm.tabIndex!);
+                  }
                 });
                 FocusScope.of(context).unfocus();
               }
