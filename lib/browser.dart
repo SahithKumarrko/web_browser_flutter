@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -149,6 +150,7 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
 
     return WillPopScope(
       onWillPop: () async {
+        // print("GBBBBB");
         if (canShowTabScroller) {
           browserModel.showTabScroller = false;
           // return true;
@@ -159,7 +161,10 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
           } else {
             wbm = browserModel.getCurrentTab()?.webViewModel;
           }
-          print(wbm?.openedByUser);
+          // print("Opened::");
+
+          // print(wbm?.openedByUser);
+          // log("VVVVV ::::  ${wbm?.curIndex} ::  ${wbm?.history?.list}");
           if (wbm?.openedByUser ?? false) {
             int cind = wbm?.curIndex ?? 0;
 
@@ -170,6 +175,7 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
                 cind = cind - 1;
                 wbm?.curIndex = cind;
               }
+
               print("GOING BACK :: $cind");
               var hitem = wbm?.history?.list!.elementAt(cind);
               print("UU :: $hitem");

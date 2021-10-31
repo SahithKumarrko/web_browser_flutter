@@ -6,6 +6,7 @@ import 'package:flash/flash.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -428,13 +429,102 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                 Icons.arrow_back,
                                 color: Colors.black,
                               ),
-                              onPressed: () {
-                                _webViewController?.goBack();
+                              onPressed: () async {
+                                var canShowTabScroller =
+                                    browserModel.showTabScroller &&
+                                        browserModel.webViewTabs.isNotEmpty;
+
+                                if (canShowTabScroller) {
+                                  browserModel.showTabScroller = false;
+                                  // return true;
+                                } else {
+                                  var wbm;
+                                  if (browserModel.isIncognito) {
+                                    wbm = browserModel
+                                        .getCurrentIncognitoTab()
+                                        ?.webViewModel;
+                                  } else {
+                                    wbm = browserModel
+                                        .getCurrentTab()
+                                        ?.webViewModel;
+                                  }
+                                  print(wbm?.openedByUser);
+                                  if (wbm?.openedByUser ?? false) {
+                                    int cind = wbm?.curIndex ?? 0;
+                                    var platform = const MethodChannel(
+                                        'com.applance.webpage_dev_console.intent_data');
+
+                                    if (cind == 0)
+                                      platform.invokeMethod("sendToBackground");
+                                    else {
+                                      if (cind != 0) {
+                                        cind = cind - 1;
+                                        wbm?.curIndex = cind;
+                                      }
+                                      log(wbm?.history);
+                                      print("GOING BACK :: $cind");
+                                      var hitem =
+                                          wbm?.history?.list!.elementAt(cind);
+                                      print("UU :: $hitem");
+                                      var wchl = await wbm?.webViewController
+                                          ?.getCopyBackForwardList();
+                                      WebHistoryItem? foundInd;
+                                      for (WebHistoryItem wchli
+                                          in wchl?.list ?? []) {
+                                        if (hitem?.url != null) {
+                                          if ((wchli.url.toString().compareTo(
+                                                      hitem?.url.toString() ??
+                                                          "") ==
+                                                  0) &&
+                                              (wchli.originalUrl
+                                                      .toString()
+                                                      .compareTo(hitem
+                                                              ?.originalUrl
+                                                              .toString() ??
+                                                          "") ==
+                                                  0)) {
+                                            foundInd = wchli;
+                                            break;
+                                          }
+                                        }
+                                      }
+                                      if (foundInd != null) {
+                                        wbm?.webViewController
+                                            ?.goTo(historyItem: foundInd);
+                                      } else {
+                                        wbm?.webViewController!.loadUrl(
+                                            urlRequest:
+                                                URLRequest(url: hitem?.url));
+                                      }
+                                    }
+                                  } else {
+                                    if ((await wbm?.webViewController
+                                            ?.canGoBack()) ??
+                                        false) {
+                                      await wbm?.webViewController?.goBack();
+                                    } else {
+                                      if (wbm != null && wbm.tabIndex != null) {
+                                        setState(() {
+                                          if (browserModel.isIncognito) {
+                                            browserModel.closeIncognitoTab(
+                                                wbm.tabIndex!);
+                                          } else {
+                                            browserModel
+                                                .closeTab(wbm.tabIndex!);
+                                          }
+                                        });
+                                        FocusScope.of(context).unfocus();
+                                      }
+                                    }
+                                  }
+                                }
                                 Navigator.pop(popupMenuContext);
                               })),
                     );
                   }
-                  var wbm = browserModel.getCurrentTab()?.webViewModel;
+                  var wbm = browserModel.isIncognito
+                      ? browserModel.getCurrentIncognitoTab()?.webViewModel
+                      : browserModel.getCurrentTab()?.webViewModel;
                   var canGoForward = ((wbm?.curIndex ?? 0) <
                       ((wbm?.history?.list?.length ?? 0) - 1));
                   children.addAll([
@@ -452,14 +542,16 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                               if (!canGoForward) return null;
 
                               wbm?.curIndex += 1;
-                              var hitem = browserModel
-                                  .getCurrentTab()
+                              var hitem = (browserModel.isIncognito
+                                      ? browserModel.getCurrentIncognitoTab()
+                                      : browserModel.getCurrentTab())
                                   ?.webViewModel
                                   .history
                                   ?.list!
                                   .elementAt(wbm?.curIndex ?? 0);
-                              browserModel
-                                  .getCurrentTab()
+                              (browserModel.isIncognito
+                                      ? browserModel.getCurrentIncognitoTab()
+                                      : browserModel.getCurrentTab())
                                   ?.webViewModel
                                   .webViewController!
                                   .loadUrl(
