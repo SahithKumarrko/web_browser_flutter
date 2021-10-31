@@ -144,7 +144,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
     }
 
     return IconButton(
-      icon: Icon(Icons.home_outlined),
+      icon: Icon(
+        Icons.home_outlined,
+        color: browserModel.isIncognito ? Colors.white : Colors.black,
+      ),
       color: Colors.black,
       onPressed: () {
         if (_webViewController != null) {
@@ -170,10 +173,12 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
       height: 40.0,
       decoration: BoxDecoration(
           // border: Border.all(color: Colors.black),
-          color: Colors.grey[200],
+          color: browserModel.isIncognito ? Colors.white : Colors.grey[200],
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: browserModel.isIncognito
+                    ? Colors.white.withOpacity(0.2)
+                    : Colors.black.withOpacity(0.2),
                 blurRadius: 2,
                 offset: Offset(1, 1))
           ],
@@ -250,7 +255,9 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   browserModel.addToHistory(Search(
                       title: webViewModel.title.toString(),
                       url: webViewModel.url,
-                      isHistory: true));
+                      isHistory: true,
+                      isIncognito: browserModel.isIncognito ||
+                          webViewModel.isIncognitoMode));
                 } else {
                   await wc?.stopLoading();
                 }
@@ -259,7 +266,6 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   ? FaIcon(
                       FontAwesomeIcons.timesCircle,
                       size: 20,
-                      color: Colors.black.withOpacity(0.7),
                     )
                   : Icon(Icons.refresh_rounded),
               iconSize: 24,
@@ -363,16 +369,18 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
           decoration: BoxDecoration(
               border: Border.all(
                 width: 2.0,
-                color: Colors.black87,
+                color: browserModel.isIncognito ? Colors.white : Colors.black87,
               ),
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.circular(5.0)),
           constraints: BoxConstraints(minWidth: 20.0),
           child: Center(
               child: Text(
-            browserModel.webViewTabs.length.toString(),
+            browserModel.isIncognito
+                ? browserModel.incognitowebViewTabs.length.toString()
+                : browserModel.webViewTabs.length.toString(),
             style: TextStyle(
-                color: Colors.black,
+                color: browserModel.isIncognito ? Colors.white : Colors.black,
                 fontWeight: FontWeight.bold,
                 fontSize: 12.0),
           )),
@@ -380,7 +388,8 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
       ),
       PopupMenuButton<String>(
         onSelected: _popupMenuChoiceAction,
-        icon: Icon(Icons.more_vert_rounded, color: Colors.black),
+        icon: Icon(Icons.more_vert_rounded,
+            color: browserModel.isIncognito ? Colors.white : Colors.black),
         iconSize: 24,
         itemBuilder: (popupMenuContext) {
           var items = [

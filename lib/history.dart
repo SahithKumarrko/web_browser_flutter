@@ -127,9 +127,13 @@ class _HistoryState extends State<History> {
         items[k]!.addAll([c, ind]);
         ind = ind + 1;
         for (Search s in v) {
-          if (searchValue == "" ||
-              s.title.toLowerCase().contains(searchValue) ||
-              s.url!.origin.toString().toLowerCase().contains(searchValue)) {
+          if ((searchValue == "" ||
+                  s.title.toLowerCase().contains(searchValue) ||
+                  s.url!.origin
+                      .toString()
+                      .toLowerCase()
+                      .contains(searchValue)) &&
+              !s.isIncognito) {
             _data.add(
                 HItem(date: k, search: s, key: GlobalKey(), ikey: GlobalKey()));
             c += 1;

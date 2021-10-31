@@ -273,6 +273,7 @@ class BrowserModel extends ChangeNotifier {
     //   // return SizedBox.shrink();
     //   print("yup");
     // }
+    print("Closing incognito tab");
     _incognitowebViewTabs.removeAt(index);
     _incogcurrentTabIndex = _incognitowebViewTabs.length - 1;
 
@@ -284,6 +285,7 @@ class BrowserModel extends ChangeNotifier {
       _currentWebViewModel.updateWithValue(
           _incognitowebViewTabs[_incogcurrentTabIndex].webViewModel);
     } else {
+      isIncognito = false;
       _currentWebViewModel.updateWithValue(_webViewTabs.length > 0
           ? _webViewTabs[_currentTabIndex].webViewModel
           : WebViewModel());

@@ -4,7 +4,12 @@ class Search {
   final String title;
   final Uri? url;
   final bool isHistory;
-  const Search({required this.title, this.url, this.isHistory = false});
+  final bool isIncognito;
+  const Search(
+      {required this.title,
+      this.url,
+      this.isHistory = false,
+      this.isIncognito = false});
 
   bool get hasSearch => title.isNotEmpty == true;
 
@@ -13,13 +18,17 @@ class Search {
       title: props["title"],
       url: props["url"],
       isHistory: props["isHistory"],
+      isIncognito: props["isIncognito"],
     );
   }
 
   static Search? fromMap(Map<String, dynamic>? map) {
     return map != null
         ? Search(
-            title: map["title"], url: Uri.parse(map["url"]), isHistory: true)
+            title: map["title"],
+            url: Uri.parse(map["url"]),
+            isHistory: true,
+            isIncognito: map["isIncognito"])
         : null;
   }
 
@@ -27,6 +36,7 @@ class Search {
     return {
       "title": Helper.htmlToString(title),
       "url": url?.toString(),
+      "isIncognito": isIncognito,
     };
   }
 
@@ -38,8 +48,13 @@ class Search {
     return '$url';
   }
 
+  bool get incognito {
+    return isIncognito;
+  }
+
   @override
-  String toString() => 'Search(title: $title,url: $url)';
+  String toString() =>
+      'Search(title: $title,url: $url, isIncognito: $isIncognito)';
 
   @override
   bool operator ==(Object o) {
