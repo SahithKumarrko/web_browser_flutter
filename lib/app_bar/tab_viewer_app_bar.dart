@@ -34,7 +34,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
     var settings = browserModel.getSettings();
     var inl = browserModel.incognitowebViewTabs.length;
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).backgroundColor,
       centerTitle: true,
       title: inl != 0
           ? Row(
@@ -56,7 +56,9 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                            border: Border.all(width: 2.0, color: Colors.black),
+                            border: Border.all(
+                                width: 2.0,
+                                color: Theme.of(context).primaryColor),
                             shape: BoxShape.rectangle,
                             borderRadius: BorderRadius.circular(5.0)),
                         constraints:
@@ -66,7 +68,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                                 child: Text(
                           browserModel.webViewTabs.length.toString(),
                           style: TextStyle(
-                              color: Colors.black,
+                              // color: Colors.black,
                               fontWeight: FontWeight.bold,
                               fontSize: 14.0),
                         ))),
@@ -81,7 +83,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                   width: 2,
                   height: 25,
                   child: Container(
-                    color: Colors.black,
+                    color: Theme.of(context).primaryColor,
                   ),
                 ),
                 SizedBox(
@@ -106,7 +108,10 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                       padding: const EdgeInsets.all(2.0),
                       child: Text(
                           browserModel.incognitowebViewTabs.length.toString(),
-                          style: TextStyle(color: Colors.white, fontSize: 12)),
+                          style: TextStyle(
+                            // color: Colors.white,
+                            fontSize: 12,
+                          )),
                     ),
                     position: BadgePosition.topEnd(
                       end: browserModel.incognitowebViewTabs.length < 10
@@ -117,7 +122,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                     ),
                     child: FaIcon(
                       FontAwesomeIcons.userSecret,
-                      color: Colors.black,
+                      // color: Colors.black,
                     ),
                   ),
                 ),
@@ -134,7 +139,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
     return IconButton(
       icon: Icon(
         Icons.add,
-        color: Colors.black,
+        // color: Colors.black,
       ),
       onPressed: () {
         Helper.addNewTab(context: context);
@@ -161,7 +166,8 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
           children: [
             Container(
               decoration: BoxDecoration(
-                  border: Border.all(width: 2.0, color: Colors.black),
+                  border: Border.all(
+                      width: 2.0, color: Theme.of(context).primaryColor),
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.circular(5.0)),
               constraints: BoxConstraints(minWidth: 25.0, maxHeight: 28),
@@ -170,7 +176,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                       child: Text(
                 browserModel.webViewTabs.length.toString(),
                 style: TextStyle(
-                    color: Colors.black,
+                    color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 14.0),
               ))),
@@ -184,7 +190,8 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
     }
     widgets.add(PopupMenuButton<String>(
       onSelected: _popupMenuChoiceAction,
-      icon: Icon(Icons.more_vert_rounded, color: Colors.black),
+      icon:
+          Icon(Icons.more_vert_rounded, color: Theme.of(context).primaryColor),
       iconSize: 24,
       itemBuilder: (popupMenuContext) {
         var items = <PopupMenuEntry<String>>[];
@@ -201,7 +208,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                       Text(choice),
                       Icon(
                         Icons.add,
-                        color: Colors.black,
+                        // color: Colors.black,
                       )
                     ]),
               );
@@ -215,7 +222,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                       Text(choice),
                       FaIcon(
                         FontAwesomeIcons.userSecret,
-                        color: Colors.black,
+                        // color: Colors.black,
                       )
                     ]),
               );
@@ -229,7 +236,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                       Text(choice),
                       Icon(
                         Icons.close,
-                        color: Colors.black,
+                        // color: Colors.black,
                       )
                     ]),
               );
@@ -243,7 +250,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                       Text(choice),
                       Icon(
                         Icons.settings,
-                        color: Colors.grey,
+                        // color: Colors.grey,
                       )
                     ]),
               );

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html/shims/dart_ui_real.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/app_bar/browser_app_bar.dart';
@@ -148,86 +149,135 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
     var canShowTabScroller =
         browserModel.showTabScroller && browserModel.webViewTabs.isNotEmpty;
 
-    return WillPopScope(
-      onWillPop: () async {
-        // print("GBBBBB");
-        if (canShowTabScroller) {
-          browserModel.showTabScroller = false;
-          // return true;
-        } else {
-          var wbm;
-          if (browserModel.isIncognito) {
-            wbm = browserModel.getCurrentIncognitoTab()?.webViewModel;
+    return Theme(
+      data: browserModel.isIncognito
+          ? ThemeData.dark().copyWith(
+              backgroundColor: Colors.black,
+              primaryColor: Colors.white70,
+              appBarTheme: AppBarTheme(
+                backgroundColor: Colors.black,
+                actionsIconTheme: IconThemeData(
+                  color: Colors.white70,
+                ),
+                iconTheme: IconThemeData(
+                  color: Colors.white70,
+                ),
+                systemOverlayStyle: SystemUiOverlayStyle(
+                  statusBarColor: Colors.black,
+                  statusBarIconBrightness: Brightness.light,
+                  statusBarBrightness: Brightness.dark,
+                ),
+                titleTextStyle: GoogleFonts.poppins(color: Colors.white),
+              ),
+              textTheme: TextTheme(
+                bodyText1:
+                    GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+              ),
+              primaryTextTheme: TextTheme(
+                bodyText1: GoogleFonts.poppins(color: Colors.white),
+              ))
+          : ThemeData.light().copyWith(
+              backgroundColor: Colors.white,
+              primaryColor: Colors.black,
+              appBarTheme: AppBarTheme(
+                backgroundColor: Colors.white,
+                actionsIconTheme: IconThemeData(
+                  color: Colors.black87,
+                ),
+                iconTheme: IconThemeData(
+                  color: Colors.black87,
+                ),
+                systemOverlayStyle: SystemUiOverlayStyle(
+                  statusBarColor: Colors.white,
+                  statusBarBrightness: Brightness.light,
+                  statusBarIconBrightness: Brightness.dark,
+                ),
+                titleTextStyle: GoogleFonts.poppins(color: Colors.black),
+              ),
+              textTheme: TextTheme(
+                  bodyText1:
+                      GoogleFonts.poppins(color: Colors.black, fontSize: 16))),
+      child: WillPopScope(
+        onWillPop: () async {
+          // print("GBBBBB");
+          if (canShowTabScroller) {
+            browserModel.showTabScroller = false;
+            // return true;
           } else {
-            wbm = browserModel.getCurrentTab()?.webViewModel;
-          }
-          // print("Opened::");
+            var wbm;
+            if (browserModel.isIncognito) {
+              wbm = browserModel.getCurrentIncognitoTab()?.webViewModel;
+            } else {
+              wbm = browserModel.getCurrentTab()?.webViewModel;
+            }
+            // print("Opened::");
 
-          // print(wbm?.openedByUser);
-          // log("VVVVV ::::  ${wbm?.curIndex} ::  ${wbm?.history?.list}");
-          if (wbm?.openedByUser ?? false) {
-            int cind = wbm?.curIndex ?? 0;
+            // print(wbm?.openedByUser);
+            // log("VVVVV ::::  ${wbm?.curIndex} ::  ${wbm?.history?.list}");
+            if (wbm?.openedByUser ?? false) {
+              int cind = wbm?.curIndex ?? 0;
 
-            if (cind == 0)
-              platform.invokeMethod("sendToBackground");
-            else {
-              if (cind != 0) {
-                cind = cind - 1;
-                wbm?.curIndex = cind;
-              }
+              if (cind == 0)
+                platform.invokeMethod("sendToBackground");
+              else {
+                if (cind != 0) {
+                  cind = cind - 1;
+                  wbm?.curIndex = cind;
+                }
 
-              print("GOING BACK :: $cind");
-              var hitem = wbm?.history?.list!.elementAt(cind);
-              print("UU :: $hitem");
-              var wchl = await wbm?.webViewController?.getCopyBackForwardList();
-              WebHistoryItem? foundInd;
-              for (WebHistoryItem wchli in wchl?.list ?? []) {
-                if (hitem?.url != null) {
-                  if ((wchli.url
-                              .toString()
-                              .compareTo(hitem?.url.toString() ?? "") ==
-                          0) &&
-                      (wchli.originalUrl
-                              .toString()
-                              .compareTo(hitem?.originalUrl.toString() ?? "") ==
-                          0)) {
-                    foundInd = wchli;
-                    break;
+                print("GOING BACK :: $cind");
+                var hitem = wbm?.history?.list!.elementAt(cind);
+                print("UU :: $hitem");
+                var wchl =
+                    await wbm?.webViewController?.getCopyBackForwardList();
+                WebHistoryItem? foundInd;
+                for (WebHistoryItem wchli in wchl?.list ?? []) {
+                  if (hitem?.url != null) {
+                    if ((wchli.url
+                                .toString()
+                                .compareTo(hitem?.url.toString() ?? "") ==
+                            0) &&
+                        (wchli.originalUrl.toString().compareTo(
+                                hitem?.originalUrl.toString() ?? "") ==
+                            0)) {
+                      foundInd = wchli;
+                      break;
+                    }
                   }
                 }
+                if (foundInd != null) {
+                  wbm?.webViewController?.goTo(historyItem: foundInd);
+                } else {
+                  wbm?.webViewController!
+                      .loadUrl(urlRequest: URLRequest(url: hitem?.url));
+                }
               }
-              if (foundInd != null) {
-                wbm?.webViewController?.goTo(historyItem: foundInd);
-              } else {
-                wbm?.webViewController!
-                    .loadUrl(urlRequest: URLRequest(url: hitem?.url));
-              }
-            }
-          } else {
-            if ((await wbm?.webViewController?.canGoBack()) ?? false) {
-              await wbm?.webViewController?.goBack();
             } else {
-              if (wbm != null && wbm.tabIndex != null) {
-                setState(() {
-                  if (browserModel.isIncognito) {
-                    browserModel.closeIncognitoTab(wbm.tabIndex!);
-                  } else {
-                    browserModel.closeTab(wbm.tabIndex!);
-                  }
-                });
-                FocusScope.of(context).unfocus();
+              if ((await wbm?.webViewController?.canGoBack()) ?? false) {
+                await wbm?.webViewController?.goBack();
+              } else {
+                if (wbm != null && wbm.tabIndex != null) {
+                  setState(() {
+                    if (browserModel.isIncognito) {
+                      browserModel.closeIncognitoTab(wbm.tabIndex!);
+                    } else {
+                      browserModel.closeTab(wbm.tabIndex!);
+                    }
+                  });
+                  FocusScope.of(context).unfocus();
+                }
               }
             }
           }
-        }
-        return false;
-      },
-      child: IndexedStack(
-        index: canShowTabScroller ? 1 : 0,
-        children: [
-          _buildWebViewTabs(),
-          canShowTabScroller ? OpenTabsViewer() : Container()
-        ],
+          return false;
+        },
+        child: IndexedStack(
+          index: canShowTabScroller ? 1 : 0,
+          children: [
+            _buildWebViewTabs(),
+            canShowTabScroller ? OpenTabsViewer() : Container()
+          ],
+        ),
       ),
     );
   }

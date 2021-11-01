@@ -106,14 +106,12 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
           }
 
           Widget? leading = _buildAppBarHomePageWidget();
-
           return Selector<WebViewModel, bool>(
               selector: (context, webViewModel) => webViewModel.isIncognitoMode,
               builder: (context, isIncognitoMode, child) {
                 return leading != null
                     ? AppBar(
-                        backgroundColor:
-                            isIncognitoMode ? Colors.black87 : Colors.white,
+                        backgroundColor: Theme.of(context).backgroundColor,
                         leading: _buildAppBarHomePageWidget(),
                         centerTitle: false,
                         leadingWidth: 26,
@@ -123,8 +121,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                         actions: _buildActionsMenu(),
                       )
                     : AppBar(
-                        backgroundColor:
-                            isIncognitoMode ? Colors.black87 : Colors.white,
+                        backgroundColor: Theme.of(context).backgroundColor,
                         titleSpacing: 10.0,
                         title: _buildSearchTextField(),
                         actions: _buildActionsMenu(),
@@ -370,7 +367,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
           decoration: BoxDecoration(
               border: Border.all(
                 width: 2.0,
-                color: browserModel.isIncognito ? Colors.white : Colors.black87,
+                color: Theme.of(context).primaryColor,
               ),
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.circular(5.0)),
@@ -381,7 +378,8 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                 ? browserModel.incognitowebViewTabs.length.toString()
                 : browserModel.webViewTabs.length.toString(),
             style: TextStyle(
-                color: browserModel.isIncognito ? Colors.white : Colors.black,
+                // color: browserModel.isIncognito ? Colors.white : Colors.black,
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 12.0),
           )),
@@ -390,7 +388,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
       PopupMenuButton<String>(
         onSelected: _popupMenuChoiceAction,
         icon: Icon(Icons.more_vert_rounded,
-            color: browserModel.isIncognito ? Colors.white : Colors.black),
+            color: Theme.of(context).primaryColor),
         iconSize: 24,
         itemBuilder: (popupMenuContext) {
           var items = [
@@ -534,8 +532,11 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                             padding: const EdgeInsets.all(0.0),
                             icon: Icon(
                               Icons.arrow_forward,
-                              color:
-                                  canGoForward ? Colors.black : Colors.black45,
+                              color: canGoForward
+                                  ? Theme.of(context).primaryColor
+                                  : Theme.of(context)
+                                      .primaryColor
+                                      .withOpacity(0.4),
                             ),
                             onPressed: () {
                               // _webViewController?.goForward();
@@ -567,7 +568,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                             padding: const EdgeInsets.all(0.0),
                             icon: Icon(
                               Icons.file_download,
-                              color: Colors.black,
+                              // color: Colors.black,
                             ),
                             onPressed: () async {
                               Navigator.pop(popupMenuContext);
@@ -665,7 +666,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                             padding: const EdgeInsets.all(0.0),
                             icon: Icon(
                               Icons.info_outline,
-                              color: Colors.black,
+                              // color: Colors.black,
                             ),
                             onPressed: () async {
                               Navigator.pop(popupMenuContext);
@@ -679,7 +680,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                             padding: const EdgeInsets.all(0.0),
                             icon: FaIcon(
                               FontAwesomeIcons.mobile,
-                              color: Colors.black,
+                              // color: Colors.black,
                             ),
                             onPressed: () async {
                               Navigator.pop(popupMenuContext);
@@ -709,10 +710,13 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Icon(
                           Icons.add,
-                          color: Colors.black,
+                          // color: Colors.black,
                         )
                       ]),
                 );
@@ -723,10 +727,13 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Icon(
                           FontAwesomeIcons.userSecret,
-                          color: Colors.black,
+                          // color: Colors.black,
                         )
                       ]),
                 );
@@ -737,7 +744,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Icon(
                           Icons.star,
                           color: Colors.yellow,
@@ -752,7 +762,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Icon(
                           Icons.offline_pin,
                           color: Colors.blue,
@@ -766,7 +779,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Selector<WebViewModel, bool>(
                           selector: (context, webViewModel) =>
                               webViewModel.isDesktopMode,
@@ -775,7 +791,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                               value
                                   ? Icons.check_box
                                   : Icons.check_box_outline_blank,
-                              color: Colors.black,
+                              // color: Colors.black,
                             );
                           },
                         )
@@ -788,10 +804,13 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Icon(
                           Icons.history,
-                          color: Colors.black,
+                          // color: Colors.black,
                         )
                       ]),
                 );
@@ -802,7 +821,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         FaIcon(
                           FontAwesomeIcons.whatsapp,
                           color: Colors.green,
@@ -816,10 +838,13 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Icon(
                           Icons.settings,
-                          color: Colors.grey,
+                          // color: Colors.grey,
                         )
                       ]),
                 );
@@ -830,10 +855,13 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Icon(
                           Icons.developer_mode,
-                          color: Colors.black,
+                          // color: Colors.black,
                         )
                       ]),
                 );
@@ -844,17 +872,23 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(choice),
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                         Icon(
                           Icons.search,
-                          color: Colors.black,
+                          // color: Colors.black,
                         )
                       ]),
                 );
               default:
                 return CustomPopupMenuItem<String>(
                   value: choice,
-                  child: Text(choice),
+                  child: Text(
+                    choice,
+                    style: Theme.of(context).textTheme.bodyText1,
+                  ),
                 );
             }
           }).toList());

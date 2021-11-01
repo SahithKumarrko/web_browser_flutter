@@ -24,12 +24,12 @@ const TAB_VIEWER_TOP_OFFSET_3 = 20.0;
 const TAB_VIEWER_TOP_SCALE_TOP_OFFSET = 250.0;
 const TAB_VIEWER_TOP_SCALE_BOTTOM_OFFSET = 230.0;
 void main() async {
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    systemNavigationBarColor: Colors.black,
-    // statusBarBrightness: Brightness.light,
-    // navigation bar color
-    statusBarColor: Colors.white, // status bar color
-  ));
+  // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+  //   systemNavigationBarColor: Colors.black,
+  //   // statusBarBrightness: Brightness.light,
+  //   // navigation bar color
+  //   // statusBarColor: Colors.white, // status bar color
+  // ));
   WidgetsFlutterBinding.ensureInitialized();
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
@@ -83,9 +83,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Poppins',
         visualDensity: VisualDensity.adaptivePlatformDensity,
-        appBarTheme: AppBarTheme(
-          systemOverlayStyle: SystemUiOverlayStyle.dark,
-        ),
+        // appBarTheme: AppBarTheme(
+        //   systemOverlayStyle: SystemUiOverlayStyle.dark,
+        // ),
       ),
       home: FutureBuilder(
         future: Init.instance.initialize(context),

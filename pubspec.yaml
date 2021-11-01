@@ -39,6 +39,7 @@ dependencies:
   flutter_native_splash: ^1.2.4
   flutter_svg: ^0.22.0
   font_awesome_flutter: ^9.0.0-nullsafety
+  google_fonts: ^2.1.0
   http: ^0.13.4
   implicitly_animated_reorderable_list: ^0.4.1
   intl: ^0.17.0
