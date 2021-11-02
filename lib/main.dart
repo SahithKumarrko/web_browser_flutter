@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/browser.dart';
 import 'package:webpage_dev_console/helpers.dart';
+import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 
@@ -80,13 +81,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'Poppins',
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        // appBarTheme: AppBarTheme(
-        //   systemOverlayStyle: SystemUiOverlayStyle.dark,
-        // ),
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode:
+          ThemeMode.system == ThemeMode.dark ? ThemeMode.dark : ThemeMode.light,
       home: FutureBuilder(
         future: Init.instance.initialize(context),
         builder: (context, AsyncSnapshot snapshot) {

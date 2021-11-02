@@ -307,8 +307,8 @@ class __MultiSelectBottomSheetFieldViewState<V>
   Widget _buildInheritedChipDisplay() {
     List<MultiSelectItem<V>?> chipDisplayItems = [];
     chipDisplayItems = _selectedItems
-        .map((e) => widget.items
-            .firstWhereOrNull((element) => e == element.value))
+        .map((e) =>
+            widget.items.firstWhereOrNull((element) => e == element.value))
         .toList();
     chipDisplayItems.removeWhere((element) => element == null);
     if (widget.chipDisplay != null) {
@@ -428,7 +428,7 @@ class __MultiSelectBottomSheetFieldViewState<V>
                                           widget.selectedColor !=
                                               Colors.transparent)
                                       ? widget.selectedColor!
-                                      : Theme.of(context).primaryColor
+                                      : Theme.of(context).colorScheme.onSurface
                                   : Colors.black45,
                           width: _selectedItems.isNotEmpty
                               ? (widget.state != null && widget.state!.hasError)

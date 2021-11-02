@@ -366,9 +366,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
           padding: EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
               border: Border.all(
-                width: 2.0,
-                color: Theme.of(context).primaryColor,
-              ),
+                  width: 2.0, color: Theme.of(context).colorScheme.onSurface),
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.circular(5.0)),
           constraints: BoxConstraints(minWidth: 20.0),
@@ -377,18 +375,16 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
             browserModel.isIncognito
                 ? browserModel.incognitowebViewTabs.length.toString()
                 : browserModel.webViewTabs.length.toString(),
-            style: TextStyle(
-                // color: browserModel.isIncognito ? Colors.white : Colors.black,
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 12.0),
+            style: Theme.of(context)
+                .textTheme
+                .bodyText1
+                ?.copyWith(fontWeight: FontWeight.bold, fontSize: 12.0),
           )),
         ),
       ),
       PopupMenuButton<String>(
         onSelected: _popupMenuChoiceAction,
-        icon: Icon(Icons.more_vert_rounded,
-            color: Theme.of(context).primaryColor),
+        icon: Icon(Icons.more_vert_rounded),
         iconSize: 24,
         itemBuilder: (popupMenuContext) {
           var items = [
@@ -533,9 +529,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                             icon: Icon(
                               Icons.arrow_forward,
                               color: canGoForward
-                                  ? Theme.of(context).primaryColor
+                                  ? Theme.of(context).colorScheme.onSurface
                                   : Theme.of(context)
-                                      .primaryColor
+                                      .colorScheme
+                                      .onSurface
                                       .withOpacity(0.4),
                             ),
                             onPressed: () {

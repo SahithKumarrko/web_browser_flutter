@@ -12,7 +12,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/app_bar/browser_app_bar.dart';
+import 'package:webpage_dev_console/favorites.dart';
 import 'package:webpage_dev_console/helpers.dart';
+import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/open_tabs_viewer.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
@@ -150,53 +152,9 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
         browserModel.showTabScroller && browserModel.webViewTabs.isNotEmpty;
 
     return Theme(
-      data: browserModel.isIncognito
-          ? ThemeData.dark().copyWith(
-              backgroundColor: Colors.black,
-              primaryColor: Colors.white70,
-              appBarTheme: AppBarTheme(
-                backgroundColor: Colors.black,
-                actionsIconTheme: IconThemeData(
-                  color: Colors.white70,
-                ),
-                iconTheme: IconThemeData(
-                  color: Colors.white70,
-                ),
-                systemOverlayStyle: SystemUiOverlayStyle(
-                  statusBarColor: Colors.black,
-                  statusBarIconBrightness: Brightness.light,
-                  statusBarBrightness: Brightness.dark,
-                ),
-                titleTextStyle: GoogleFonts.poppins(color: Colors.white),
-              ),
-              textTheme: TextTheme(
-                bodyText1:
-                    GoogleFonts.poppins(color: Colors.white, fontSize: 16),
-              ),
-              primaryTextTheme: TextTheme(
-                bodyText1: GoogleFonts.poppins(color: Colors.white),
-              ))
-          : ThemeData.light().copyWith(
-              backgroundColor: Colors.white,
-              primaryColor: Colors.black,
-              appBarTheme: AppBarTheme(
-                backgroundColor: Colors.white,
-                actionsIconTheme: IconThemeData(
-                  color: Colors.black87,
-                ),
-                iconTheme: IconThemeData(
-                  color: Colors.black87,
-                ),
-                systemOverlayStyle: SystemUiOverlayStyle(
-                  statusBarColor: Colors.white,
-                  statusBarBrightness: Brightness.light,
-                  statusBarIconBrightness: Brightness.dark,
-                ),
-                titleTextStyle: GoogleFonts.poppins(color: Colors.black),
-              ),
-              textTheme: TextTheme(
-                  bodyText1:
-                      GoogleFonts.poppins(color: Colors.black, fontSize: 16))),
+      data: (ThemeMode.system == ThemeMode.dark || browserModel.isIncognito)
+          ? AppTheme.darkTheme
+          : AppTheme.lightTheme,
       child: WillPopScope(
         onWillPop: () async {
           // print("GBBBBB");

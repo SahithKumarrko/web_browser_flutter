@@ -58,7 +58,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                         decoration: BoxDecoration(
                             border: Border.all(
                                 width: 2.0,
-                                color: Theme.of(context).primaryColor),
+                                color: Theme.of(context).colorScheme.onSurface),
                             shape: BoxShape.rectangle,
                             borderRadius: BorderRadius.circular(5.0)),
                         constraints:
@@ -67,10 +67,11 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                             child: Center(
                                 child: Text(
                           browserModel.webViewTabs.length.toString(),
-                          style: TextStyle(
-                              // color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14.0),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1
+                              ?.copyWith(
+                                  fontWeight: FontWeight.bold, fontSize: 14.0),
                         ))),
                       ),
                     ],
@@ -83,7 +84,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                   width: 2,
                   height: 25,
                   child: Container(
-                    color: Theme.of(context).primaryColor,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 SizedBox(
@@ -167,7 +168,8 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
             Container(
               decoration: BoxDecoration(
                   border: Border.all(
-                      width: 2.0, color: Theme.of(context).primaryColor),
+                      width: 2.0,
+                      color: Theme.of(context).colorScheme.onSurface),
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.circular(5.0)),
               constraints: BoxConstraints(minWidth: 25.0, maxHeight: 28),
@@ -175,10 +177,10 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                   child: Center(
                       child: Text(
                 browserModel.webViewTabs.length.toString(),
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.0),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText1
+                    ?.copyWith(fontWeight: FontWeight.bold, fontSize: 14.0),
               ))),
             ),
           ],
@@ -190,8 +192,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
     }
     widgets.add(PopupMenuButton<String>(
       onSelected: _popupMenuChoiceAction,
-      icon:
-          Icon(Icons.more_vert_rounded, color: Theme.of(context).primaryColor),
+      icon: Icon(Icons.more_vert_rounded),
       iconSize: 24,
       itemBuilder: (popupMenuContext) {
         var items = <PopupMenuEntry<String>>[];
@@ -205,7 +206,10 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(choice),
+                      Text(
+                        choice,
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
                       Icon(
                         Icons.add,
                         // color: Colors.black,
@@ -219,7 +223,10 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(choice),
+                      Text(
+                        choice,
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
                       FaIcon(
                         FontAwesomeIcons.userSecret,
                         // color: Colors.black,
@@ -233,7 +240,10 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(choice),
+                      Text(
+                        choice,
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
                       Icon(
                         Icons.close,
                         // color: Colors.black,
@@ -247,7 +257,10 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(choice),
+                      Text(
+                        choice,
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
                       Icon(
                         Icons.settings,
                         // color: Colors.grey,
