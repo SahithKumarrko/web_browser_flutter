@@ -21,10 +21,9 @@ import 'models/browser_model.dart';
 import 'package:http/http.dart' as http;
 
 class WebViewTab extends StatefulWidget {
-  final GlobalKey<WebViewTabState> key;
-
   WebViewTab({required this.key, required this.webViewModel}) : super(key: key);
 
+  final GlobalKey<WebViewTabState> key;
   final WebViewModel webViewModel;
 
   @override
@@ -32,21 +31,28 @@ class WebViewTab extends StatefulWidget {
 }
 
 class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
-  InAppWebViewController? _webViewController;
-  bool _isWindowClosed = false;
+  late BrowserModel dbm;
+  String fileName = "", durl = "";
+  bool isHisUpdated = false;
+  late PullToRefreshController pullToRefreshController;
 
-  TextEditingController _httpAuthUsernameController = TextEditingController();
+  bool _checkPermissionAfterSettingsPage = false;
   TextEditingController _httpAuthPasswordController = TextEditingController();
+  TextEditingController _httpAuthUsernameController = TextEditingController();
+  bool _isWindowClosed = false;
   late String _localPath;
   late PermissionStatus _permissionReady;
-  bool _checkPermissionAfterSettingsPage = false;
-  String fileName = "", durl = "";
-  late BrowserModel dbm;
-  bool isHisUpdated = false;
+  InAppWebViewController? _webViewController;
+
   @override
-  void initState() {
-    WidgetsBinding.instance!.addObserver(this);
-    super.initState();
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_webViewController != null && Platform.isAndroid) {
+      if (state == AppLifecycleState.paused) {
+        pauseAll();
+      } else {
+        resumeAll();
+      }
+    }
   }
 
   @override
@@ -63,14 +69,23 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_webViewController != null && Platform.isAndroid) {
-      if (state == AppLifecycleState.paused) {
-        pauseAll();
-      } else {
-        resumeAll();
-      }
-    }
+  void initState() {
+    WidgetsBinding.instance!.addObserver(this);
+    super.initState();
+    pullToRefreshController = PullToRefreshController(
+      options: PullToRefreshOptions(
+          enabled: true, color: Colors.blue, slingshotDistance: 250),
+      onRefresh: () async {
+        if (Platform.isAndroid) {
+          await widget.webViewModel.webViewController?.reload();
+        } else if (Platform.isIOS) {
+          await widget.webViewModel.webViewController?.loadUrl(
+              urlRequest: URLRequest(
+                  url: await widget.webViewModel.webViewController?.getUrl()));
+        }
+        pullToRefreshController.endRefreshing();
+      },
+    );
   }
 
   void pauseAll() {
@@ -124,13 +139,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
     dbm.save();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: _buildWebView(),
-    );
-  }
+  refresh() {}
 
   InAppWebView _buildWebView() {
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
@@ -175,6 +184,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
     return InAppWebView(
       initialUrlRequest: URLRequest(url: widget.webViewModel.url),
       initialOptions: initialOptions,
+      pullToRefreshController: pullToRefreshController,
       windowId: widget.webViewModel.windowId,
       onWebViewCreated: (controller) async {
         initialOptions.crossPlatform.transparentBackground = false;
@@ -506,7 +516,9 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         var errorUrl =
             url ?? widget.webViewModel.url ?? Uri.parse('about:blank');
 
-        _webViewController?.loadData(data: """
+        _webViewController?.loadData(
+            data:
+                """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -535,7 +547,9 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
       <p>$message</p>
     </div>
 </body>
-    """, baseUrl: errorUrl, androidHistoryUrl: errorUrl);
+    """,
+            baseUrl: errorUrl,
+            androidHistoryUrl: errorUrl);
 
         widget.webViewModel.url = url;
         widget.webViewModel.isSecure = false;
@@ -666,5 +680,13 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
 
   void onHideTab() async {
     this.pause();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: _buildWebView(),
+    );
   }
 }

@@ -144,9 +144,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
     return IconButton(
       icon: Icon(
         Icons.home_outlined,
-        color: browserModel.isIncognito ? Colors.white : Colors.black,
       ),
-      color: Colors.black,
       onPressed: () {
         if (_webViewController != null) {
           var url =
@@ -1295,7 +1293,6 @@ class _FavState extends State<Fav> {
             padding: const EdgeInsets.all(0.0),
             icon: Icon(
               isFavorite ? Icons.star : Icons.star_border,
-              color: Colors.black,
             ),
             onPressed: () {
               if (favorite != null) {

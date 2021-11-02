@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html/shims/dart_ui_real.dart';
@@ -152,7 +153,9 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
         browserModel.showTabScroller && browserModel.webViewTabs.isNotEmpty;
 
     return Theme(
-      data: (ThemeMode.system == ThemeMode.dark || browserModel.isIncognito)
+      data: (SchedulerBinding.instance!.window.platformBrightness ==
+                  Brightness.dark ||
+              browserModel.isIncognito)
           ? AppTheme.darkTheme
           : AppTheme.lightTheme,
       child: WillPopScope(

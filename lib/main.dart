@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
@@ -53,6 +54,7 @@ void main() async {
   await Permission.camera.request();
   await Permission.microphone.request();
   await Permission.storage.request();
+
   runApp(
     MultiProvider(
       providers: [
@@ -78,13 +80,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    print("THEME :: ${SchedulerBinding.instance!.window.platformBrightness}");
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode:
-          ThemeMode.system == ThemeMode.dark ? ThemeMode.dark : ThemeMode.light,
+      themeMode: SchedulerBinding.instance!.window.platformBrightness ==
+              Brightness.dark
+          ? ThemeMode.dark
+          : ThemeMode.light,
       home: FutureBuilder(
         future: Init.instance.initialize(context),
         builder: (context, AsyncSnapshot snapshot) {

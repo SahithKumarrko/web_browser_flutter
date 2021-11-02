@@ -7,7 +7,13 @@ class AppTheme {
       backgroundColor: Colors.white,
       colorScheme: ColorScheme.light(),
       primaryColor: Colors.white,
+      scaffoldBackgroundColor: Colors.white,
       visualDensity: VisualDensity.adaptivePlatformDensity,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: Colors.blue,
+          circularTrackColor: Colors.white,
+          linearTrackColor: Colors.white,
+          refreshBackgroundColor: Colors.blueGrey[100]),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.white,
         actionsIconTheme: IconThemeData(
@@ -27,11 +33,18 @@ class AppTheme {
           bodyText1: GoogleFonts.poppins(color: Colors.black, fontSize: 16)));
 
   static ThemeData darkTheme = ThemeData.dark().copyWith(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.grey[900],
       primaryColor: Colors.black,
+      scaffoldBackgroundColor: Colors.grey[900],
       colorScheme: ColorScheme.dark(),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: Colors.blue,
+          circularTrackColor: Colors.grey[900],
+          linearTrackColor: Colors.grey[900],
+          refreshBackgroundColor: Colors.white),
+      popupMenuTheme: PopupMenuThemeData(color: Colors.grey[800]),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.grey[900],
         actionsIconTheme: IconThemeData(
           color: Colors.white70,
         ),
@@ -39,7 +52,7 @@ class AppTheme {
           color: Colors.white70,
         ),
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.black,
+          statusBarColor: Colors.grey[900],
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),

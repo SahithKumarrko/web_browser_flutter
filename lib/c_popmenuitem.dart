@@ -73,7 +73,7 @@ class CustomPopupMenuItemState<T, W extends CustomPopupMenuItem<T>>
 
     if (widget.isIconButtonRow) {
       return Material(
-        color: Colors.white,
+        color: Theme.of(context).popupMenuTheme.color,
         child: item,
       );
     }
