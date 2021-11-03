@@ -224,14 +224,18 @@ class _FavoriteState extends State<Favorite> {
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-            color: Colors.blueGrey[50],
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[800]
+                : Colors.blueGrey[100],
             border: Border.all(
-              color: const Color(0xFF575859),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
             ),
             borderRadius: BorderRadius.all(Radius.circular(10))),
         child: Text(
           "No bookmark found",
-          style: TextStyle(color: Colors.black87, fontSize: 24),
+          style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                fontSize: 24.0,
+              ),
         ),
       ),
     );
@@ -301,9 +305,7 @@ class _HisItemState extends State<HisItem> {
                       ),
                       Text(
                         item.date,
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
+                        style: Theme.of(context).textTheme.bodyText1,
                       ),
                       SizedBox(
                         height: 6,
@@ -416,10 +418,7 @@ class _HisItemState extends State<HisItem> {
                             children: [
                               Text(
                                 item.search!.title.toString(),
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500),
+                                style: Theme.of(context).textTheme.headline2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               item.search!.url != null
@@ -432,7 +431,8 @@ class _HisItemState extends State<HisItem> {
                                                   "")
                                           : "",
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(fontSize: 16),
+                                      style:
+                                          Theme.of(context).textTheme.bodyText1,
                                     )
                                   : SizedBox.shrink(),
                             ],
@@ -497,7 +497,7 @@ class _HisItemState extends State<HisItem> {
           },
           icon: FaIcon(
             FontAwesomeIcons.timesCircle,
-            color: Colors.black.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
             size: 18,
           )),
     );
@@ -535,7 +535,9 @@ class _ClearAllHState extends State<ClearAllH> {
                   : "Clear All Searched Results",
               key: vk,
               style: TextStyle(
-                color: (!longPressed) ? Colors.blue : Colors.grey,
+                color: (!longPressed)
+                    ? Colors.blue
+                    : Theme.of(context).disabledColor,
                 decoration: TextDecoration.underline,
                 fontSize: 16,
               ),
@@ -572,13 +574,23 @@ class _ClearAllHState extends State<ClearAllH> {
                               nohist.currentState?.setState(() {});
                               Navigator.pop(context);
                             },
-                            child: Text('YES'),
+                            child: Text(
+                              'YES',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText1
+                                  ?.copyWith(
+                                      color: Theme.of(context).disabledColor),
+                            ),
                           ),
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: Text('NO'),
+                            child: Text(
+                              'NO',
+                              style: Theme.of(context).textTheme.bodyText1,
+                            ),
                           ),
                         ],
                       );
@@ -643,9 +655,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           InkWell(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.arrow_back),
+            child: Icon(
+              Icons.arrow_back,
+              color: Theme.of(context).colorScheme.onBackground,
             ),
             onTap: () {
               setState(() {
@@ -660,13 +672,13 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             child: TextFormField(
               autofocus: true,
               keyboardType: TextInputType.url,
-              style: TextStyle(fontSize: 16),
+              style: Theme.of(context).textTheme.bodyText1,
               textInputAction: TextInputAction.go,
               textAlignVertical: TextAlignVertical.center,
               textAlign: TextAlign.left,
               maxLines: 1,
               decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(0, 12, 12, 12),
+                contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 12),
                 hintText: "Search or type address",
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
@@ -681,9 +693,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             ),
           ),
           InkWell(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-              child: Icon(Icons.clear),
+            child: Icon(
+              Icons.clear,
+              color: Theme.of(context).colorScheme.onBackground,
             ),
             onTap: () {
               txtc.clear();
@@ -698,17 +710,18 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
   Widget _buildHTab({required Key key}) {
     return Container(
       key: key,
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             "Bookmarks",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.headline1,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               InkWell(
                 onTap: () {
@@ -719,7 +732,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 },
                 child: Icon(
                   Icons.search,
-                  size: 26,
+                  color: Theme.of(context).colorScheme.onBackground,
+                  size: 24,
                 ),
               ),
               SizedBox(
@@ -731,7 +745,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 },
                 child: Icon(
                   Icons.close,
-                  size: 26,
+                  color: Theme.of(context).colorScheme.onBackground,
+                  size: 24,
                 ),
               ),
             ],
@@ -818,13 +833,23 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                                 appBarKey.currentState?.setState(() {});
                                 Navigator.pop(context);
                               },
-                              child: Text('YES'),
+                              child: Text(
+                                'YES',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1
+                                    ?.copyWith(
+                                        color: Theme.of(context).disabledColor),
+                              ),
                             ),
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context);
                               },
-                              child: Text('NO'),
+                              child: Text(
+                                'NO',
+                                style: Theme.of(context).textTheme.bodyText1,
+                              ),
                             ),
                           ],
                         );
@@ -849,18 +874,27 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                     popupitems.add(CustomPopupMenuItem<String>(
                       enabled: true,
                       value: TabViewerPopupMenuActions.NEW_TAB,
-                      child: Text("Open in New Tab"),
+                      child: Text(
+                        "Open in New Tab",
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
                     ));
                     popupitems.add(CustomPopupMenuItem<String>(
                       enabled: true,
                       value: TabViewerPopupMenuActions.NEW_INCOGNITO_TAB,
-                      child: Text("Open in Incognito Tab"),
+                      child: Text(
+                        "Open in Incognito Tab",
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
                     ));
                     if (_selectedList.length == 1) {
                       popupitems.add(CustomPopupMenuItem<String>(
                         enabled: true,
                         value: "Copy Link",
-                        child: Text("Copy Link"),
+                        child: Text(
+                          "Copy Link",
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
                       ));
                     }
 
@@ -909,7 +943,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 200),
         child: (showSearchField && !longPressed)

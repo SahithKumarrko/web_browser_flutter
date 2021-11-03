@@ -164,7 +164,7 @@ class _DownloadPageState extends State<DownloadPage> {
         content: Text(
           'Please grant accessing storage permission to continue -_-',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.blueGrey, fontSize: 18.0),
+          // style: TextStyle(color: Colors.blueGrey, fontSize: 18.0),
         ),
         negativeActionBuilder: (context, controller, _) {
           return TextButton(
@@ -174,11 +174,11 @@ class _DownloadPageState extends State<DownloadPage> {
             },
             child: Text(
               'Dismiss',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
-                fontSize: 20.0,
-              ),
+              style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20.0,
+                  ),
             ),
           );
         },
@@ -190,10 +190,11 @@ class _DownloadPageState extends State<DownloadPage> {
               },
               child: Text(
                 'Retry',
-                style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20.0),
+                style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20.0,
+                    ),
               ));
         });
   }
@@ -360,7 +361,9 @@ class _DownloadItemState extends State<DownloadItem> {
         children: [
           Text(
             'Ready',
-            style: TextStyle(color: Colors.green),
+            style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                  color: Colors.green,
+                ),
           ),
           RawMaterialButton(
             onPressed: () {
