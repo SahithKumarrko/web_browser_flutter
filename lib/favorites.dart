@@ -719,37 +719,40 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             "Bookmarks",
             style: Theme.of(context).textTheme.headline1,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    showSearchField = true;
-                  });
-                  clearAllSwitcher.currentState?.setState(() {});
-                },
-                child: Icon(
-                  Icons.search,
-                  color: Theme.of(context).colorScheme.onBackground,
-                  size: 24,
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      showSearchField = true;
+                    });
+                    clearAllSwitcher.currentState?.setState(() {});
+                  },
+                  child: Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.onBackground,
+                    size: 24,
+                  ),
                 ),
-              ),
-              SizedBox(
-                width: 16,
-              ),
-              InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Icon(
-                  Icons.close,
-                  color: Theme.of(context).colorScheme.onBackground,
-                  size: 24,
+                SizedBox(
+                  width: 16,
                 ),
-              ),
-            ],
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Icon(
+                    Icons.close,
+                    color: Theme.of(context).colorScheme.onBackground,
+                    size: 24,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
