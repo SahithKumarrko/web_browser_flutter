@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -9,6 +10,7 @@ import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
@@ -152,67 +154,74 @@ class _FavoriteState extends State<Favorite> {
     }
   }
 
-  SafeArea buildHistory() {
-    return SafeArea(
-      child: WillPopScope(
-        onWillPop: () async {
-          if (!showSearchField && !longPressed)
-            Navigator.pop(context);
-          else if (longPressed) {
-            _selectedList.clear();
-            longPressed = false;
-            generateHistoryValues("", true);
-            clearAllSwitcher.currentState?.setState(() {});
-            nohist.currentState?.setState(() {});
-            appBarKey.currentState?.setState(() {});
-          } else {
-            appBarKey.currentState?.setState(() {
-              showSearchField = false;
-            });
-            generateHistoryValues("", true);
-            txtc.clear();
-            clearAllSwitcher.currentState?.setState(() {});
-          }
+  Widget buildHistory() {
+    return Theme(
+      data: (SchedulerBinding.instance!.window.platformBrightness ==
+                  Brightness.dark ||
+              browserModel.isIncognito)
+          ? AppTheme.darkTheme
+          : AppTheme.lightTheme,
+      child: SafeArea(
+        child: WillPopScope(
+          onWillPop: () async {
+            if (!showSearchField && !longPressed)
+              Navigator.pop(context);
+            else if (longPressed) {
+              _selectedList.clear();
+              longPressed = false;
+              generateHistoryValues("", true);
+              clearAllSwitcher.currentState?.setState(() {});
+              nohist.currentState?.setState(() {});
+              appBarKey.currentState?.setState(() {});
+            } else {
+              appBarKey.currentState?.setState(() {
+                showSearchField = false;
+              });
+              generateHistoryValues("", true);
+              txtc.clear();
+              clearAllSwitcher.currentState?.setState(() {});
+            }
 
-          return false;
-        },
-        child: Scaffold(
-          resizeToAvoidBottomInset: true,
-          appBar: HistoryAppBar(
-            generateHistoryValues: generateHistoryValues,
-            key: appBarKey,
-          ),
-          body: FutureBuilder(
-            future: initialize(context),
-            builder: (context, AsyncSnapshot snapshot) {
-              // Show splash screen while waiting for app resources to load:
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.blue,
-                  ),
-                );
-              } else {
-                // Loading is done, return the app:
-
-                return Column(
-                  children: [
-                    ClearAllH(
-                      dataLen: _data.length,
-                      hbrowserModel: browserModel,
-                      key: clearAllSwitcher,
+            return false;
+          },
+          child: Scaffold(
+            resizeToAvoidBottomInset: true,
+            appBar: HistoryAppBar(
+              generateHistoryValues: generateHistoryValues,
+              key: appBarKey,
+            ),
+            body: FutureBuilder(
+              future: initialize(context),
+              builder: (context, AsyncSnapshot snapshot) {
+                // Show splash screen while waiting for app resources to load:
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blue,
                     ),
-                    Expanded(
-                      child: CAS(
-                        buildNoHistory: _buildNoHistory,
-                        buildhistoryList: _buildhistoryList,
-                        key: nohist,
+                  );
+                } else {
+                  // Loading is done, return the app:
+
+                  return Column(
+                    children: [
+                      ClearAllH(
+                        dataLen: _data.length,
+                        hbrowserModel: browserModel,
+                        key: clearAllSwitcher,
                       ),
-                    ),
-                  ],
-                );
-              }
-            },
+                      Expanded(
+                        child: CAS(
+                          buildNoHistory: _buildNoHistory,
+                          buildhistoryList: _buildhistoryList,
+                          key: nohist,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
           ),
         ),
       ),

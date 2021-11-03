@@ -9,8 +9,10 @@ class AppTheme {
       primaryColor: Colors.white,
       scaffoldBackgroundColor: Colors.white,
       dialogTheme: DialogTheme(
-          contentTextStyle: TextStyle(color: Colors.blueGrey, fontSize: 18.0),
-          titleTextStyle: TextStyle(color: Colors.black)),
+          contentTextStyle:
+              GoogleFonts.poppins(color: Colors.blueGrey, fontSize: 18.0),
+          titleTextStyle: GoogleFonts.poppins(
+              color: Colors.black, fontSize: 20, fontWeight: FontWeight.w600)),
       visualDensity: VisualDensity.adaptivePlatformDensity,
       progressIndicatorTheme: ProgressIndicatorThemeData(
           color: Colors.blue,
@@ -55,8 +57,10 @@ class AppTheme {
       popupMenuTheme: PopupMenuThemeData(color: Colors.grey[800]),
       dialogTheme: DialogTheme(
           backgroundColor: Colors.grey[700],
-          contentTextStyle: TextStyle(color: Colors.white, fontSize: 18.0),
-          titleTextStyle: TextStyle(color: Colors.white)),
+          contentTextStyle:
+              GoogleFonts.poppins(color: Colors.white, fontSize: 18.0),
+          titleTextStyle: GoogleFonts.poppins(
+              color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.grey[900],
         actionsIconTheme: IconThemeData(
