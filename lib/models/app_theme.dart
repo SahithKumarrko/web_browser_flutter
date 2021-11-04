@@ -65,7 +65,10 @@ class AppTheme {
         ),
         titleTextStyle: GoogleFonts.poppins(color: Colors.black),
       ),
-      textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.black),
+      textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Colors.blue,
+          selectionHandleColor: Colors.blue,
+          selectionColor: Colors.blue.withOpacity(0.4)),
       disabledColor: Colors.grey,
       textTheme: TextTheme(
         bodyText2: GoogleFonts.poppins(color: Colors.black, fontSize: 14),
@@ -82,8 +85,11 @@ class AppTheme {
       backgroundColor: Colors.grey[900],
       primaryColor: Colors.black,
       scaffoldBackgroundColor: Colors.grey[900],
+      textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Colors.blue,
+          selectionHandleColor: Colors.blue,
+          selectionColor: Colors.blue.withOpacity(0.7)),
       colorScheme: ColorScheme.dark(),
-      textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.white),
       disabledColor: Colors.white54,
       progressIndicatorTheme: ProgressIndicatorThemeData(
           color: Colors.blue,

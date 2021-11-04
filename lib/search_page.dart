@@ -110,6 +110,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void getCopiedContents() async {
     ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+    print("CD :: $data");
     _validURL = false;
 
     // try {
@@ -117,16 +118,20 @@ class _SearchPageState extends State<SearchPage> {
     // } catch (e) {}
     String cpdata = data?.text.toString() ?? "";
     cpdata = cpdata.trim();
-    if (cpdata.toLowerCase().startsWith(RegExp("http[s]{0,1}:[/]{2}")) ||
-        cpdata.toLowerCase().startsWith(RegExp("ws:[/]{2}"))) {
+    if (cpdata.toLowerCase().startsWith(RegExp("http[s]{0,1}:[/]{2}"))) {
       _validURL = true;
     }
+    print("VURL :: $_validURL");
     if (_validURL)
       setState(() {
         copiedContents = data?.text.toString() ?? "";
+
+        print("copied");
       });
     else
       copiedContents = "";
+
+    print("copied contents :: $copiedContents");
   }
 
   void handleSearch(String q) {
@@ -167,7 +172,7 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                             Text(
                               "Go to the link that you copied",
-                              style: Theme.of(context).textTheme.bodyText1,
+                              style: Theme.of(this.context).textTheme.bodyText1,
                             ),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
