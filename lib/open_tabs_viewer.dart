@@ -211,7 +211,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                       }).toList(),
                 onTap: (index) async {
                   browserModel.showTabScroller = false;
-                  browserModel.isIncognito = false;
+                  browserModel.setIsIncognito(false, context);
 
                   browserModel.showTab(index);
                 },
@@ -319,7 +319,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                 }).toList(),
                 onTap: (index) async {
                   browserModel.showTabScroller = false;
-                  browserModel.isIncognito = true;
+                  browserModel.setIsIncognito(true, context);
                   browserModel.showIncognitoTab(index);
                 },
               );

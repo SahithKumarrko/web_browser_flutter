@@ -11,9 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
 import 'package:webpage_dev_console/models/web_archive_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
@@ -88,7 +90,7 @@ class BrowserModel extends ChangeNotifier {
   bool loadingVisible = false;
   late BuildContext loadctx;
 
-  bool isIncognito = false;
+  bool _isIncognito = false;
 
   bool get showTabScroller => _showTabScroller;
 
@@ -98,6 +100,14 @@ class BrowserModel extends ChangeNotifier {
 
       notifyListeners();
     }
+  }
+
+  bool get isIncognito => _isIncognito;
+
+  setIsIncognito(bool v, BuildContext context) {
+    var ct = Provider.of<ChangeTheme>(context, listen: false);
+    _isIncognito = v;
+    ct.change(_isIncognito ? Brightness.dark : Brightness.light, context);
   }
 
   set loadingVis(bool v) {
@@ -183,7 +193,7 @@ class BrowserModel extends ChangeNotifier {
       webViewTab.webViewModel.setHistory = WebHistory(list: []);
       webViewTab.webViewModel.history?.list?.add(WebHistoryItem());
       webViewTab.webViewModel.curIndex = 0;
-      isIncognito = true;
+      _isIncognito = true;
     } else {
       _webViewTabs.add(webViewTab);
       _currentTabIndex = _webViewTabs.length - 1;
@@ -194,7 +204,7 @@ class BrowserModel extends ChangeNotifier {
       webViewTab.webViewModel.setHistory = WebHistory(list: []);
       webViewTab.webViewModel.history?.list?.add(WebHistoryItem());
       webViewTab.webViewModel.curIndex = 0;
-      isIncognito = false;
+      _isIncognito = false;
     }
 
     if (notify) notifyListeners();
@@ -285,7 +295,7 @@ class BrowserModel extends ChangeNotifier {
       _currentWebViewModel.updateWithValue(
           _incognitowebViewTabs[_incogcurrentTabIndex].webViewModel);
     } else {
-      isIncognito = false;
+      _isIncognito = false;
       _currentWebViewModel.updateWithValue(_webViewTabs.length > 0
           ? _webViewTabs[_currentTabIndex].webViewModel
           : WebViewModel());

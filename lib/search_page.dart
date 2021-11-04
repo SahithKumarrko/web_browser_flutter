@@ -1,16 +1,19 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/search_model.dart';
@@ -24,18 +27,17 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  bool isFocused = false;
-  FloatingSearchBarController searchController = FloatingSearchBarController();
-  int _index = 0;
-  bool loaded = false;
+  bool changed = true;
   String copiedContents = "";
-  int get index => _index;
-  set index(int value) {
-    _index = min(value, 2);
-    _index == 2 ? searchController.hide() : searchController.show();
+  String curTitle = "";
+  bool isFocused = false;
+  bool loaded = false;
+  String query = "";
+  String sTitle = "";
+  FloatingSearchBarController searchController = FloatingSearchBarController();
 
-    setState(() {});
-  }
+  int _index = 0;
+  bool _validURL = false;
 
   @override
   void initState() {
@@ -50,10 +52,15 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
-  bool changed = true;
-  String curTitle = "";
-  String query = "";
-  String sTitle = "";
+  int get index => _index;
+
+  set index(int value) {
+    _index = min(value, 2);
+    _index == 2 ? searchController.hide() : searchController.show();
+
+    setState(() {});
+  }
+
   void focusChanged() async {
     if (!isFocused) {
       var browserModel = Provider.of<BrowserModel>(context, listen: false);
@@ -64,6 +71,9 @@ class _SearchPageState extends State<SearchPage> {
           (await _webViewController?.getUrl())?.toString() ?? "";
     }
   }
+
+  Color cs = Colors.black87;
+  Color cb = Colors.black87;
 
   void searchQuery(String qurl) {
     // searchController.close();
@@ -98,7 +108,6 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  bool _validURL = false;
   void getCopiedContents() async {
     ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
     _validURL = false;
@@ -127,9 +136,11 @@ class _SearchPageState extends State<SearchPage> {
     Navigator.pop(context);
   }
 
+  var scaffoldColor;
   Widget buildInitialSearchPage(BrowserSettings settings) {
     getCopiedContents();
     var _webViewModel = Provider.of<WebViewModel>(context, listen: true);
+
     return (_webViewModel.url == null ||
             _webViewModel.title.toString().isEmpty ||
             _webViewModel.title == null)
@@ -156,8 +167,7 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                             Text(
                               "Go to the link that you copied",
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 16),
+                              style: Theme.of(context).textTheme.bodyText1,
                             ),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -166,10 +176,11 @@ class _SearchPageState extends State<SearchPage> {
                                 Expanded(
                                   child: Text(
                                     copiedContents,
-                                    style: TextStyle(
-                                        color: Colors.blue,
-                                        overflow: TextOverflow.fade,
-                                        fontSize: 14),
+                                    overflow: TextOverflow.fade,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyText2
+                                        ?.copyWith(color: Colors.blue),
                                   ),
                                 ),
                               ],
@@ -178,7 +189,10 @@ class _SearchPageState extends State<SearchPage> {
                               height: 8,
                             ),
                             Divider(
-                              color: Colors.black54,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.6),
                             ),
                           ],
                         ),
@@ -220,8 +234,13 @@ class _SearchPageState extends State<SearchPage> {
                                     handleSearch(_webViewModel.url.toString()),
                                 child: SizedBox(
                                     width: 24,
-                                    child: Icon(Icons.search,
-                                        key: Key('lsearch'))),
+                                    child: Icon(
+                                      Icons.search,
+                                      key: Key('lsearch'),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onBackground,
+                                    )),
                               ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -242,6 +261,11 @@ class _SearchPageState extends State<SearchPage> {
                                         fontWeight: _webViewModel.url != null
                                             ? FontWeight.bold
                                             : FontWeight.normal,
+                                        fontFamily: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2
+                                            ?.fontFamily,
+                                        color: cs.withOpacity(0.8),
                                         textOverflow: TextOverflow.ellipsis),
                                   },
                                 ),
@@ -250,11 +274,12 @@ class _SearchPageState extends State<SearchPage> {
                                         padding:
                                             const EdgeInsets.only(left: 8.0),
                                         child: Text(
-                                          _webViewModel.url.toString(),
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                              fontSize: 14, color: Colors.blue),
-                                        ),
+                                            _webViewModel.url.toString(),
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyText2
+                                                ?.copyWith(color: Colors.blue)),
                                       )
                                     : SizedBox.shrink(),
                               ],
@@ -274,7 +299,7 @@ class _SearchPageState extends State<SearchPage> {
                               },
                               icon: FaIcon(
                                 FontAwesomeIcons.shareAlt,
-                                color: Colors.black.withOpacity(0.7),
+                                color: cb.withOpacity(0.7),
                               ),
                             ),
                             IconButton(
@@ -292,7 +317,7 @@ class _SearchPageState extends State<SearchPage> {
                               },
                               icon: FaIcon(
                                 FontAwesomeIcons.copy,
-                                color: Colors.black.withOpacity(0.7),
+                                color: cb.withOpacity(0.7),
                               ),
                             ),
                             IconButton(
@@ -307,7 +332,7 @@ class _SearchPageState extends State<SearchPage> {
                               },
                               icon: FaIcon(
                                 FontAwesomeIcons.pencilAlt,
-                                color: Colors.black.withOpacity(0.7),
+                                color: cb.withOpacity(0.7),
                               ),
                             ),
                           ],
@@ -315,7 +340,7 @@ class _SearchPageState extends State<SearchPage> {
                       ],
                     ),
                     Divider(
-                      color: Colors.black54,
+                      color: cb.withOpacity(0.6),
                     ),
                   ],
                 ),
@@ -337,17 +362,24 @@ class _SearchPageState extends State<SearchPage> {
         controller: searchController,
         clearQueryOnClose: false,
         hint: "Search for or type a web address",
-        iconColor: Colors.black54,
-        backdropColor: Colors.grey,
+        iconColor: Theme.of(context).colorScheme.onBackground.withOpacity(0.54),
+        backdropColor: Theme.of(context).scaffoldBackgroundColor,
         textInputType: TextInputType.url,
-        queryStyle: TextStyle(fontSize: 18),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        queryStyle: Theme.of(context).textTheme.headline2?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8)),
+        autocorrect: false,
         padding: EdgeInsets.only(left: 0, right: 0),
         leadingActions: <Widget>[
           IconButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              icon: FaIcon(FontAwesomeIcons.arrowLeft))
+              icon: FaIcon(
+                FontAwesomeIcons.arrowLeft,
+                color:
+                    Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
+              ))
         ],
         transitionDuration: const Duration(milliseconds: 200),
         transitionCurve: Curves.easeInOutCubic,
@@ -357,9 +389,12 @@ class _SearchPageState extends State<SearchPage> {
         actions: [
           FloatingSearchBarAction.searchToClear(
             showIfClosed: false,
+            color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
           ),
         ],
         progress: model.isLoading,
+        hintStyle: Theme.of(context).textTheme.headline2?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
         debounceDelay: const Duration(milliseconds: 300),
         onQueryChanged: (q) {
           if (isFocused) {
@@ -419,7 +454,7 @@ class _SearchPageState extends State<SearchPage> {
             : Padding(
                 padding: const EdgeInsets.only(top: 16.0),
                 child: Material(
-                  color: Colors.white,
+                  color: scaffoldColor,
                   elevation: 4.0,
                   borderRadius: BorderRadius.circular(8),
                   child: ImplicitlyAnimatedList<Search>(
@@ -490,10 +525,18 @@ class _SearchPageState extends State<SearchPage> {
                     : search.isHistory
                         ? SizedBox(
                             width: 24,
-                            child: Icon(Icons.history, key: Key('history')))
+                            child: Icon(
+                              Icons.history,
+                              key: Key('history'),
+                              color: cb,
+                            ))
                         : SizedBox(
                             width: 24,
-                            child: Icon(Icons.search, key: Key('search'))),
+                            child: Icon(
+                              Icons.search,
+                              key: Key('search'),
+                              color: cb,
+                            )),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
@@ -510,18 +553,23 @@ class _SearchPageState extends State<SearchPage> {
                               fontWeight: search.url != null
                                   ? FontWeight.bold
                                   : FontWeight.normal,
+                              fontFamily: Theme.of(context)
+                                  .textTheme
+                                  .bodyText2
+                                  ?.fontFamily,
+                              color: cs,
                               textOverflow: TextOverflow.ellipsis),
                         },
                       ),
                       search.url != null
                           ? Padding(
                               padding: const EdgeInsets.only(left: 8.0),
-                              child: Text(
-                                search.url.toString(),
-                                overflow: TextOverflow.ellipsis,
-                                style:
-                                    TextStyle(fontSize: 14, color: Colors.blue),
-                              ),
+                              child: Text(search.url.toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyText2
+                                      ?.copyWith(color: Colors.blue)),
                             )
                           : SizedBox(),
                     ],
@@ -539,7 +587,7 @@ class _SearchPageState extends State<SearchPage> {
                     },
                     icon: Icon(
                       Icons.north_west_rounded,
-                      color: Colors.black.withOpacity(0.7),
+                      color: cb.withOpacity(0.7),
                     ),
                   ),
                 ),
@@ -561,7 +609,7 @@ class _SearchPageState extends State<SearchPage> {
             index: min(index, 2),
             children: [
               FloatingSearchAppBar(
-                color: Colors.white,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 transitionDuration: const Duration(milliseconds: 600),
                 body: Container(),
               ),
@@ -574,18 +622,35 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    var ct = Provider.of<ChangeTheme>(context, listen: true);
+    var theme = (SchedulerBinding.instance!.window.platformBrightness ==
+                Brightness.dark ||
+            ct.cv == Brightness.dark)
+        ? AppTheme.darkTheme
+        : AppTheme.lightTheme;
+
+    cb = theme.colorScheme.onBackground;
+    cs = theme.colorScheme.onSurface;
+    scaffoldColor = theme.scaffoldBackgroundColor;
     return ChangeNotifierProvider(
       create: (_) => SearchModel(),
-      child: SafeArea(
-        child: WillPopScope(
-          onWillPop: () async {
-            Navigator.pop(context);
-            return false;
-          },
-          child: Scaffold(
-            backgroundColor: Colors.white,
-            resizeToAvoidBottomInset: false,
-            body: _buildSearchTextField(),
+      child: Theme(
+        data: (SchedulerBinding.instance!.window.platformBrightness ==
+                    Brightness.dark ||
+                ct.cv == Brightness.dark)
+            ? AppTheme.darkTheme
+            : AppTheme.lightTheme,
+        child: SafeArea(
+          child: WillPopScope(
+            onWillPop: () async {
+              Navigator.pop(context);
+              return false;
+            },
+            child: Scaffold(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              resizeToAvoidBottomInset: false,
+              body: _buildSearchTextField(),
+            ),
           ),
         ),
       ),

@@ -110,7 +110,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                       child: Text(
                           browserModel.incognitowebViewTabs.length.toString(),
                           style: TextStyle(
-                            // color: Colors.white,
+                            color: Colors.white,
                             fontSize: 12,
                           )),
                     ),
@@ -302,7 +302,7 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
         Future.delayed(const Duration(milliseconds: 300), () {
           if (browserModel.isIncognito) {
             browserModel.showTabScroller = false;
-            browserModel.isIncognito = false;
+            browserModel.setIsIncognito(false, context);
             browserModel.closeAllIncognitoTabs();
           } else {
             closeAllTabs();

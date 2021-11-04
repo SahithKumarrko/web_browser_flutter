@@ -65,6 +65,7 @@ class AppTheme {
         ),
         titleTextStyle: GoogleFonts.poppins(color: Colors.black),
       ),
+      textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.black),
       disabledColor: Colors.grey,
       textTheme: TextTheme(
         bodyText2: GoogleFonts.poppins(color: Colors.black, fontSize: 14),
@@ -82,6 +83,7 @@ class AppTheme {
       primaryColor: Colors.black,
       scaffoldBackgroundColor: Colors.grey[900],
       colorScheme: ColorScheme.dark(),
+      textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.white),
       disabledColor: Colors.white54,
       progressIndicatorTheme: ProgressIndicatorThemeData(
           color: Colors.blue,
