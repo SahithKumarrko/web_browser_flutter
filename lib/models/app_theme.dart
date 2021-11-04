@@ -36,10 +36,13 @@ class AppTheme {
       ),
       disabledColor: Colors.grey,
       textTheme: TextTheme(
+        bodyText2: GoogleFonts.poppins(color: Colors.black, fontSize: 14),
         headline1: GoogleFonts.poppins(
             color: Colors.black, fontSize: 24, fontWeight: FontWeight.w600),
         headline2: GoogleFonts.poppins(
             color: Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
+        headline3: GoogleFonts.poppins(
+            color: Colors.black, fontSize: 16, fontWeight: FontWeight.w500),
         bodyText1: GoogleFonts.poppins(color: Colors.black, fontSize: 16),
       ));
 
@@ -79,10 +82,13 @@ class AppTheme {
       ),
       textTheme: TextTheme(
         bodyText1: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+        bodyText2: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
         headline1: GoogleFonts.poppins(
             color: Colors.white, fontSize: 24, fontWeight: FontWeight.w600),
         headline2: GoogleFonts.poppins(
             color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+        headline3: GoogleFonts.poppins(
+            color: Colors.white, fontSize: 16, fontWeight: FontWeight.w400),
       ),
       visualDensity: VisualDensity.adaptivePlatformDensity,
       primaryTextTheme: TextTheme(

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:extended_image/extended_image.dart';
 import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html/shims/dart_ui_real.dart';
@@ -20,6 +21,7 @@ import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/item_selector.dart';
+import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
@@ -148,18 +150,23 @@ class _ISelectorState extends State<ISelector> {
       padding: EdgeInsets.symmetric(horizontal: 8),
       child: MultiSelectChipField<String?>(
         showHeader: false,
+        chipColor: Theme.of(context).scaffoldBackgroundColor,
+        selectedChipColor: Colors.blue,
         items: data.keys
             .toList()
             .map((v) => MultiSelectItem<String?>(v, v))
             .toList(),
         initialValue: ["All"],
-        selectedChipColor: Colors.blue[200],
-        selectedTextStyle: TextStyle(color: Colors.black),
+        selectedTextStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black
+                : Colors.white),
         icon: Icon(
           Icons.check,
-          color: Colors.black,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
         defaultIcon: data,
+        textStyle: Theme.of(context).textTheme.bodyText2,
         onTap: (values) {
           _filter = values;
           print("Calling");
@@ -596,64 +603,71 @@ class _PageDownloadState extends State<PageDownload> {
     }
   }
 
-  SafeArea buildDownload() {
-    return SafeArea(
-      child: WillPopScope(
-        onWillPop: () async {
-          if (!showSearchField && !longPressed)
-            Navigator.pop(context);
-          else if (longPressed) {
-            _selectedList.clear();
-            longPressed = false;
-            generateHistoryValues("", true);
-            clearAllSwitcher.currentState?.setState(() {});
-            nohist.currentState?.setState(() {});
-            appBarKey.currentState?.setState(() {});
-          } else {
-            appBarKey.currentState?.setState(() {
-              showSearchField = false;
-            });
-            generateHistoryValues("", true);
-            txtc.clear();
-            clearAllSwitcher.currentState?.setState(() {});
-          }
-          return false;
-        },
-        child: Scaffold(
-          resizeToAvoidBottomInset: true,
-          appBar: HistoryAppBar(
-            generateHistoryValues: generateHistoryValues,
-            key: appBarKey,
-          ),
-          body: FutureBuilder(
-            future: initialize(context),
-            builder: (context, AsyncSnapshot snapshot) {
-              // Show splash screen while waiting for app resources to load:
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.blue,
-                  ),
-                );
-              } else {
-                // Loading is done, return the app:
-                return Column(
-                  children: [
-                    ClearAllH(
-                        dataLen: _data.length,
-                        key: clearAllSwitcher,
-                        generateHistoryValues: generateHistoryValues),
-                    Expanded(
-                      child: CAS(
-                        buildNoHistory: _buildNoHistory,
-                        buildDownloadList: _buildDownloadList,
-                        key: nohist,
-                      ),
+  Widget buildDownload() {
+    return Theme(
+      data: (SchedulerBinding.instance!.window.platformBrightness ==
+                  Brightness.dark ||
+              browserModel.isIncognito)
+          ? AppTheme.darkTheme
+          : AppTheme.lightTheme,
+      child: SafeArea(
+        child: WillPopScope(
+          onWillPop: () async {
+            if (!showSearchField && !longPressed)
+              Navigator.pop(context);
+            else if (longPressed) {
+              _selectedList.clear();
+              longPressed = false;
+              generateHistoryValues("", true);
+              clearAllSwitcher.currentState?.setState(() {});
+              nohist.currentState?.setState(() {});
+              appBarKey.currentState?.setState(() {});
+            } else {
+              appBarKey.currentState?.setState(() {
+                showSearchField = false;
+              });
+              generateHistoryValues("", true);
+              txtc.clear();
+              clearAllSwitcher.currentState?.setState(() {});
+            }
+            return false;
+          },
+          child: Scaffold(
+            resizeToAvoidBottomInset: true,
+            appBar: HistoryAppBar(
+              generateHistoryValues: generateHistoryValues,
+              key: appBarKey,
+            ),
+            body: FutureBuilder(
+              future: initialize(context),
+              builder: (context, AsyncSnapshot snapshot) {
+                // Show splash screen while waiting for app resources to load:
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blue,
                     ),
-                  ],
-                );
-              }
-            },
+                  );
+                } else {
+                  // Loading is done, return the app:
+                  return Column(
+                    children: [
+                      ClearAllH(
+                          dataLen: _data.length,
+                          key: clearAllSwitcher,
+                          generateHistoryValues: generateHistoryValues),
+                      Expanded(
+                        child: CAS(
+                          buildNoHistory: _buildNoHistory,
+                          buildDownloadList: _buildDownloadList,
+                          key: nohist,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
           ),
         ),
       ),
@@ -665,14 +679,18 @@ class _PageDownloadState extends State<PageDownload> {
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-            color: Colors.blueGrey[50],
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[800]
+                : Colors.blueGrey[100],
             border: Border.all(
-              color: const Color(0xFF575859),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
             ),
             borderRadius: BorderRadius.all(Radius.circular(10))),
         child: Text(
           "No downloads found",
-          style: TextStyle(color: Colors.black87, fontSize: 24),
+          style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                fontSize: 24.0,
+              ),
         ),
       ),
     );
@@ -775,9 +793,7 @@ class _DownloadItemState extends State<DownloadItem> {
                       ),
                       Text(
                         item.date,
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
+                        style: Theme.of(context).textTheme.bodyText1,
                       ),
                       SizedBox(
                         height: 6,
@@ -966,10 +982,8 @@ class _DownloadItemState extends State<DownloadItem> {
                                   Expanded(
                                     child: Text(
                                       (widget.item.task?.name ?? "NA"),
-                                      style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500),
+                                      style:
+                                          Theme.of(context).textTheme.headline3,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -1022,7 +1036,9 @@ class _DownloadItemState extends State<DownloadItem> {
                                                                   DownloadTaskStatus
                                                                       .canceled)
                                                           ? Color(0xffcc3e44)
-                                                          : Colors.black,
+                                                          : Theme.of(context)
+                                                              .colorScheme
+                                                              .onSurface,
                                               fontSize: 14,
                                               fontWeight: FontWeight.w400),
                                         ),
@@ -1037,7 +1053,9 @@ class _DownloadItemState extends State<DownloadItem> {
                                       : Text(
                                           "/",
                                           style: TextStyle(
-                                            color: Colors.black,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                             fontSize: 14,
                                           ),
                                         ),
@@ -1054,7 +1072,9 @@ class _DownloadItemState extends State<DownloadItem> {
                                                       DownloadTaskStatus
                                                           .canceled)
                                               ? Color(0xffcc3e44)
-                                              : Colors.black,
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
                                       fontSize: 14,
                                     ),
                                   ),
@@ -1066,9 +1086,9 @@ class _DownloadItemState extends State<DownloadItem> {
                                           child: Text(
                                             item.task!.link.toString(),
                                             overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black54),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyText2,
                                           ),
                                         )
                                       : SizedBox.shrink(),
@@ -1227,7 +1247,8 @@ class _DownloadItemState extends State<DownloadItem> {
             padding: EdgeInsets.symmetric(horizontal: 4),
             child: Icon(
               Icons.more_vert_rounded,
-              color: Colors.black,
+              color:
+                  Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
               size: 20,
             )),
         itemBuilder: (popupMenuContext) {
@@ -1236,29 +1257,44 @@ class _DownloadItemState extends State<DownloadItem> {
             popupitems.add(CustomPopupMenuItem<String>(
               enabled: true,
               value: "Copy Download Url",
-              child: Text("Copy Download Url"),
+              child: Text(
+                "Copy Download Url",
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
             ));
           popupitems.add(CustomPopupMenuItem<String>(
             enabled: true,
             value: "Rename",
-            child: Text("Rename"),
+            child: Text(
+              "Rename",
+              style: Theme.of(context).textTheme.bodyText1,
+            ),
           ));
 
           popupitems.add(CustomPopupMenuItem<String>(
             enabled: true,
             value: "Share",
-            child: Text("Share"),
+            child: Text(
+              "Share",
+              style: Theme.of(context).textTheme.bodyText1,
+            ),
           ));
 
           popupitems.add(CustomPopupMenuItem<String>(
             enabled: true,
             value: "Delete From History",
-            child: Text("Delete From History"),
+            child: Text(
+              "Delete From History",
+              style: Theme.of(context).textTheme.bodyText1,
+            ),
           ));
           popupitems.add(CustomPopupMenuItem<String>(
             enabled: true,
             value: "Delete From Storage and History",
-            child: Text("Delete From Storage and History"),
+            child: Text(
+              "Delete From Storage",
+              style: Theme.of(context).textTheme.bodyText1,
+            ),
           ));
           return popupitems;
         });
@@ -1501,7 +1537,13 @@ class _CustomDeleteDownloadsAlertdialogState
           SizedBox(
             width: 8,
           ),
-          Text('Warning!'),
+          Text(
+            'Warning!',
+            style: Theme.of(context)
+                .textTheme
+                .headline2
+                ?.copyWith(color: Colors.red),
+          ),
         ],
       ),
       contentPadding: EdgeInsets.fromLTRB(24, 24, 0, 0),
@@ -1575,14 +1617,20 @@ class _CustomDeleteDownloadsAlertdialogState
           },
           child: Text(
             'YES',
-            style: TextStyle(color: Colors.red),
+            style: Theme.of(context)
+                .textTheme
+                .headline3
+                ?.copyWith(color: Theme.of(context).disabledColor),
           ),
         ),
         TextButton(
           onPressed: () {
             Navigator.pop(context);
           },
-          child: Text('NO'),
+          child: Text(
+            'NO',
+            style: Theme.of(context).textTheme.headline3,
+          ),
         ),
       ],
     );
@@ -1624,7 +1672,9 @@ class _ClearAllHState extends State<ClearAllH> {
                       : "Clear All Searched Downloads",
                   key: vk,
                   style: TextStyle(
-                    color: (!longPressed) ? Colors.blue : Colors.grey,
+                    color: (!longPressed)
+                        ? Colors.blue
+                        : Theme.of(context).disabledColor,
                     decoration: TextDecoration.underline,
                     fontSize: 16,
                   ),
@@ -1701,9 +1751,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           InkWell(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.arrow_back),
+            child: Icon(
+              Icons.arrow_back,
+              color: Theme.of(context).colorScheme.onBackground,
             ),
             onTap: () {
               setState(() {
@@ -1718,19 +1768,20 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             child: TextFormField(
               autofocus: true,
               keyboardType: TextInputType.url,
-              style: TextStyle(fontSize: 16),
+              style: Theme.of(context).textTheme.bodyText1,
               textInputAction: TextInputAction.go,
               textAlignVertical: TextAlignVertical.center,
               textAlign: TextAlign.left,
               maxLines: 1,
               decoration: InputDecoration(
-                contentPadding: EdgeInsets.fromLTRB(0, 12, 12, 12),
+                contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 12),
                 hintText: "Search or type address",
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 disabledBorder: InputBorder.none,
                 fillColor: Colors.black54,
               ),
+              cursorColor: Theme.of(context).colorScheme.onBackground,
               controller: txtc,
               onChanged: (value) {
                 widget.generateHistoryValues(value.toString(), true);
@@ -1739,9 +1790,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             ),
           ),
           InkWell(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-              child: Icon(Icons.clear),
+            child: Icon(
+              Icons.clear,
+              color: Theme.of(context).colorScheme.onBackground,
             ),
             onTap: () {
               txtc.clear();
@@ -1756,17 +1807,18 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
   Widget _buildHTab({required Key key}) {
     return Container(
       key: key,
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             "Downloads",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.headline1,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               InkWell(
                 onTap: () {
@@ -1777,6 +1829,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 },
                 child: Icon(
                   Icons.search,
+                  color: Theme.of(context).colorScheme.onBackground,
                   size: 26,
                 ),
               ),
@@ -1789,6 +1842,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 },
                 child: Icon(
                   Icons.close,
+                  color: Theme.of(context).colorScheme.onBackground,
                   size: 26,
                 ),
               ),
@@ -1902,7 +1956,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 200),
         child: (showSearchField && !longPressed)

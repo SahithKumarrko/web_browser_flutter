@@ -430,7 +430,7 @@ class _HisItemState extends State<HisItem> {
                             children: [
                               Text(
                                 item.search!.title,
-                                style: Theme.of(context).textTheme.headline2,
+                                style: Theme.of(context).textTheme.headline3,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               item.search!.url != null
@@ -444,7 +444,7 @@ class _HisItemState extends State<HisItem> {
                                           : "",
                                       overflow: TextOverflow.ellipsis,
                                       style:
-                                          Theme.of(context).textTheme.bodyText1,
+                                          Theme.of(context).textTheme.bodyText2,
                                     )
                                   : SizedBox.shrink(),
                             ],
@@ -591,7 +591,7 @@ class _ClearAllHState extends State<ClearAllH> {
                               'YES',
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyText1
+                                  .headline3
                                   ?.copyWith(
                                       color: Theme.of(context).disabledColor),
                             ),
@@ -602,7 +602,7 @@ class _ClearAllHState extends State<ClearAllH> {
                             },
                             child: Text(
                               'NO',
-                              style: Theme.of(context).textTheme.bodyText1,
+                              style: Theme.of(context).textTheme.headline3,
                             ),
                           ),
                         ],
@@ -690,6 +690,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               textAlignVertical: TextAlignVertical.center,
               textAlign: TextAlign.left,
               maxLines: 1,
+              cursorColor: Theme.of(context).colorScheme.onBackground,
               decoration: InputDecoration(
                 contentPadding: EdgeInsets.fromLTRB(12, 0, 12, 12),
                 hintText: "Search or type address",
@@ -852,7 +853,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                                 'YES',
                                 style: Theme.of(context)
                                     .textTheme
-                                    .bodyText1
+                                    .headline3
                                     ?.copyWith(
                                         color: Theme.of(context).disabledColor),
                               ),
@@ -863,7 +864,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                               },
                               child: Text(
                                 'NO',
-                                style: Theme.of(context).textTheme.bodyText1,
+                                style: Theme.of(context).textTheme.headline3,
                               ),
                             ),
                           ],

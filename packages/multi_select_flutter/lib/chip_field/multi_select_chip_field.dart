@@ -490,9 +490,7 @@ class __MultiSelectChipFieldViewState<V>
                     color: widget.colorator != null &&
                             widget.colorator!(item.value) != null
                         ? widget.colorator!(item.value)!.withOpacity(1)
-                        : widget.icon!.color ??
-                            widget.selectedChipColor ??
-                            Theme.of(context).primaryColor,
+                        : Theme.of(context).primaryColor,
                   )
                 : null
             : widget.defaultIcon!.containsKey(item.value)
