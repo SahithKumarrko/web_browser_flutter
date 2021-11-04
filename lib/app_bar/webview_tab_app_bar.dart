@@ -638,7 +638,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                   browserModel.addDownloadTask = task;
                                   Helper.showBasicFlash(
                                       msg: "Saved Successfully.",
-                                      context: context,
+                                      context: this.context,
                                       backgroundColor: Colors.green,
                                       textColor: Colors.white,
                                       position: FlashPosition.top,
@@ -647,7 +647,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                                 } else {
                                   Helper.showBasicFlash(
                                       msg: "Not able to save webpage offline.",
-                                      context: context,
+                                      context: this.context,
                                       backgroundColor: Colors.red,
                                       textColor: Colors.white,
                                       position: FlashPosition.top,

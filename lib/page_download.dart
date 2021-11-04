@@ -876,7 +876,7 @@ class _DownloadItemState extends State<DownloadItem> {
                         }
                         Helper.showBasicFlash(
                             msg: msg,
-                            context: context,
+                            context: this.context,
                             backgroundColor: msgColor,
                             textColor: Colors.white,
                             duration: Duration(seconds: 3),
@@ -1157,7 +1157,7 @@ class _DownloadItemState extends State<DownloadItem> {
     await browserModel.save();
     Helper.showBasicFlash(
         msg: "Renamed Successfully.",
-        context: context,
+        context: this.context,
         backgroundColor: Colors.green,
         textColor: Colors.white,
         duration: Duration(seconds: 3),
@@ -1173,7 +1173,7 @@ class _DownloadItemState extends State<DownloadItem> {
           Helper.showBasicFlash(
               msg:
                   "Not able to perform file rename action.\nReason: File is not present.",
-              context: context,
+              context: this.context,
               duration: Duration(seconds: 5),
               backgroundColor: Colors.redAccent,
               textColor: Colors.white,
@@ -1236,7 +1236,7 @@ class _DownloadItemState extends State<DownloadItem> {
             backgroundColor: Colors.green,
             textColor: Colors.white,
             position: FlashPosition.top,
-            context: context);
+            context: this.context);
         break;
     }
   }
@@ -1913,7 +1913,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   if (c != _selectedList.length) {
                     Helper.showBasicFlash(
                         msg: "Not able to share few files.",
-                        context: context,
+                        context: this.context,
                         duration: Duration(seconds: 5),
                         backgroundColor: Colors.redAccent,
                         textColor: Colors.white,

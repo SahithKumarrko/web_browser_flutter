@@ -356,7 +356,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
                     Helper.showBasicFlash(
                         msg:
                             "File already exists. Try giving a different name.",
-                        context: context,
+                        context: this.context,
                         backgroundColor: Colors.red,
                         textColor: Colors.white,
                         position: FlashPosition.top,
@@ -382,7 +382,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
                             Helper.showBasicFlash(
                                 msg:
                                     "File already exists. Try giving a different name.",
-                                context: context,
+                                context: this.context,
                                 backgroundColor: Colors.red,
                                 textColor: Colors.white,
                                 position: FlashPosition.top,
@@ -413,7 +413,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
       browserModel.save();
       Helper.showBasicFlash(
           msg: "Downloading...",
-          context: context,
+          context: this.context,
           backgroundColor: Colors.green,
           textColor: Colors.white,
           position: FlashPosition.top,
@@ -445,7 +445,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
             browserModel.save();
             Helper.showBasicFlash(
                 msg: "Saved Successfully.",
-                context: context,
+                context: this.context,
                 backgroundColor: Colors.green,
                 textColor: Colors.white,
                 position: FlashPosition.top,
@@ -455,7 +455,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
             tryagain = true;
             Helper.showBasicFlash(
                 msg: "Not able to save file.",
-                context: context,
+                context: this.context,
                 backgroundColor: Colors.red,
                 textColor: Colors.white,
                 position: FlashPosition.top,
@@ -467,7 +467,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
         } else {
           Helper.showBasicFlash(
               msg: "Not able to save file.",
-              context: context,
+              context: this.context,
               backgroundColor: Colors.red,
               textColor: Colors.white,
               position: FlashPosition.top,
@@ -519,7 +519,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
         } else {
           Helper.showBasicFlash(
               msg: "Not able to download file.",
-              context: context,
+              context: this.context,
               backgroundColor: Colors.red,
               textColor: Colors.white,
               position: FlashPosition.top,
@@ -538,7 +538,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
           if (fileExists) {
             if (isImage) {
               FileUtil.showAlreadyFileExistsError(
-                  context: context,
+                  context: this.context,
                   action: () async {
                     fileName = await FileUtil.getFileName(
                         context: context, fileName: fileName);
@@ -555,7 +555,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
         } else {
           if (_permissionReady == PermissionStatus.permanentlyDenied) {
             FileUtil.showPermissionError(
-                context: context,
+                context: this.context,
                 action: () {
                   _checkPermissionAfterSettingsPage = true;
                 });

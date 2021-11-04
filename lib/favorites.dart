@@ -943,7 +943,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         Clipboard.setData(ClipboardData(
             text: _selectedList.elementAt(0).search?.url.toString()));
         Helper.showBasicFlash(
-            duration: Duration(seconds: 2), msg: "Copied!", context: context);
+            duration: Duration(seconds: 2),
+            msg: "Copied!",
+            context: this.context);
         _selectedList = [];
         longPressed = false;
 

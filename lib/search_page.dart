@@ -318,7 +318,7 @@ class _SearchPageState extends State<SearchPage> {
                                 Helper.showBasicFlash(
                                     duration: Duration(seconds: 2),
                                     msg: "Copied!",
-                                    context: context);
+                                    context: this.context);
                               },
                               icon: FaIcon(
                                 FontAwesomeIcons.copy,
