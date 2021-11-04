@@ -134,9 +134,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                           decoration: BoxDecoration(
                               color: isCurrentTab
                                   ? Colors.blue[400]
-                                  : (webViewTab.webViewModel.isIncognitoMode
-                                      ? Colors.black
-                                      : Colors.white),
+                                  : Theme.of(context).scaffoldBackgroundColor,
                               borderRadius: BorderRadius.circular(15)),
                           child: ListTile(
                             leading: Column(
@@ -153,23 +151,28 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                                     webViewTab.webViewModel.url?.toString() ??
                                     "",
                                 maxLines: 1,
-                                style: TextStyle(
-                                  color:
-                                      webViewTab.webViewModel.isIncognitoMode ||
-                                              isCurrentTab
-                                          ? Colors.white
-                                          : Colors.black,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headline3
+                                    ?.copyWith(
+                                        color: isCurrentTab
+                                            ? Colors.white
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface),
                                 overflow: TextOverflow.ellipsis),
                             subtitle: Text(
                                 webViewTab.webViewModel.url?.toString() ?? "",
-                                style: TextStyle(
-                                  color:
-                                      webViewTab.webViewModel.isIncognitoMode ||
-                                              isCurrentTab
-                                          ? Colors.white60
-                                          : Colors.black54,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.copyWith(
+                                        color: isCurrentTab
+                                            ? Colors.white60
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withOpacity(0.54)),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis),
                             isThreeLine: false,
@@ -180,11 +183,12 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                                   icon: FaIcon(
                                     FontAwesomeIcons.timesCircle,
                                     size: 24.0,
-                                    color: webViewTab
-                                                .webViewModel.isIncognitoMode ||
-                                            isCurrentTab
+                                    color: isCurrentTab
                                         ? Colors.white60
-                                        : Colors.black54,
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onBackground
+                                            .withOpacity(0.54),
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -239,12 +243,10 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
 
                   return Container(
                     decoration: BoxDecoration(
-                        color: (webViewTab.webViewModel.isIncognitoMode &&
+                        color: webViewTab.webViewModel.isIncognitoMode &&
                                 isCurrentTab
                             ? Colors.black
-                            : isCurrentTab
-                                ? Colors.blue[400]
-                                : Colors.white),
+                            : Theme.of(context).scaffoldBackgroundColor,
                         borderRadius: BorderRadius.circular(15)),
                     child: ListTile(
                       leading: Column(
@@ -259,19 +261,30 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                               webViewTab.webViewModel.url?.toString() ??
                               "",
                           maxLines: 1,
-                          style: TextStyle(
-                            color: isCurrentTab ? Colors.white : Colors.black,
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline3
+                              ?.copyWith(
+                                  color: isCurrentTab
+                                      ? Colors.white
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .onSurface),
                           overflow: TextOverflow.ellipsis),
-                      subtitle:
-                          Text(webViewTab.webViewModel.url?.toString() ?? "",
-                              style: TextStyle(
-                                color: isCurrentTab
-                                    ? Colors.white60
-                                    : Colors.black54,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
+                      subtitle: Text(
+                          webViewTab.webViewModel.url?.toString() ?? "",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText2
+                              ?.copyWith(
+                                  color: isCurrentTab
+                                      ? Colors.white60
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.54)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
                       isThreeLine: false,
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -282,7 +295,10 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                               size: 24.0,
                               color: isCurrentTab
                                   ? Colors.white60
-                                  : Colors.black54,
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onBackground
+                                      .withOpacity(0.54),
                             ),
                             onPressed: () {
                               setState(() {

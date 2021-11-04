@@ -241,7 +241,9 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        choice,
+                        !browserModel.isIncognito
+                            ? choice
+                            : "Close All Incognito Tabs",
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                       Icon(
@@ -298,7 +300,13 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
         break;
       case TabViewerPopupMenuActions.CLOSE_ALL_TABS:
         Future.delayed(const Duration(milliseconds: 300), () {
-          closeAllTabs();
+          if (browserModel.isIncognito) {
+            browserModel.showTabScroller = false;
+            browserModel.isIncognito = false;
+            browserModel.closeAllIncognitoTabs();
+          } else {
+            closeAllTabs();
+          }
         });
         break;
       case TabViewerPopupMenuActions.SETTINGS:

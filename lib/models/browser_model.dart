@@ -325,6 +325,13 @@ class BrowserModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void closeAllIncognitoTabs() {
+    _incognitowebViewTabs.clear();
+    _incogcurrentTabIndex = -1;
+
+    notifyListeners();
+  }
+
   void requestDownload(
       TaskInfo task, String _localPath, String fileName) async {
     task.taskId = await FlutterDownloader.enqueue(
