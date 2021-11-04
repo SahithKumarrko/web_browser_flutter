@@ -13,6 +13,22 @@ class ChangeTheme extends ChangeNotifier {
   change(Brightness v, BuildContext ctx) {
     cv = v;
     print("Changing theme ::: $cv");
+    if (cv == Brightness.dark)
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: Colors.grey[900],
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+      );
+    else
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: Colors.white,
+          statusBarBrightness: Brightness.light,
+          statusBarIconBrightness: Brightness.dark,
+        ),
+      );
     notifyListeners();
   }
 }

@@ -1048,3 +1048,14 @@ FaIcon(
     }
     return null;
   }
+
+
+
+var window = WidgetsBinding.instance!.window;
+    var ct2 = Provider.of<ChangeTheme>(context, listen: false);
+    // This callback is called every time the brightness changes.
+    window.onPlatformBrightnessChanged = () {
+      var brightness = window.platformBrightness;
+
+      ct2.change(brightness, context);
+    };

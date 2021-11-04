@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -101,14 +100,16 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    var ct = Provider.of<ChangeTheme>(context, listen: true);
     print("THEME :: ${SchedulerBinding.instance!.window.platformBrightness}");
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ct.cv == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
+      themeMode: SchedulerBinding.instance!.window.platformBrightness ==
+              Brightness.dark
+          ? ThemeMode.dark
+          : ThemeMode.light,
       home: FutureBuilder(
         future: Init.instance.initialize(context),
         builder: (context, AsyncSnapshot snapshot) {
