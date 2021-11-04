@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -158,9 +159,11 @@ class _HistoryState extends State<History> {
   }
 
   Widget buildHistory() {
+    var ct = Provider.of<ChangeTheme>(context, listen: true);
     return Theme(
       data: (SchedulerBinding.instance!.window.platformBrightness ==
                   Brightness.dark ||
+              ct.cv == Brightness.dark ||
               browserModel.isIncognito)
           ? AppTheme.darkTheme
           : AppTheme.lightTheme,
@@ -661,7 +664,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
   Widget _buildSTF({required Key key}) {
     return Container(
       key: key,
-      padding: EdgeInsets.all(8),
+      // padding: EdgeInsets.all(8),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -958,18 +961,29 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: AnimatedSwitcher(
-        duration: Duration(milliseconds: 200),
-        child: (showSearchField && !longPressed)
-            ? _buildSTF(key: ksf)
-            : longPressed
-                ? _buildLongPressed(key: deleteBar)
-                : _buildHTab(key: ktab),
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: child,
+    log(" ASDASDA  ::: ${Theme.of(context).appBarTheme.systemOverlayStyle}");
+    return AppBar(
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      // brightness: Theme.of(context).brightness,
+      systemOverlayStyle: Theme.of(context).appBarTheme.systemOverlayStyle,
+      centerTitle: false,
+      elevation: 0,
+      backgroundColor:
+          longPressed ? Colors.redAccent : Theme.of(context).backgroundColor,
+      title: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: AnimatedSwitcher(
+          duration: Duration(milliseconds: 200),
+          child: (showSearchField && !longPressed)
+              ? _buildSTF(key: ksf)
+              : longPressed
+                  ? _buildLongPressed(key: deleteBar)
+                  : _buildHTab(key: ktab),
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
         ),
       ),
     );

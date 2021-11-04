@@ -604,9 +604,11 @@ class _PageDownloadState extends State<PageDownload> {
   }
 
   Widget buildDownload() {
+    var ct = Provider.of<ChangeTheme>(context, listen: true);
     return Theme(
       data: (SchedulerBinding.instance!.window.platformBrightness ==
                   Brightness.dark ||
+              ct.cv == Brightness.dark ||
               browserModel.isIncognito)
           ? AppTheme.darkTheme
           : AppTheme.lightTheme,

@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+class ChangeTheme extends ChangeNotifier {
+  Brightness cv = Brightness.light;
+  ChangeTheme() {
+    if (SchedulerBinding.instance!.window.platformBrightness == Brightness.dark)
+      cv = Brightness.dark;
+    print("Theme :: $cv");
+  }
+  change(Brightness v, BuildContext ctx) {
+    cv = v;
+    print("Changing theme ::: $cv");
+    notifyListeners();
+  }
+}
 
 class AppTheme {
   static ThemeData lightTheme = ThemeData.light().copyWith(
@@ -69,7 +84,6 @@ class AppTheme {
         actionsIconTheme: IconThemeData(
           color: Colors.white,
         ),
-        shadowColor: Colors.white30,
         iconTheme: IconThemeData(
           color: Colors.white,
         ),

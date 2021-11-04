@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -61,6 +62,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => WebViewModel(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => ChangeTheme(),
+        ),
         ChangeNotifierProxyProvider<WebViewModel, BrowserModel>(
           update: (context, webViewModel, browserModel) {
             browserModel!.setCurrentWebViewModel(webViewModel);
@@ -74,22 +78,37 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    var window = WidgetsBinding.instance!.window;
+    var ct2 = Provider.of<ChangeTheme>(context, listen: false);
+    // This callback is called every time the brightness changes.
+    window.onPlatformBrightnessChanged = () {
+      var brightness = window.platformBrightness;
+
+      ct2.change(brightness, context);
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    var ct = Provider.of<ChangeTheme>(context, listen: true);
     print("THEME :: ${SchedulerBinding.instance!.window.platformBrightness}");
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: SchedulerBinding.instance!.window.platformBrightness ==
-              Brightness.dark
-          ? ThemeMode.dark
-          : ThemeMode.light,
+      themeMode: ct.cv == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
       home: FutureBuilder(
         future: Init.instance.initialize(context),
         builder: (context, AsyncSnapshot snapshot) {

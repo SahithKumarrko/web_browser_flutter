@@ -155,9 +155,11 @@ class _FavoriteState extends State<Favorite> {
   }
 
   Widget buildHistory() {
+    var ct = Provider.of<ChangeTheme>(context, listen: true);
     return Theme(
       data: (SchedulerBinding.instance!.window.platformBrightness ==
                   Brightness.dark ||
+              ct.cv == Brightness.dark ||
               browserModel.isIncognito)
           ? AppTheme.darkTheme
           : AppTheme.lightTheme,
