@@ -11,6 +11,7 @@ import 'package:webpage_dev_console/browser.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
+import 'package:webpage_dev_console/models/findResults.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 
 late final WEB_ARCHIVE_DIR;
@@ -63,6 +64,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (context) => ChangeTheme(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => FindResults(),
         ),
         ChangeNotifierProxyProvider<WebViewModel, BrowserModel>(
           update: (context, webViewModel, browserModel) {

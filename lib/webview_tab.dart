@@ -12,6 +12,7 @@ import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/main.dart';
 import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/findResults.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/util.dart';
 
@@ -424,6 +425,17 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         }
 
         return NavigationActionPolicy.ALLOW;
+      },
+      onFindResultReceived: (wc, current, total, completed) {
+        if (completed) {
+          var find = Provider.of<FindResults>(context, listen: false);
+          // if (total > 0 && find.firstSearch) {
+          //   wc.findNext(forward: true);
+          //   find.firstSearch = false;
+          // }
+          find.setTotal(total);
+          find.setCurrent(current);
+        }
       },
       onDownloadStart: (controller, url) async {
         String path = url.path;

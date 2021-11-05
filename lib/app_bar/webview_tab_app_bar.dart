@@ -169,7 +169,7 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
       height: 40.0,
       decoration: BoxDecoration(
           // border: Border.all(color: Colors.black),
-          color: browserModel.isIncognito ? Colors.white : Colors.grey[200],
+          color: Colors.grey[200],
           boxShadow: [
             BoxShadow(
                 color: browserModel.isIncognito
