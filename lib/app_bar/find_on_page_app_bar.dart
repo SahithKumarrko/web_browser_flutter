@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/models/findResults.dart';
+import 'package:webpage_dev_console/models/webview_model.dart';
 
 class FindOnPageAppBar extends StatefulWidget {
   final void Function()? hideFindOnPage;
@@ -15,6 +16,23 @@ class FindOnPageAppBar extends StatefulWidget {
 
 class _FindOnPageAppBarState extends State<FindOnPageAppBar> {
   TextEditingController _finOnPageController = TextEditingController();
+  late WebViewModel? webViewModel;
+
+  late BrowserModel browserModel;
+  @override
+  void initState() {
+    super.initState();
+    browserModel = Provider.of<BrowserModel>(context, listen: false);
+    webViewModel = (browserModel.isIncognito
+            ? browserModel.getCurrentIncognitoTab()
+            : browserModel.getCurrentTab())
+        ?.webViewModel;
+    webViewModel?.webViewController?.clearMatches();
+    _finOnPageController.text = "";
+    var findResult = Provider.of<FindResults>(context, listen: false);
+    findResult.setCurrent(notify: false);
+    findResult.setTotal(notify: false);
+  }
 
   @override
   void dispose() {
@@ -24,9 +42,10 @@ class _FindOnPageAppBarState extends State<FindOnPageAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    var browserModel = Provider.of<BrowserModel>(context, listen: false);
     var findResults = Provider.of<FindResults>(context, listen: true);
-    var webViewModel = browserModel.getCurrentTab()?.webViewModel;
+
+    var changePage = Provider.of<ChangePage>(context, listen: false);
+
     var _webViewController = webViewModel?.webViewController;
     var cur = findResults.total > 0 ? 1 : 0;
 
@@ -154,6 +173,7 @@ class _FindOnPageAppBarState extends State<FindOnPageAppBar> {
           onPressed: () {
             _webViewController?.clearMatches();
             _finOnPageController.text = "";
+            changePage.setIsFinding(false, false);
 
             if (widget.hideFindOnPage != null) {
               widget.hideFindOnPage!();

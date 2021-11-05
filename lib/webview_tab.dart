@@ -433,8 +433,8 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
           //   wc.findNext(forward: true);
           //   find.firstSearch = false;
           // }
-          find.setTotal(total);
-          find.setCurrent(current);
+          find.setTotal(v: total);
+          find.setCurrent(v: current);
         }
       },
       onDownloadStart: (controller, url) async {

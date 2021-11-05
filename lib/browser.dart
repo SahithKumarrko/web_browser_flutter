@@ -16,6 +16,7 @@ import 'package:webpage_dev_console/app_bar/browser_app_bar.dart';
 import 'package:webpage_dev_console/favorites.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/models/app_theme.dart';
+import 'package:webpage_dev_console/models/findResults.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/open_tabs_viewer.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
@@ -141,6 +142,7 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
   Widget _buildBrowser() {
     var currentWebViewModel = Provider.of<WebViewModel>(context, listen: true);
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
+    var changePage = Provider.of<ChangePage>(context, listen: false);
 
     browserModel.addListener(() {
       browserModel.save();
@@ -164,6 +166,14 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
           if (canShowTabScroller) {
             browserModel.showTabScroller = false;
             // return true;
+          } else if (changePage.isFinding) {
+            var webcontrol = (browserModel.isIncognito
+                    ? browserModel.getCurrentIncognitoTab()
+                    : browserModel.getCurrentTab())
+                ?.webViewModel
+                .webViewController;
+            webcontrol?.clearMatches();
+            changePage.setIsFinding(false, true);
           } else {
             var wbm;
             if (browserModel.isIncognito) {

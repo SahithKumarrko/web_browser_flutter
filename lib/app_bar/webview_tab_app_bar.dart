@@ -27,6 +27,7 @@ import 'package:webpage_dev_console/main.dart';
 import 'package:webpage_dev_console/model_search.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
+import 'package:webpage_dev_console/models/findResults.dart';
 import 'package:webpage_dev_console/models/web_archive_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/page_download.dart';
@@ -163,8 +164,12 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
     var webViewModel = Provider.of<WebViewModel>(context, listen: true);
     var wc = webViewModel.webViewController;
-    bool isLoading =
-        browserModel.getCurrentTab()?.webViewModel.isLoading ?? false;
+    bool isLoading = (browserModel.isIncognito
+                ? browserModel.getCurrentIncognitoTab()
+                : browserModel.getCurrentTab())
+            ?.webViewModel
+            .isLoading ??
+        false;
     return Container(
       height: 40.0,
       decoration: BoxDecoration(
@@ -172,9 +177,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
           color: Colors.grey[200],
           boxShadow: [
             BoxShadow(
-                color: browserModel.isIncognito
-                    ? Colors.white.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.2),
+                color: Theme.of(this.context)
+                    .colorScheme
+                    .onSurface
+                    .withOpacity(0.2),
                 blurRadius: 2,
                 offset: Offset(1, 1))
           ],
@@ -338,8 +344,14 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
           });
         },
         onTap: () async {
-          if (browserModel.webViewTabs.length > 0) {
-            var webViewModel = browserModel.getCurrentTab()?.webViewModel;
+          var webViewTabs = (browserModel.isIncognito
+              ? browserModel.incognitowebViewTabs
+              : browserModel.webViewTabs);
+          if (webViewTabs.length > 0) {
+            var webViewModel = (browserModel.isIncognito
+                    ? browserModel.getCurrentIncognitoTab()
+                    : browserModel.getCurrentTab())
+                ?.webViewModel;
             var webViewController = webViewModel?.webViewController;
             var widgetsBingind = WidgetsBinding.instance;
 
@@ -769,7 +781,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                 );
               case PopupMenuActions.DESKTOP_MODE:
                 return CustomPopupMenuItem<String>(
-                  enabled: browserModel.getCurrentTab() != null,
+                  enabled: (browserModel.isIncognito
+                          ? browserModel.getCurrentIncognitoTab()
+                          : browserModel.getCurrentTab()) !=
+                      null,
                   value: choice,
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -811,7 +826,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                 );
               case PopupMenuActions.SHARE:
                 return CustomPopupMenuItem<String>(
-                  enabled: browserModel.getCurrentTab() != null,
+                  enabled: (browserModel.isIncognito
+                          ? browserModel.getCurrentIncognitoTab()
+                          : browserModel.getCurrentTab()) !=
+                      null,
                   value: choice,
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -845,7 +863,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                 );
               case PopupMenuActions.DEVELOPERS:
                 return CustomPopupMenuItem<String>(
-                  enabled: browserModel.getCurrentTab() != null,
+                  enabled: (browserModel.isIncognito
+                          ? browserModel.getCurrentIncognitoTab()
+                          : browserModel.getCurrentTab()) !=
+                      null,
                   value: choice,
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -862,7 +883,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                 );
               case PopupMenuActions.FIND_ON_PAGE:
                 return CustomPopupMenuItem<String>(
-                  enabled: browserModel.getCurrentTab() != null,
+                  enabled: (browserModel.isIncognito
+                          ? browserModel.getCurrentIncognitoTab()
+                          : browserModel.getCurrentTab()) !=
+                      null,
                   value: choice,
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -940,6 +964,8 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
 
       case PopupMenuActions.FIND_ON_PAGE:
         if (widget.showFindOnPage != null) {
+          var changePage = Provider.of<ChangePage>(context, listen: false);
+          changePage.setIsFinding(true, false);
           widget.showFindOnPage!();
         }
         break;
@@ -1170,7 +1196,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
 
   void share() {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
-    var webViewModel = browserModel.getCurrentTab()?.webViewModel;
+    var webViewModel = (browserModel.isIncognito
+            ? browserModel.getCurrentIncognitoTab()
+            : browserModel.getCurrentTab())
+        ?.webViewModel;
     var url = webViewModel?.url;
     if (url != null) {
       Share.share(url.toString(), subject: webViewModel?.title);
@@ -1179,12 +1208,16 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
 
   void toggleDesktopMode() async {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
-    var webViewModel = browserModel.getCurrentTab()?.webViewModel;
+    var webViewModel = (browserModel.isIncognito
+            ? browserModel.getCurrentIncognitoTab()
+            : browserModel.getCurrentTab())
+        ?.webViewModel;
     var _webViewController = webViewModel?.webViewController;
 
     var currentWebViewModel = Provider.of<WebViewModel>(context, listen: false);
 
     if (_webViewController != null) {
+      print("TOGGLING DESKTOP MODE");
       webViewModel?.isDesktopMode = !webViewModel.isDesktopMode;
       currentWebViewModel.isDesktopMode = webViewModel?.isDesktopMode ?? false;
 
@@ -1275,7 +1308,10 @@ class _FavState extends State<Fav> {
   @override
   Widget build(BuildContext context) {
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
-    var webViewModel = browserModel.getCurrentTab()?.webViewModel;
+    var webViewModel = (browserModel.isIncognito
+            ? browserModel.getCurrentIncognitoTab()
+            : browserModel.getCurrentTab())
+        ?.webViewModel;
     var isFavorite = false;
     var favorite;
     if (webViewModel?.url != null &&

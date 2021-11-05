@@ -6,13 +6,22 @@ class FindResults extends ChangeNotifier {
 
   int get total => _total;
   int get current => _current;
-  setTotal(int v) {
+  setTotal({int v = 0, bool notify = true}) {
     _total = v;
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
-  setCurrent(int v) {
+  setCurrent({int v = 0, bool notify = true}) {
     _current = v;
-    notifyListeners();
+    if (notify) notifyListeners();
+  }
+}
+
+class ChangePage extends ChangeNotifier {
+  bool _isfinding = false;
+  bool get isFinding => _isfinding;
+  setIsFinding(bool v, bool notify) {
+    _isfinding = v;
+    if (notify) notifyListeners();
   }
 }

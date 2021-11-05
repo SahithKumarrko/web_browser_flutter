@@ -68,6 +68,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => FindResults(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => ChangePage(),
+        ),
         ChangeNotifierProxyProvider<WebViewModel, BrowserModel>(
           update: (context, webViewModel, browserModel) {
             browserModel!.setCurrentWebViewModel(webViewModel);
