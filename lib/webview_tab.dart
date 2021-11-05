@@ -239,7 +239,8 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
           widget.webViewModel.isSecure = false;
         }
         widget.webViewModel.title = await titleFuture;
-        if (widget.webViewModel.progress >= 1.0) {
+
+        if (widget.webViewModel.progress >= 0.95) {
           isHisUpdated = false;
           widget.webViewModel.isLoading = false;
           if (widget.webViewModel.isDesktopMode) {
