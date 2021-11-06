@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
@@ -71,14 +72,32 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
     var browserModel = Provider.of<BrowserModel>(context, listen: true);
 
     return Scaffold(
-        appBar: TabViewerAppBar(
-            controller: _controller,
-            move: () {
-              setState(() {
-                _selectedIndex = _controller.page ?? 0;
-              });
-            }),
-        body: buildPages(browserModel));
+      appBar: TabViewerAppBar(
+          controller: _controller,
+          move: () {
+            setState(() {
+              _selectedIndex = _controller.page ?? 0;
+            });
+          }),
+      body: FutureBuilder(
+        future: initialize(browserModel),
+        builder: (context, AsyncSnapshot snapshot) {
+          // Show splash screen while waiting for app resources to load:
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(
+                color: Colors.blue,
+              ),
+            );
+          } else {
+            print(snapshot.data.runtimeType);
+            return snapshot.data.runtimeType != PageView
+                ? noTabs()
+                : snapshot.data;
+          }
+        },
+      ),
+    );
   }
 
   Widget buildPages(BrowserModel browserModel) {
@@ -92,39 +111,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
           return TabViewer(
             currentIndex: browserModel.getCurrentTabIndex(),
             children: browserModel.webViewTabs.length == 0
-                ? [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Center(
-                                child: Container(
-                                  padding: EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                      color: Colors.blueGrey[50],
-                                      border: Border.all(
-                                        color: const Color(0xFF575859),
-                                      ),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(10))),
-                                  child: Text(
-                                    "No Tabs Opened",
-                                    style: TextStyle(
-                                        color: Colors.black87, fontSize: 24),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    )
-                  ]
+                ? [noTabs()]
                 : browserModel.webViewTabs.map((webViewTab) {
                     webViewTab.key.currentState?.pause();
                     // var screenshotData = webViewTab.webViewModel.screenshot;
@@ -183,11 +170,9 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                             ],
                           ),
                           title: Text(
-                              webViewTab.webViewModel.progress >= 0.5
-                                  ? webViewTab.webViewModel.title ??
-                                      webViewTab.webViewModel.url?.toString() ??
-                                      ""
-                                  : "Loading ...",
+                              webViewTab.webViewModel.title ??
+                                  webViewTab.webViewModel.url?.toString() ??
+                                  "Loading ...",
                               maxLines: 1,
                               style: Theme.of(context)
                                   .textTheme
@@ -351,11 +336,9 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                       ],
                     ),
                     title: Text(
-                        webViewTab.webViewModel.progress >= 0.5
-                            ? webViewTab.webViewModel.title ??
-                                webViewTab.webViewModel.url?.toString() ??
-                                ""
-                            : "Loading ...",
+                        webViewTab.webViewModel.title ??
+                            webViewTab.webViewModel.url?.toString() ??
+                            "",
                         maxLines: 1,
                         style: Theme.of(context).textTheme.headline3?.copyWith(
                             color: isCurrentTab
@@ -419,6 +402,47 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
       controller: _controller,
       itemCount: 2,
     );
+  }
+
+  Column noTabs() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                      color: Colors.blueGrey[50],
+                      border: Border.all(
+                        color: const Color(0xFF575859),
+                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                  child: Text(
+                    "No Tabs Opened",
+                    style: TextStyle(color: Colors.black87, fontSize: 24),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Future<Widget> initialize(BrowserModel browserModel) async {
+    // This is where you can initialize the resources needed by your app while
+    // the splash screen is displayed.  Remove the following example because
+    // delaying the user experience is a bad design practice!
+    return await Future<Widget>.delayed(const Duration(seconds: 0), () async {
+      return buildPages(browserModel);
+    });
   }
 
   @override

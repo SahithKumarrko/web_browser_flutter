@@ -46,7 +46,9 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
         // color: Colors.black,
       ),
       onPressed: () {
-        Helper.addNewTab(context: context);
+        browserModel.isIncognito
+            ? Helper.addNewIncognitoTab(context: context)
+            : Helper.addNewTab(context: context);
         browserModel.showTabScroller = false;
       },
     );
@@ -218,47 +220,6 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
         });
         break;
     }
-  }
-
-  void addNewTab({Uri? url}) {
-    var browserModel = Provider.of<BrowserModel>(context, listen: false);
-    var settings = browserModel.getSettings();
-
-    if (url == null) {
-      url = settings.homePageEnabled && settings.customUrlHomePage.isNotEmpty
-          ? Uri.parse(settings.customUrlHomePage)
-          : Uri.parse(settings.searchEngine.url);
-    }
-
-    browserModel.showTabScroller = false;
-
-    browserModel.addTab(
-        WebViewTab(
-          key: GlobalKey(),
-          webViewModel: WebViewModel(url: url, openedByUser: true),
-        ),
-        true);
-  }
-
-  void addNewIncognitoTab({Uri? url}) {
-    var browserModel = Provider.of<BrowserModel>(context, listen: false);
-    var settings = browserModel.getSettings();
-
-    if (url == null) {
-      url = settings.homePageEnabled && settings.customUrlHomePage.isNotEmpty
-          ? Uri.parse(settings.customUrlHomePage)
-          : Uri.parse(settings.searchEngine.url);
-    }
-
-    browserModel.showTabScroller = false;
-
-    browserModel.addTab(
-        WebViewTab(
-          key: GlobalKey(),
-          webViewModel:
-              WebViewModel(url: url, isIncognitoMode: true, openedByUser: true),
-        ),
-        true);
   }
 
   void closeAllTabs() {

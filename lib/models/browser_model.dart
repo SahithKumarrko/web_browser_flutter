@@ -252,7 +252,9 @@ class BrowserModel extends ChangeNotifier {
     //   print("yup");
     // }
     _webViewTabs.removeAt(index);
-    _currentTabIndex = _webViewTabs.length - 1;
+    if (_currentTabIndex == 0 && _webViewTabs.length > 0)
+      _currentTabIndex = 0;
+    else if (index <= _currentTabIndex) _currentTabIndex = _currentTabIndex - 1;
 
     for (int i = index; i < _webViewTabs.length; i++) {
       _webViewTabs[i].webViewModel.tabIndex = i;
@@ -285,7 +287,10 @@ class BrowserModel extends ChangeNotifier {
     // }
     print("Closing incognito tab");
     _incognitowebViewTabs.removeAt(index);
-    _incogcurrentTabIndex = _incognitowebViewTabs.length - 1;
+    if (_incogcurrentTabIndex == 0 && _incognitowebViewTabs.length > 0)
+      _incogcurrentTabIndex = 0;
+    else if (index <= _incogcurrentTabIndex)
+      _incogcurrentTabIndex = _incogcurrentTabIndex - 1;
 
     for (int i = index; i < _incognitowebViewTabs.length; i++) {
       _incognitowebViewTabs[i].webViewModel.tabIndex = i;
