@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/app_bar/tab_viewer_app_bar.dart';
 import 'package:webpage_dev_console/custom_image.dart';
+import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/tab_viewer.dart';
@@ -153,6 +155,12 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                     while (keysL.contains(k)) {
                       k = getRandString(getRandomLen());
                     }
+                    var hitem = webViewTab.webViewModel.history?.list!
+                        .elementAt(webViewTab.webViewModel.curIndex);
+                    dev.log(
+                        "HITEMSSS ::: ${webViewTab.webViewModel.history?.list}");
+                    dev.log("HITEMC :: ${webViewTab.webViewModel.curIndex}");
+                    dev.log("HITEM ::: $hitem");
                     return Dismissible(
                       key: Key(k),
                       onDismissed: (d) {
@@ -183,11 +191,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                             ],
                           ),
                           title: Text(
-                              webViewTab.webViewModel.progress >= 0.5
-                                  ? webViewTab.webViewModel.title ??
-                                      webViewTab.webViewModel.url?.toString() ??
-                                      ""
-                                  : "Loading ...",
+                              Helper.getTitle(hitem?.title ?? "Loading ..."),
                               maxLines: 1,
                               style: Theme.of(context)
                                   .textTheme
@@ -322,6 +326,12 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
               while (keysL.contains(k)) {
                 k = getRandString(getRandomLen());
               }
+              var hitem = webViewTab.webViewModel.history?.list!
+                  .elementAt(webViewTab.webViewModel.curIndex);
+              dev.log("HITEMSSS ::: ${webViewTab.webViewModel.history?.list}");
+              dev.log("HITEMC :: ${webViewTab.webViewModel.curIndex}");
+              dev.log("HITEM ::: $hitem");
+
               return Dismissible(
                 key: Key(k),
                 onDismissed: (d) {
@@ -350,12 +360,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                             url: faviconUrl, maxWidth: 30.0, height: 30.0)
                       ],
                     ),
-                    title: Text(
-                        webViewTab.webViewModel.progress >= 0.5
-                            ? webViewTab.webViewModel.title ??
-                                webViewTab.webViewModel.url?.toString() ??
-                                ""
-                            : "Loading ...",
+                    title: Text(Helper.getTitle(hitem?.title ?? "Loading ..."),
                         maxLines: 1,
                         style: Theme.of(context).textTheme.headline3?.copyWith(
                             color: isCurrentTab

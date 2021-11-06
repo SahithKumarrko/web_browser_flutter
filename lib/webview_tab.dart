@@ -312,6 +312,9 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
                     .url = ch?.url;
                 widget.webViewModel.history?.list
                     ?.elementAt(widget.webViewModel.curIndex)
+                    .title = ch?.title;
+                widget.webViewModel.history?.list
+                    ?.elementAt(widget.webViewModel.curIndex)
                     .originalUrl = ch?.originalUrl;
                 isHisUpdated = true;
               } else {
@@ -326,10 +329,20 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
                     .url = ch?.url;
                 widget.webViewModel.history?.list
                     ?.elementAt(widget.webViewModel.curIndex)
+                    .title = ch?.title;
+                widget.webViewModel.history?.list
+                    ?.elementAt(widget.webViewModel.curIndex)
                     .originalUrl = ch?.originalUrl;
                 isHisUpdated = true;
               }
-
+              browserModel.save();
+            } else if (widget.webViewModel.history?.list
+                    ?.elementAt(widget.webViewModel.curIndex)
+                    .title ==
+                null) {
+              widget.webViewModel.history?.list
+                  ?.elementAt(widget.webViewModel.curIndex)
+                  .title = ch?.title;
               browserModel.save();
             }
           }
