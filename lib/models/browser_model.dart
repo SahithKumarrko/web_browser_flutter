@@ -582,10 +582,10 @@ class BrowserModel extends ChangeNotifier {
     // this.addWebArchives(webArchives);
     this.updateSettings(settings);
     this.addTabs(webViewTabs);
-    dev.log("DAta :::::  ${browserData["incognitowebViewTabs"]}");
+    // dev.log("DAta :::::  ${browserData["incognitowebViewTabs"]}");
     List<Map<String, dynamic>> incogwebViewTabList =
         browserData["incognitowebViewTabs"]?.cast<Map<String, dynamic>>() ?? [];
-    dev.log("CCCCCCCC :::::::  $incogwebViewTabList");
+    // dev.log("CCCCCCCC :::::::  $incogwebViewTabList");
     try {
       List<WebViewTab> inwebViewTabs = incogwebViewTabList
           .map((e) => WebViewTab(
@@ -593,11 +593,11 @@ class BrowserModel extends ChangeNotifier {
                 webViewModel: WebViewModel.fromMap(e)!,
               ))
           .toList();
-      print("got inco data");
+      // print("got inco data");
       inwebViewTabs.sort((a, b) =>
           a.webViewModel.tabIndex!.compareTo(b.webViewModel.tabIndex!));
-      print("completed sorting");
-      dev.log("TABS :::::::::::   $inwebViewTabs");
+      // print("completed sorting");
+      // dev.log("TABS :::::::::::   $inwebViewTabs");
       this.addIncognitoTabs(inwebViewTabs);
     } catch (e) {
       dev.log("ERROR ::: $e");

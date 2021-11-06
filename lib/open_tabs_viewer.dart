@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/app_bar/tab_viewer_app_bar.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
+import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/tab_viewer.dart';
+import 'package:webpage_dev_console/webview_tab.dart';
 
 class OpenTabsViewer extends StatefulWidget {
   const OpenTabsViewer({Key? key}) : super(key: key);
@@ -217,6 +219,7 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                 },
               );
             } else if (position == _selectedIndex.floor() + 1) {
+              // var ind = 0;
               return TabViewer(
                 currentIndex: browserModel.getCurrentIncogTabIndex(),
                 children: browserModel.incognitowebViewTabs.map((webViewTab) {
@@ -229,6 +232,43 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                   //       ? Image.memory(screenshotData)
                   //       : null,
                   // );
+                  // if (ind == 0) {
+                  //   ind += 1;
+                  //   print("Returning row");
+                  //   return Row(
+                  //     mainAxisAlignment: MainAxisAlignment.center,
+                  //     crossAxisAlignment: CrossAxisAlignment.center,
+                  //     mainAxisSize: MainAxisSize.min,
+                  //     children: [
+                  //       Container(
+                  //           padding: EdgeInsets.all(8),
+                  //           decoration: BoxDecoration(
+                  //               color: Theme.of(context)
+                  //                   .scaffoldBackgroundColor
+                  //                   .withOpacity(0.5),
+                  //               borderRadius: BorderRadius.circular(15)),
+                  //           child: Row(
+                  //             children: [
+                  //               Expanded(
+                  //                 child: Text(
+                  //                   "Incognito Tabs",
+                  //                   style: Theme.of(context)
+                  //                       .textTheme
+                  //                       .headline3
+                  //                       ?.copyWith(
+                  //                           color: Theme.of(context)
+                  //                               .colorScheme
+                  //                               .onSurface
+                  //                               .withOpacity(0.7)),
+                  //                 ),
+                  //               )
+                  //             ],
+                  //           )),
+                  //     ],
+                  //   );
+                  // }
+
+                  // ind += 1;
 
                   var url = webViewTab.webViewModel.url;
                   var faviconUrl = webViewTab.webViewModel.favicon != null
@@ -318,9 +358,11 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                   );
                 }).toList(),
                 onTap: (index) async {
+                  // if (index != 0) {
                   browserModel.showTabScroller = false;
                   browserModel.setIsIncognito(true, context);
                   browserModel.showIncognitoTab(index);
+                  // }
                 },
               );
             }

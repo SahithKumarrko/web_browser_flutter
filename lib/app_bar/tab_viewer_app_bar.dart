@@ -11,128 +11,31 @@ import 'package:badges/badges.dart';
 import '../tab_viewer_popup_menu_actions.dart';
 
 class TabViewerAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final PageController controller;
-  final Function move;
   TabViewerAppBar({Key? key, required this.controller, required this.move})
       : preferredSize = Size.fromHeight(kToolbarHeight),
         super(key: key);
 
-  @override
-  _TabViewerAppBarState createState() => _TabViewerAppBarState();
+  final PageController controller;
+  final Function move;
 
   @override
   final Size preferredSize;
+
+  @override
+  _TabViewerAppBarState createState() => _TabViewerAppBarState();
 }
 
 class _TabViewerAppBarState extends State<TabViewerAppBar> {
+  int selectedind = 0;
   GlobalKey tabInkWellKey = new GlobalKey();
   GlobalKey tabInkWellKey2 = new GlobalKey();
 
   @override
-  Widget build(BuildContext context) {
-    var browserModel = Provider.of<BrowserModel>(context, listen: true);
-    var settings = browserModel.getSettings();
-    var inl = browserModel.incognitowebViewTabs.length;
-    return AppBar(
-      backgroundColor: Theme.of(context).backgroundColor,
-      centerTitle: true,
-      title: inl != 0
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                InkWell(
-                  splashFactory: NoSplash.splashFactory,
-                  highlightColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  splashColor: Colors.transparent,
-                  onTap: () {
-                    widget.controller.animateToPage(0,
-                        duration: Duration(milliseconds: 200),
-                        curve: Curves.easeInOut);
-                    print("Tapped :: 0");
-                  },
-                  child: Row(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                            border: Border.all(
-                                width: 2.0,
-                                color: Theme.of(context).colorScheme.onSurface),
-                            shape: BoxShape.rectangle,
-                            borderRadius: BorderRadius.circular(5.0)),
-                        constraints:
-                            BoxConstraints(minWidth: 25.0, maxHeight: 28),
-                        child: Container(
-                            child: Center(
-                                child: Text(
-                          browserModel.webViewTabs.length.toString(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText1
-                              ?.copyWith(
-                                  fontWeight: FontWeight.bold, fontSize: 14.0),
-                        ))),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: 16,
-                ),
-                SizedBox(
-                  width: 2,
-                  height: 25,
-                  child: Container(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                SizedBox(
-                  width: 16,
-                ),
-                InkWell(
-                  splashColor: Colors.transparent,
-                  splashFactory: NoSplash.splashFactory,
-                  highlightColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  onTap: () {
-                    widget.controller.animateToPage(1,
-                        duration: Duration(milliseconds: 200),
-                        curve: Curves.easeInOut);
-                    print("Tapped :: 1");
-                  },
-                  child: Badge(
-                    badgeColor: Colors.deepPurple,
-                    shape: BadgeShape.circle,
-                    toAnimate: true,
-                    badgeContent: Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Text(
-                          browserModel.incognitowebViewTabs.length.toString(),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          )),
-                    ),
-                    position: BadgePosition.topEnd(
-                      end: browserModel.incognitowebViewTabs.length < 10
-                          ? -20
-                          : browserModel.incognitowebViewTabs.length < 100
-                              ? -26
-                              : -30,
-                    ),
-                    child: FaIcon(
-                      FontAwesomeIcons.userSecret,
-                      // color: Colors.black,
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : SizedBox.shrink(),
-      leading: _buildAddTabButton(),
-      actions: _buildActionsMenu(),
-    );
+  void initState() {
+    super.initState();
+
+    var browserModel = Provider.of<BrowserModel>(context, listen: false);
+    selectedind = browserModel.isIncognito ? 1 : 0;
   }
 
   Widget _buildAddTabButton() {
@@ -369,5 +272,123 @@ class _TabViewerAppBarState extends State<TabViewerAppBar> {
   void goToSettingsPage() {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => SettingsPage()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var browserModel = Provider.of<BrowserModel>(context, listen: true);
+    var settings = browserModel.getSettings();
+    var inl = browserModel.incognitowebViewTabs.length;
+
+    return AppBar(
+      backgroundColor: Theme.of(context).backgroundColor,
+      centerTitle: true,
+      title: inl != 0
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  splashFactory: NoSplash.splashFactory,
+                  highlightColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  onTap: () {
+                    widget.controller.animateToPage(0,
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.easeInOut);
+                    print("Tapped :: 0");
+                    setState(() {
+                      selectedind = 0;
+                    });
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(
+                                width: 2.0,
+                                color: selectedind == 0
+                                    ? Colors.blue
+                                    : Theme.of(context).colorScheme.onSurface),
+                            shape: BoxShape.rectangle,
+                            borderRadius: BorderRadius.circular(5.0)),
+                        constraints:
+                            BoxConstraints(minWidth: 25.0, maxHeight: 28),
+                        child: Container(
+                            child: Center(
+                                child: Text(
+                          browserModel.webViewTabs.length.toString(),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1
+                              ?.copyWith(
+                                  fontWeight: FontWeight.bold, fontSize: 14.0),
+                        ))),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 16,
+                ),
+                SizedBox(
+                  width: 2,
+                  height: 25,
+                  child: Container(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                SizedBox(
+                  width: 16,
+                ),
+                InkWell(
+                  splashColor: Colors.transparent,
+                  splashFactory: NoSplash.splashFactory,
+                  highlightColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
+                  onTap: () {
+                    widget.controller.animateToPage(1,
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.easeInOut);
+                    print("Tapped :: 1");
+                    setState(() {
+                      selectedind = 1;
+                    });
+                  },
+                  child: Badge(
+                    badgeColor: Colors.deepPurple,
+                    shape: BadgeShape.circle,
+                    toAnimate: true,
+                    badgeContent: Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Text(
+                          browserModel.incognitowebViewTabs.length.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          )),
+                    ),
+                    position: BadgePosition.topEnd(
+                      end: browserModel.incognitowebViewTabs.length < 10
+                          ? -20
+                          : browserModel.incognitowebViewTabs.length < 100
+                              ? -26
+                              : -30,
+                    ),
+                    child: FaIcon(
+                      FontAwesomeIcons.userSecret,
+                      color: selectedind == 1
+                          ? Colors.blue
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : SizedBox.shrink(),
+      leading: _buildAddTabButton(),
+      actions: _buildActionsMenu(),
+    );
   }
 }
