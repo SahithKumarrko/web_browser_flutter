@@ -11,6 +11,7 @@ import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorder
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/custom_image.dart';
+import 'package:webpage_dev_console/favorites.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/model_search.dart';
 import 'package:webpage_dev_console/models/app_theme.dart';
@@ -628,9 +629,11 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     var ct = Provider.of<ChangeTheme>(context, listen: true);
+    var bmodel = Provider.of<BrowserModel>(context, listen: false);
     var theme = (SchedulerBinding.instance!.window.platformBrightness ==
                 Brightness.dark ||
-            ct.cv == Brightness.dark)
+            ct.cv == Brightness.dark ||
+            bmodel.isIncognito)
         ? AppTheme.darkTheme
         : AppTheme.lightTheme;
 

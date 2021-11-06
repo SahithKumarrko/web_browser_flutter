@@ -170,11 +170,22 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
             ?.webViewModel
             .isLoading ??
         false;
+    String without = webViewModel.url
+            ?.toString()
+            .replaceFirst(RegExp("http[s]{0,1}:[/]{2}"), "") ??
+        "";
+    String origin = webViewModel.url?.origin
+            .replaceFirst(RegExp("http[s]{0,1}:[/]{2}"), "") ??
+        "";
+    print("Origin :: $origin ;;; Without :: $without");
     return Container(
       height: 40.0,
       decoration: BoxDecoration(
           // border: Border.all(color: Colors.black),
-          color: Colors.grey[200],
+          color: Theme.of(context).brightness == Brightness.dark ||
+                  browserModel.isIncognito
+              ? Color(0xFF4f5761)
+              : Colors.grey[200],
           boxShadow: [
             BoxShadow(
                 color: Theme.of(this.context)
@@ -229,19 +240,40 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
               },
               child: Padding(
                 padding: EdgeInsets.only(right: 6),
-                child: Text(
-                  webViewModel.url == null
-                      ? "Search for or type a web address"
-                      : webViewModel.url.toString(),
-                  textDirection: TextDirection.ltr,
-                  overflow: TextOverflow.fade,
-                  style: TextStyle(
-                      color: webViewModel.url == null
-                          ? Colors.black54
-                          : Colors.black87,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 16),
-                ),
+                child: webViewModel.url == null || without.length == 0
+                    ? Text(
+                        "Search for or type a web address",
+                        textDirection: TextDirection.ltr,
+                        overflow: TextOverflow.fade,
+                        style: Theme.of(this.context)
+                            .textTheme
+                            .bodyText2
+                            ?.copyWith(
+                                color: Theme.of(this.context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withOpacity(0.5)),
+                      )
+                    : RichText(
+                        textDirection: TextDirection.ltr,
+                        overflow: TextOverflow.fade,
+                        maxLines: 1,
+                        text: TextSpan(children: [
+                          TextSpan(
+                              text: origin,
+                              style:
+                                  Theme.of(this.context).textTheme.bodyText1),
+                          TextSpan(
+                              text: without.replaceFirst(origin, ""),
+                              style: Theme.of(this.context)
+                                  .textTheme
+                                  .bodyText2
+                                  ?.copyWith(
+                                      color: Theme.of(this.context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6)))
+                        ])),
               ),
             ),
           ),
@@ -271,8 +303,9 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                     )
                   : Icon(Icons.refresh_rounded),
               iconSize: 24,
-              color:
-                  wc != null ? Colors.black.withOpacity(0.75) : Colors.black12)
+              color: wc != null
+                  ? Theme.of(context).colorScheme.onBackground.withOpacity(0.7)
+                  : Colors.black12)
         ],
       ),
     );

@@ -16,7 +16,7 @@ class ChangeTheme extends ChangeNotifier {
     if (cv == Brightness.dark)
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
-          statusBarColor: Colors.grey[900],
+          statusBarColor: Color(0xFF242e38),
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),
@@ -82,7 +82,7 @@ class AppTheme {
       ));
 
   static ThemeData darkTheme = ThemeData.dark().copyWith(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Color(0xFF242e38),
       primaryColor: Colors.black,
       scaffoldBackgroundColor: Colors.grey[900],
       textSelectionTheme: TextSelectionThemeData(
@@ -104,7 +104,7 @@ class AppTheme {
           titleTextStyle: GoogleFonts.poppins(
               color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Color(0xFF242e38),
         actionsIconTheme: IconThemeData(
           color: Colors.white,
         ),
@@ -112,7 +112,7 @@ class AppTheme {
           color: Colors.white,
         ),
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.grey[900],
+          statusBarColor: Color(0xFF242e38),
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),
