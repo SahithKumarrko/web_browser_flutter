@@ -232,8 +232,16 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                                   ],
                                 ),
                                 title: Text(
-                                    Helper.getTitle(
-                                        hitem?.title ?? "Loading ..."),
+                                    hitem?.title.toString().length == 0
+                                        ? webViewTab.webViewModel.title ??
+                                            webViewTab.webViewModel.url
+                                                ?.toString() ??
+                                            ""
+                                        : hitem?.title ??
+                                            webViewTab.webViewModel.title ??
+                                            webViewTab.webViewModel.url
+                                                ?.toString() ??
+                                            "",
                                     maxLines: 1,
                                     style: Theme.of(context)
                                         .textTheme
@@ -409,7 +417,14 @@ class _OpenTabsViewerState extends State<OpenTabsViewer>
                             ],
                           ),
                           title: Text(
-                              Helper.getTitle(hitem?.title ?? "Loading ..."),
+                              hitem?.title.toString().length == 0
+                                  ? webViewTab.webViewModel.title ??
+                                      webViewTab.webViewModel.url?.toString() ??
+                                      ""
+                                  : hitem?.title ??
+                                      webViewTab.webViewModel.title ??
+                                      webViewTab.webViewModel.url?.toString() ??
+                                      "",
                               maxLines: 1,
                               style: Theme.of(context)
                                   .textTheme
