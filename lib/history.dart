@@ -90,7 +90,8 @@ class _CASState extends State<CAS> {
   }
 }
 
-class _HistoryState extends State<History> {
+class _HistoryState extends State<History>
+    with AutomaticKeepAliveClientMixin<History> {
   @override
   void dispose() {
     super.dispose();
@@ -98,6 +99,7 @@ class _HistoryState extends State<History> {
 
   @override
   void initState() {
+    showSearchField = false;
     super.initState();
     browserModel = Provider.of<BrowserModel>(context, listen: false);
 
@@ -131,10 +133,12 @@ class _HistoryState extends State<History> {
         for (Search s in v) {
           if ((searchValue == "" ||
                   s.title.toLowerCase().contains(searchValue) ||
-                  s.url!.origin
-                      .toString()
-                      .toLowerCase()
-                      .contains(searchValue)) &&
+                  (["http", "https"]
+                          .contains(s.url?.scheme.toLowerCase() ?? "") &&
+                      s.url!.origin
+                          .toString()
+                          .toLowerCase()
+                          .contains(searchValue))) &&
               !s.isIncognito) {
             _data.add(
                 HItem(date: k, search: s, key: GlobalKey(), ikey: GlobalKey()));
@@ -281,8 +285,12 @@ class _HistoryState extends State<History> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return buildHistory();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class HisItem extends StatefulWidget {
@@ -301,7 +309,8 @@ class HisItem extends StatefulWidget {
   _HisItemState createState() => _HisItemState();
 }
 
-class _HisItemState extends State<HisItem> {
+class _HisItemState extends State<HisItem>
+    with AutomaticKeepAliveClientMixin<HisItem> {
   Widget _buildItem(HItem item, int index, Animation<double> animation) {
     return Column(
       children: [
@@ -519,8 +528,12 @@ class _HisItemState extends State<HisItem> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return _buildItem(widget.item, widget.index, widget.animation);
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class ClearAllH extends StatefulWidget {
@@ -585,7 +598,7 @@ class _ClearAllHState extends State<ClearAllH> {
                               }
                               widget.hbrowserModel.save();
                               _data.clear();
-                              setState(() => _listKey = GlobalKey());
+                              this.setState(() => _listKey = GlobalKey());
                               nohist.currentState?.setState(() {});
                               Navigator.pop(context);
                             },
@@ -675,7 +688,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               color: Theme.of(context).colorScheme.onBackground,
             ),
             onTap: () {
-              setState(() {
+              this.setState(() {
                 showSearchField = false;
               });
               widget.generateHistoryValues("", true);
@@ -741,7 +754,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             children: [
               InkWell(
                 onTap: () {
-                  setState(() {
+                  this.setState(() {
                     showSearchField = true;
                   });
                   clearAllSwitcher.currentState?.setState(() {});
@@ -789,7 +802,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   color: Colors.white,
                 ),
                 onTap: () {
-                  setState(() {
+                  this.setState(() {
                     showSearchField = false;
                   });
                   _selectedList = [];
@@ -817,7 +830,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             children: [
               InkWell(
                 onTap: () {
-                  setState(() {
+                  this.setState(() {
                     showSearchField = false;
                   });
                   clearAllSwitcher.currentState?.setState(() {});
@@ -955,7 +968,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         widget.generateHistoryValues("", true);
         clearAllSwitcher.currentState?.setState(() {});
         nohist.currentState?.setState(() {});
-        setState(() {});
+        this.setState(() {});
         break;
     }
   }

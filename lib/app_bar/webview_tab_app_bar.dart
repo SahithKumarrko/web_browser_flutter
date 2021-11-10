@@ -174,9 +174,14 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
             ?.toString()
             .replaceFirst(RegExp("http[s]{0,1}:[/]{2}"), "") ??
         "";
-    String origin = webViewModel.url?.origin
-            .replaceFirst(RegExp("http[s]{0,1}:[/]{2}"), "") ??
-        "";
+    String origin = "";
+    if (["http", "https"]
+        .contains(webViewModel.url?.scheme.toLowerCase() ?? "")) {
+      origin = webViewModel.url?.origin
+              .replaceFirst(RegExp("http[s]{0,1}:[/]{2}"), "") ??
+          "";
+    }
+
     print("Origin :: $origin ;;; Without :: $without");
     return Container(
       height: 40.0,
