@@ -19,6 +19,7 @@ import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/search_model.dart';
 import 'package:webpage_dev_console/util.dart';
+import 'dart:developer' as dev;
 
 class SearchPage extends StatefulWidget {
   SearchPage({Key? key}) : super(key: key);
@@ -402,9 +403,9 @@ class _SearchPageState extends State<SearchPage> {
         hintStyle: Theme.of(context).textTheme.headline2?.copyWith(
             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
         debounceDelay: const Duration(milliseconds: 300),
-        onQueryChanged: (q) {
+        onQueryChanged: (q) async {
           if (isFocused) {
-            model.onQueryChanged(
+            await model.onQueryChanged(
                 context,
                 ((q.toLowerCase().startsWith("https://") ||
                             q.toLowerCase().startsWith("http://")) &&
@@ -491,7 +492,39 @@ class _SearchPageState extends State<SearchPage> {
   Widget buildItem(
       BuildContext context, Search search, BrowserSettings settings) {
     final model = Provider.of<SearchModel>(context, listen: false);
+    String title = "";
+    List<String> t1 = searchController.query.trim().split(" ");
+    List<String> t2 = Helper.htmlToString(search.title).split(" ");
 
+    int startInd = 0;
+    if (t2.length != 0) {
+      // dev.log("Getting content");
+      for (var i = 0; i < t2.length && i < t1.length; i++) {
+        if (t1.elementAt(i) != t2.elementAt(i)) {
+          // dev.log("breaking at $i");
+
+          break;
+        } else
+          startInd = i + 1;
+      }
+    }
+    // dev.log("$t1 \n\n $t2\n$startInd");
+    title = search.title.split(" ").sublist(startInd).join(" ");
+    if (search.title
+        .split(" ")
+        .sublist(0, startInd)
+        .join(" ")
+        .trim()
+        .endsWith("<b>")) title = "<b>" + title;
+    // if (startInd > 0 && title.length != 0) {
+    //   title = "... " + title;
+    // } else if (startInd > 0 && search.title.length != 0) {
+    //   return SizedBox();
+    // }
+    if (startInd > 0) {
+      title = "... " + title;
+    }
+    dev.log("Final :: $title");
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -550,7 +583,7 @@ class _SearchPageState extends State<SearchPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Html(
-                        data: search.title,
+                        data: title,
                         style: {
                           "body": Style(
                               fontSize: search.url != null
@@ -589,7 +622,7 @@ class _SearchPageState extends State<SearchPage> {
                     onPressed: () {
                       searchController.query = search.url != null
                           ? search.url!.toString()
-                          : Helper.htmlToString(search.title);
+                          : Helper.htmlToString(search.title) + " ";
                     },
                     icon: Icon(
                       Icons.north_west_rounded,

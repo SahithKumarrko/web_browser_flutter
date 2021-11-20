@@ -37,7 +37,7 @@ class SearchModel extends ChangeNotifier {
     return items;
   }
 
-  Future<void> onQueryChanged(
+  void onQueryChanged(
       BuildContext context, String query, bool startPage, String url) async {
     // if (query == _query && _query.isNotEmpty) return;
 
@@ -111,22 +111,20 @@ class SearchModel extends ChangeNotifier {
           final body = json.decode(utf8.decode(response.bodyBytes));
           List<Search> results = [];
           var r = body[1];
-          dev.log("$r");
           for (var i in r) {
             var ttt = Helper.htmlToString(i[0].toString()).trim().toLowerCase();
             bool found = false;
             if (history.length != 0) {
               for (var element in history) {
-                // dev.log(
-                //     "PP :: ${Helper.htmlToString(element.title).trim().toLowerCase()} :: ${Helper.htmlToString(i[0].toString()).trim().toLowerCase()}");
+                dev.log(
+                    "PP :: ${Helper.htmlToString(element.title).trim().toLowerCase()} :: ${Helper.htmlToString(i[0].toString()).trim().toLowerCase()}");
                 if (Helper.htmlToString(element.title).trim().toLowerCase() ==
                         ttt ||
                     ttt == query.trim().toLowerCase()) {
                   found = true;
-                  break;
                 }
               }
-              // dev.log("PP :: $found");
+              dev.log("PP :: $found");
               if (!found) {
                 results.add(Search(title: i[0].toString()));
                 continue;
@@ -136,7 +134,7 @@ class SearchModel extends ChangeNotifier {
               results.add(Search(title: i[0].toString()));
           }
 
-          // dev.log("$results");
+          dev.log("$results");
 
           var hl = history.length;
           history = history.sublist(0, hl >= 4 ? 4 : hl);
@@ -145,7 +143,6 @@ class SearchModel extends ChangeNotifier {
           history = history.toSet().toList();
         }
         _suggestions = history;
-        dev.log("${history.length}");
       } catch (e) {
         // print("error : " + e.toString());
       }
