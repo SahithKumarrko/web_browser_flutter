@@ -167,6 +167,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
     initialOptions.android.scrollBarDefaultDelayBeforeFade = 500;
     initialOptions.android.scrollBarFadeDuration = 300;
     initialOptions.android.loadsImagesAutomatically = true;
+    initialOptions.android.useOnRenderProcessGone = true;
 
     initialOptions.android.disableDefaultErrorPage = true;
     initialOptions.android.supportMultipleWindows = true;
@@ -175,6 +176,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         Color.fromRGBO(0, 0, 0, 0.2);
     initialOptions.android.horizontalScrollbarThumbColor =
         Color.fromRGBO(0, 0, 0, 0.2);
+    initialOptions.android.geolocationEnabled = true;
 
     initialOptions.ios.allowsLinkPreview = false;
     initialOptions.ios.isFraudulentWebsiteWarningEnabled = true;
@@ -356,6 +358,13 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         //       isHistory: true));
         // }
       },
+      androidOnRenderProcessGone: (controller, details) {
+        log("[WEB] Process Gone :: ${details.didCrash} :: ${details.rendererPriorityAtExit}");
+      },
+      androidOnRenderProcessUnresponsive: (controller, uri) async {
+        log("[WEB] Unresponsive :: $uri");
+        return WebViewRenderProcessAction.TERMINATE;
+      },
       onLongPressHitTestResult: (controller, hitTestResult) async {
         if (LongPressAlertDialog.HIT_TEST_RESULT_SUPPORTED
             .contains(hitTestResult.type)) {
@@ -413,6 +422,12 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         if (isCurrentTab(currentWebViewModel)) {
           currentWebViewModel.updateWithValue(widget.webViewModel);
         }
+      },
+      androidOnGeolocationPermissionsShowPrompt:
+          (InAppWebViewController controller, String origin) async {
+        //TODO : permission handler
+        return GeolocationPermissionShowPromptResponse(
+            origin: origin, allow: true, retain: true);
       },
       shouldOverrideUrlLoading: (controller, navigationAction) async {
         var url = navigationAction.request.url;

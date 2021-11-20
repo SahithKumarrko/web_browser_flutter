@@ -278,14 +278,14 @@ class FileUtil {
       var l2 = await l.toList();
       l2.forEach((element) {
         var fp = element.path.split("/").last;
-        if (fp.contains(fname) && fn1.last == fp.split(".").last) {
+        if (fp.startsWith(fname) && fn1.last == fp.split(".").last) {
           count += 1;
         }
       });
       tasks?.forEach((element) {
         var tfn = element.filename ?? "";
         var temp = fname + " ($count)." + fn1.last;
-        if (tfn.contains(fname) && tfn == temp) {
+        if (tfn.startsWith(fname) && tfn == temp) {
           count += 1;
         }
       });
