@@ -64,43 +64,31 @@ class SearchModel extends ChangeNotifier {
 
       try {
         history = [];
-        List<String> lq = query.trim().split(" ");
         if (!startPage) {
           for (var i = webHistory.length; i > 0; i--) {
             Search h = webHistory.elementAt(i - 1);
-
             if (h.title.length != 0) {
-              String hTitle = Helper.getTitle(h.title.trim());
+              String hTitle = Helper.getTitle(h.title);
+              List<String> lq = query.split(" ");
+              bool y = false, y2 = false;
+              bool isHome =
+                  h.url.toString().toLowerCase().startsWith(url.toLowerCase());
 
-              List<String> t2 = Helper.htmlToString(hTitle).split(" ");
-
-              int startInd = 0;
-              if (t2.length != 0) {
-                for (var i = 0; i < t2.length && i < lq.length; i++) {
-                  if (lq.elementAt(i) != t2.elementAt(i)) {
-                    break;
-                  } else
-                    startInd = i + 1;
-                }
+              for (String qq in lq) {
+                if ((hTitle.toLowerCase().contains(qq) || qq.isEmpty) &&
+                    !hTitle
+                        .toString()
+                        .toLowerCase()
+                        .startsWith(url.toLowerCase())) y = true;
+                if (h.url!.toString().toLowerCase().contains(qq) && !isHome)
+                  y2 = true;
               }
-              if (startInd < t2.length) {
-                bool y = true;
-                bool isHome = h.url
-                    .toString()
-                    .toLowerCase()
-                    .startsWith(url.toLowerCase());
-                for (String qq in lq) {
-                  if (!(hTitle.toLowerCase().contains(qq) ||
-                      qq.isEmpty ||
-                      (h.url!.toString().toLowerCase().contains(qq) &&
-                          !isHome))) y = false;
-                }
-                if (y) {
-                  history.add(new Search(
-                      title: hTitle,
-                      url: (isHome && !startPage) ? null : h.url,
-                      isHistory: true));
-                }
+              dev.log("L1 :: $query :: ${h.url} :: $isHome :: $y :: $y2");
+              if (y || y2) {
+                history.add(new Search(
+                    title: hTitle,
+                    url: (isHome && !startPage) ? null : h.url,
+                    isHistory: true));
               }
             }
           }
