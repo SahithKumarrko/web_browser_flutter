@@ -524,7 +524,7 @@ class _SearchPageState extends State<SearchPage> {
     if (startInd > 0) {
       title = "... " + title;
     }
-    dev.log("Final :: $title");
+    // dev.log("Final :: $title");
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

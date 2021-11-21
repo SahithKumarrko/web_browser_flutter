@@ -83,7 +83,7 @@ class SearchModel extends ChangeNotifier {
                 if (h.url!.toString().toLowerCase().contains(qq) && !isHome)
                   y2 = true;
               }
-              dev.log("L1 :: $query :: ${h.url} :: $isHome :: $y :: $y2");
+              // dev.log("L1 :: $query :: ${h.url} :: $isHome :: $y :: $y2");
               if (y || y2) {
                 history.add(new Search(
                     title: hTitle,
@@ -99,7 +99,7 @@ class SearchModel extends ChangeNotifier {
           final body = json.decode(utf8.decode(response.bodyBytes));
           List<Search> results = [];
           var r = body[1];
-          dev.log("$r");
+          // dev.log("$r");
           for (var i in r) {
             var ttt = Helper.htmlToString(i[0].toString()).trim().toLowerCase();
             bool found = false;
