@@ -1,5 +1,4 @@
 class Util {
-
   static bool urlIsSecure(Uri url) {
     return (url.scheme == "https") || Util.isLocalizedContent(url);
   }
@@ -12,4 +11,7 @@ class Util {
         url.scheme == "about");
   }
 
+  static bool isLocalizedContentString(String url) {
+    return url.startsWith(RegExp("file|chrome|data|javascript|about"));
+  }
 }

@@ -24,7 +24,7 @@ class ChangeTheme extends ChangeNotifier {
     else
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
+          statusBarColor: Colors.grey[200],
           statusBarBrightness: Brightness.light,
           statusBarIconBrightness: Brightness.dark,
         ),
@@ -59,7 +59,7 @@ class AppTheme {
           color: Colors.black87,
         ),
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
+          statusBarColor: Colors.grey[200],
           statusBarBrightness: Brightness.light,
           statusBarIconBrightness: Brightness.dark,
         ),

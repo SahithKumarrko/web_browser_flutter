@@ -160,3 +160,28 @@ class SearchModel extends ChangeNotifier {
 }
 
 List<Search> history = [];
+
+
+
+
+
+if (history.length != 0) {
+              for (var element in history) {
+                // dev.log(
+                //     "PP :: ${Helper.htmlToString(element.title).trim().toLowerCase()} :: ${Helper.htmlToString(i[0].toString()).trim().toLowerCase()}");
+                if (Helper.htmlToString(element.title).trim().toLowerCase() ==
+                        ttt ||
+                    ttt == query.trim().toLowerCase()) {
+                  found = true;
+                  break;
+                }
+              }
+              // dev.log("PP :: $found");
+              if (!found) {
+                results.add(Search(title: i[0].toString()));
+                continue;
+              }
+            }
+            if (history.length == 0 && ttt != query.trim().toLowerCase())
+              results.add(Search(title: i[0].toString()));
+          }

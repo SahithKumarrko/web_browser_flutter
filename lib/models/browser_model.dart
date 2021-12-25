@@ -481,6 +481,7 @@ class BrowserModel extends ChangeNotifier {
   }
 
   addToHistory(Search search) {
+    search.hashValue = search.title.trim().toLowerCase().hashCode;
     if (search.title.isNotEmpty) {
       String date = DateFormat.yMMMd().format(DateTime.now());
       for (Search s in history[date] ?? []) {

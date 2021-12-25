@@ -84,8 +84,9 @@ class _SearchPageState extends State<SearchPage> {
 
     var webViewModel = Provider.of<WebViewModel>(context, listen: false);
     var _webViewController = webViewModel.webViewController;
-    var url = Uri.parse(qurl);
-    if (!url.scheme.startsWith("http") && !Util.isLocalizedContent(url)) {
+    var uurl = Helper.getTitle(qurl);
+    var url;
+    if (!uurl.startsWith("http") && !Util.isLocalizedContentString(uurl)) {
       url = Uri.parse(settings.searchEngine.searchUrl + qurl.trim());
     }
 
@@ -99,9 +100,9 @@ class _SearchPageState extends State<SearchPage> {
         }
         ww?.history?.list?.add(WebHistoryItem());
         ww?.curIndex = ww.curIndex + 1;
-        var ci = ww?.curIndex;
-        var whh = ww?.history;
-        print("HI-S :: $ci :: $whh");
+        // var ci = ww?.curIndex;
+        // var whh = ww?.history;
+        // print("HI-S :: $ci :: $whh");
         browserModel.save();
       }
     } else {
@@ -405,15 +406,8 @@ class _SearchPageState extends State<SearchPage> {
         debounceDelay: const Duration(milliseconds: 300),
         onQueryChanged: (q) async {
           if (isFocused) {
-            await model.onQueryChanged(
-                context,
-                ((q.toLowerCase().startsWith("https://") ||
-                            q.toLowerCase().startsWith("http://")) &&
-                        q.toLowerCase().contains(query.toLowerCase()))
-                    ? query
-                    : q,
-                searchController.query.isEmpty,
-                settings.searchEngine.url);
+            await model.onQueryChanged(context, searchController.query,
+                searchController.query.isEmpty, settings.searchEngine.url);
           }
           changed = true;
         },
@@ -438,9 +432,11 @@ class _SearchPageState extends State<SearchPage> {
         onSubmitted: (value) {
           FloatingSearchBar.of(context)?.close();
           Future.delayed(
-            const Duration(milliseconds: 200),
+            const Duration(milliseconds: 100),
             () => model.clear(),
           );
+          // model.clear();
+          print("Querying : $value");
           // searchController.query = Helper.htmlToString(value);
           // query = searchController.query;
           searchQuery(Helper.htmlToString(value));
@@ -493,8 +489,26 @@ class _SearchPageState extends State<SearchPage> {
       BuildContext context, Search search, BrowserSettings settings) {
     final model = Provider.of<SearchModel>(context, listen: false);
     String title = "";
+    String val = "";
+    String tit = search.title;
+    var scheme = tit.split("//");
+//     if (["http", "https", "file", "chrome", "data", "javascript", "about", "ws"]
+//         .contains(scheme)){
+//         String abc = tit.split("//").sublist(1).join("//").trim(),rep = "";
+//  if(abc.startsWith("<b>")){
+
+//  }
+//       val = scheme +
+//           ":" +
+//           "//" + rep + abc
+//           ;
+//
+    if (scheme.length >= 2) {
+      tit = scheme.first.trim() + "://" + scheme.sublist(1).join("//").trim();
+    }
+
     List<String> t1 = searchController.query.trim().split(" ");
-    List<String> t2 = Helper.htmlToString(search.title).split(" ");
+    List<String> t2 = tit.split(" ");
 
     int startInd = 0;
     if (t2.length != 0) {
@@ -509,13 +523,9 @@ class _SearchPageState extends State<SearchPage> {
       }
     }
     // dev.log("$t1 \n\n $t2\n$startInd");
-    title = search.title.split(" ").sublist(startInd).join(" ");
-    if (search.title
-        .split(" ")
-        .sublist(0, startInd)
-        .join(" ")
-        .trim()
-        .endsWith("<b>")) title = "<b>" + title;
+    title = tit.split(" ").sublist(startInd).join(" ");
+    if (tit.split(" ").sublist(0, startInd).join(" ").trim().endsWith("</b>"))
+      title = "<b>" + title;
     // if (startInd > 0 && title.length != 0) {
     //   title = "... " + title;
     // } else if (startInd > 0 && search.title.length != 0) {
@@ -524,7 +534,8 @@ class _SearchPageState extends State<SearchPage> {
     if (startInd > 0) {
       title = "... " + title;
     }
-    // dev.log("Final :: $title");
+
+    dev.log("Final :: ${searchController.query}  :: $title");
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -532,7 +543,7 @@ class _SearchPageState extends State<SearchPage> {
           onTap: () {
             FloatingSearchBar.of(context)?.close();
             Future.delayed(
-              const Duration(milliseconds: 200),
+              const Duration(milliseconds: 100),
               () => model.clear(),
             );
             // searchController.query = Helper.htmlToString(search.title);

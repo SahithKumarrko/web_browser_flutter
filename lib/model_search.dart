@@ -5,10 +5,12 @@ class Search {
   final Uri? url;
   final bool isHistory;
   final bool isIncognito;
-  const Search(
+  int hashValue;
+  Search(
       {required this.title,
       this.url,
       this.isHistory = false,
+      this.hashValue = -1,
       this.isIncognito = false});
 
   bool get hasSearch => title.isNotEmpty == true;
@@ -37,6 +39,7 @@ class Search {
       "title": Helper.htmlToString(title),
       "url": url?.toString(),
       "isIncognito": isIncognito,
+      // "hashValue": hashValue
     };
   }
 
@@ -54,7 +57,7 @@ class Search {
 
   @override
   String toString() =>
-      'Search(title: $title,url: $url, isIncognito: $isIncognito)';
+      'Search(title: $title,url: $url, isHistory: $isHistory,isIncognito: $isIncognito)';
 
   @override
   bool operator ==(Object o) {
@@ -64,5 +67,5 @@ class Search {
   }
 
   @override
-  int get hashCode => title.hashCode;
+  int get hashCode => title.trim().toLowerCase().hashCode;
 }

@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+void main(List<String> args) {
+  runApp(WebView2());
+}
+
 class WebView2 extends StatefulWidget {
   @override
   _WebView2State createState() => new _WebView2State();
@@ -199,116 +203,114 @@ class _WebView2State extends State<WebView2> {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Expanded(
-          child: Stack(
-            children: [
-              InAppWebView(
-                // key: webViewKey,
-                initialUrlRequest:
-                    URLRequest(url: Uri.parse("https://pub.dev/")),
-                initialOptions: options,
-                pullToRefreshController: pullToRefreshController,
-                onWebViewCreated: (controller) {
-                  mobileUA = options.crossPlatform.userAgent;
-                  _webViewController = controller;
-                },
+        Stack(
+          children: [
+            InAppWebView(
+              // key: webViewKey,
+              initialUrlRequest:
+                  URLRequest(url: Uri.parse("https://flutter.dev")),
+              initialOptions: options,
+              pullToRefreshController: pullToRefreshController,
+              onWebViewCreated: (controller) {
+                mobileUA = options.crossPlatform.userAgent;
+                _webViewController = controller;
+              },
 
-                onLoadStart: (controller, url) {
-                  setState(() {
-                    this.url = url.toString();
-                    urlController.text = this.url;
-                  });
-                  _addJs = false;
-                  _completedAddedJs = false;
-                  _isConsoleOpened = false;
-                  _webViewController?.scrollTo(x: 0, y: 0);
-                },
-                androidOnPermissionRequest:
-                    (controller, origin, resources) async {
-                  return PermissionRequestResponse(
-                      resources: resources,
-                      action: PermissionRequestResponseAction.GRANT);
-                },
-                shouldOverrideUrlLoading: (controller, navigationAction) async {
-                  var uri = navigationAction.request.url!;
+              onLoadStart: (controller, url) {
+                setState(() {
+                  this.url = url.toString();
+                  urlController.text = this.url;
+                });
+                _addJs = false;
+                _completedAddedJs = false;
+                _isConsoleOpened = false;
+                _webViewController?.scrollTo(x: 0, y: 0);
+              },
+              androidOnPermissionRequest:
+                  (controller, origin, resources) async {
+                return PermissionRequestResponse(
+                    resources: resources,
+                    action: PermissionRequestResponseAction.GRANT);
+              },
+              shouldOverrideUrlLoading: (controller, navigationAction) async {
+                var uri = navigationAction.request.url!;
 
-                  if (![
-                    "http",
-                    "https",
-                    "file",
-                    "chrome",
-                    "data",
-                    "javascript",
-                    "about"
-                  ].contains(uri.scheme)) {
-                    if (await canLaunch(url)) {
-                      // Launch the App
-                      await launch(
-                        url,
-                      );
-                      // and cancel the request
-                      return NavigationActionPolicy.CANCEL;
-                    }
+                if (![
+                  "http",
+                  "https",
+                  "file",
+                  "chrome",
+                  "data",
+                  "javascript",
+                  "about"
+                ].contains(uri.scheme)) {
+                  if (await canLaunch(url)) {
+                    // Launch the App
+                    await launch(
+                      url,
+                    );
+                    // and cancel the request
+                    return NavigationActionPolicy.CANCEL;
                   }
+                }
 
-                  return NavigationActionPolicy.ALLOW;
-                },
-                onLoadStop: (controller, url) async {
+                return NavigationActionPolicy.ALLOW;
+              },
+              onLoadStop: (controller, url) async {
+                pullToRefreshController.endRefreshing();
+                setState(() {
+                  this.url = url.toString();
+                  urlController.text = this.url;
+                });
+              },
+              onLoadError: (controller, url, code, message) {
+                pullToRefreshController.endRefreshing();
+              },
+              onProgressChanged: (controller, progress) {
+                controller.isLoading().then((value) => {
+                      if (value) {_addJs = true}
+                    });
+                if (_addJs && _completedAddedJs == false) {
+                  _completedAddedJs = true;
+
+                  _addJsToCurrentPage();
+                  // _webViewController?.injectJavascriptFileFromAsset(assetFilePath: assetFilePath)
+                  // b = document.evaluate("//h1[contains(@class,'title')]",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue
+
+                }
+                if (progress == 100) {
                   pullToRefreshController.endRefreshing();
-                  setState(() {
-                    this.url = url.toString();
-                    urlController.text = this.url;
-                  });
-                },
-                onLoadError: (controller, url, code, message) {
-                  pullToRefreshController.endRefreshing();
-                },
-                onProgressChanged: (controller, progress) {
-                  controller.isLoading().then((value) => {
-                        if (value) {_addJs = true}
-                      });
-                  if (_addJs && _completedAddedJs == false) {
-                    _completedAddedJs = true;
-
-                    _addJsToCurrentPage();
-                    // _webViewController?.injectJavascriptFileFromAsset(assetFilePath: assetFilePath)
-                    // b = document.evaluate("//h1[contains(@class,'title')]",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue
-
-                  }
-                  if (progress == 100) {
-                    pullToRefreshController.endRefreshing();
-                  }
-                  setState(() {
-                    this.progress = progress / 100;
-                    urlController.text = this.url;
-                  });
-                },
-                onUpdateVisitedHistory: (controller, url, androidIsReload) {
-                  setState(() {
-                    this.url = url.toString();
-                    urlController.text = this.url;
-                  });
-                },
-                onConsoleMessage: (controller, consoleMessage) {
-                  if (_isConsoleOpened &&
-                      (consoleMessage.message
-                              .toLowerCase()
-                              .contains("_handleDocClick") ||
-                          consoleMessage.message
-                              .toLowerCase()
-                              .contains("uncaught"))) {
-                    _addJsToCurrentPage();
-                    _webViewController?.evaluateJavascript(
-                        source:
-                            """document.removeEventListener('click',_handleDocClick, false);document.addEventListener('click',_handleDocClick, false);_disableInteraction(true)""");
-                  }
-                },
-              ),
-              progress < 1.0
-                  ? LinearProgressIndicator(value: progress)
-                  : Container(),
-            ],
-          ),
+                }
+                setState(() {
+                  this.progress = progress / 100;
+                  urlController.text = this.url;
+                });
+              },
+              onUpdateVisitedHistory: (controller, url, androidIsReload) {
+                setState(() {
+                  this.url = url.toString();
+                  urlController.text = this.url;
+                });
+              },
+              onConsoleMessage: (controller, consoleMessage) {
+                if (_isConsoleOpened &&
+                    (consoleMessage.message
+                            .toLowerCase()
+                            .contains("_handleDocClick") ||
+                        consoleMessage.message
+                            .toLowerCase()
+                            .contains("uncaught"))) {
+                  _addJsToCurrentPage();
+                  _webViewController?.evaluateJavascript(
+                      source:
+                          """document.removeEventListener('click',_handleDocClick, false);document.addEventListener('click',_handleDocClick, false);_disableInteraction(true)""");
+                }
+              },
+            ),
+            progress < 1.0
+                ? LinearProgressIndicator(value: progress)
+                : Container(),
+          ],
         ),
         ButtonBar(
           alignment: MainAxisAlignment.spaceEvenly,

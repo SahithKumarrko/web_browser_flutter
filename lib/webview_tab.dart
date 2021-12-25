@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -169,6 +170,8 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
     initialOptions.android.loadsImagesAutomatically = true;
     initialOptions.android.useOnRenderProcessGone = true;
 
+    initialOptions.crossPlatform.allowFileAccessFromFileURLs = true;
+    initialOptions.crossPlatform.allowUniversalAccessFromFileURLs = true;
     initialOptions.android.disableDefaultErrorPage = true;
     initialOptions.android.supportMultipleWindows = true;
     initialOptions.android.useHybridComposition = true;
@@ -431,7 +434,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
       },
       shouldOverrideUrlLoading: (controller, navigationAction) async {
         var url = navigationAction.request.url;
-
+        print("URL :: $url");
         if (url != null &&
             ![
               "http",
@@ -443,16 +446,36 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
               "about",
               "ws"
             ].contains(url.scheme)) {
-          if (await canLaunch(url.toString())) {
-            // Launch the App
-            await launch(
-              url.toString(),
-            );
-            // and cancel the request
+          print("URL if :: $url");
+          String val = url.toString();
+          // if (val.contains("://") && !val.startsWith("market")) {
+          //   var ind = val.indexOf("://");
+          //   val = val.substring(ind != -1 ? ind : 0);
+          //   print("VAL :: $val");
+          //   val = "quora" + val;
+          //   print("VAL 2 :: $val");
+          // }
+          print("LAUNCHING :: $val");
+          // if (await canLaunch(val)) {
+          //   // Launch the App
+          //   print("Able to launch");
+          //   await launch(
+          //     val,
+          //   );
+          //   print("launched");
+          //   // and cancel the request
+          //   return NavigationActionPolicy.CANCEL;
+          // }
+          if (Platform.isAndroid) {
+            print("LAUNCHING AI");
+            var intent =
+                AndroidIntent(action: 'action_view', data: Uri.encodeFull(val));
+            await intent.launch();
+            print("Launched");
             return NavigationActionPolicy.CANCEL;
           }
         }
-
+        print("ALLOWING");
         return NavigationActionPolicy.ALLOW;
       },
       onFindResultReceived: (wc, current, total, completed) {
@@ -615,11 +638,20 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         //     ?.getCopyBackForwardList());
         // browserModel.save();
       },
+      onJsPrompt: (_, _prompt) async {
+        return JsPromptResponse(handledByClient: true);
+      },
+      onJsAlert: (_, _prompt) async {
+        return JsAlertResponse(handledByClient: true);
+      },
+      onJsConfirm: (_, _prompt) async {
+        return JsConfirmResponse(handledByClient: true);
+      },
       onCreateWindow: (controller, createWindowRequest) async {
         var webViewTab = WebViewTab(
           key: GlobalKey(),
           webViewModel: WebViewModel(
-              url: Uri.parse("about:blank"),
+              url: createWindowRequest.request.url,
               windowId: createWindowRequest.windowId),
         );
 

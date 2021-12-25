@@ -52,7 +52,8 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-               <intent-filter>
+
+             <!--   <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -60,16 +61,22 @@
                 <data android:scheme="https" />
                 <data android:scheme="about" />
                 <data android:scheme="javascript" />
-            </intent-filter>
+
+            </intent-filter> -->
             <!--  For these schemes where any of these particular MIME types
                   have been supplied, we are a good candidate. -->
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="http" />
                 <data android:scheme="https" />
                 <data android:scheme="inline" />
+                
+                <data android:scheme="about" />
+                <data android:scheme="javascript" />
+                
+                <data android:scheme="intent" />
                 <data android:mimeType="text/html"/>
                 <data android:mimeType="text/plain"/>
                 <data android:mimeType="application/xhtml+xml"/>
@@ -89,6 +96,23 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
             </intent-filter>
+
+            <!-- If your app makes calls -->
+  <intent-filter>
+    <action android:name="android.intent.action.DIAL" />
+    <data android:scheme="tel" />
+  </intent-filter>
+  <!-- If your sends SMS messages -->
+  <intent-filter>
+    <action android:name="android.intent.action.SENDTO" />
+    <data android:scheme="smsto" />
+  </intent-filter>
+  <!-- If your app sends emails -->
+  <intent-filter>
+    <action android:name="android.intent.action.SEND" />
+    <data android:scheme="mailto" />
+    <data android:mimeType="*/*" />
+  </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

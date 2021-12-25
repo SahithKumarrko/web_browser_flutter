@@ -68,7 +68,7 @@ class SearchModel extends ChangeNotifier {
           for (var i = webHistory.length; i > 0; i--) {
             Search h = webHistory.elementAt(i - 1);
             if (h.title.length != 0) {
-              String hTitle = Helper.getTitle(h.title);
+              String hTitle = Helper.getTitle(h.title).trim();
               List<String> lq = query.split(" ");
               bool y = false, y2 = false;
               bool isHome =
@@ -83,16 +83,20 @@ class SearchModel extends ChangeNotifier {
                 if (h.url!.toString().toLowerCase().contains(qq) && !isHome)
                   y2 = true;
               }
-              // dev.log("L1 :: $query :: ${h.url} :: $isHome :: $y :: $y2");
-              if (y || y2) {
-                history.add(new Search(
+              // dev.log(
+              //     "L1 :: $query :: ${h.url} :: $isHome :: $startPage :: $y :: $y2");
+              if ((y || y2) && hTitle.replaceAll(query, "").trim() != "") {
+                history.add(Search(
                     title: hTitle,
-                    url: (isHome && !startPage) ? null : h.url,
-                    isHistory: true));
+                    url: (isHome) ? null : h.url,
+                    isHistory: true,
+                    hashValue: hTitle.trim().toLowerCase().hashCode));
+                // dev.log("L1 :: ${history.last}");
               }
             }
           }
           history = history.toSet().toList();
+
           var gurl =
               "https://www.google.com/complete/search?client=hp&hl=en&sugexp=msedr&gs_rn=62&gs_ri=hp&cp=1&gs_id=9c&q=$query&xhr=t";
           final response = await http.get(Uri.parse(gurl));
@@ -100,28 +104,32 @@ class SearchModel extends ChangeNotifier {
           List<Search> results = [];
           var r = body[1];
           // dev.log("$r");
+          int qhv = query.trim().toLowerCase().hashCode;
           for (var i in r) {
-            var ttt = Helper.htmlToString(i[0].toString()).trim().toLowerCase();
-            bool found = false;
-            if (history.length != 0) {
-              for (var element in history) {
-                // dev.log(
-                //     "PP :: ${Helper.htmlToString(element.title).trim().toLowerCase()} :: ${Helper.htmlToString(i[0].toString()).trim().toLowerCase()}");
-                if (Helper.htmlToString(element.title).trim().toLowerCase() ==
-                        ttt ||
-                    ttt == query.trim().toLowerCase()) {
-                  found = true;
-                  break;
+            var tit = Helper.htmlToString(i[0].toString()).trim().toLowerCase();
+            if (tit.replaceAll(query, "").trim() != "") {
+              var ttt = tit.hashCode;
+              bool found = false;
+              if (history.length != 0) {
+                for (var element in history) {
+                  // dev.log("$query :: $qhv ::  ${element.hashValue} :: $ttt");
+                  // dev.log(
+                  //     "PP :: ${Helper.htmlToString(element.title).trim().toLowerCase()} :: ${Helper.htmlToString(i[0].toString()).trim().toLowerCase()}");
+                  if (element.hashValue != -1 &&
+                      (element.hashValue == ttt || ttt == qhv)) {
+                    found = true;
+                    break;
+                  }
+                }
+                // dev.log("PP :: $found");
+                if (!found) {
+                  results.add(Search(title: i[0].toString()));
+                  continue;
                 }
               }
-              // dev.log("PP :: $found");
-              if (!found) {
+              if (history.length == 0 && ttt != query.trim().toLowerCase())
                 results.add(Search(title: i[0].toString()));
-                continue;
-              }
             }
-            if (history.length == 0 && ttt != query.trim().toLowerCase())
-              results.add(Search(title: i[0].toString()));
           }
 
           // dev.log("$results");
@@ -133,7 +141,7 @@ class SearchModel extends ChangeNotifier {
           history = history.toSet().toList();
         }
         _suggestions = history;
-        dev.log("${history.length}");
+        // dev.log("L1 :: $history");
       } catch (e) {
         // print("error : " + e.toString());
       }

@@ -26,7 +26,12 @@ class Helper {
             : t.length > 1
                 ? t.length - 1
                 : 1);
-    return t.join("-").trim();
+    String res = t.join("-").trim();
+    String scheme = res.split("//").first.trim().toLowerCase();
+    if (["http", "https", "file", "chrome", "data", "javascript", "about", "ws"]
+        .contains(scheme))
+      res = scheme + ":" + "//" + res.split("//").sublist(1).join("//").trim();
+    return res;
   }
 
   static String htmlToString(String htmlString) {
@@ -34,6 +39,22 @@ class Helper {
     final String parsedString =
         parse(document.body?.text).documentElement!.text;
     return parsedString;
+  }
+
+  static int polynomialRollingHash(String str) {
+    // P and M
+    int p = 293;
+    int m = (1e9 + 9).toInt();
+    int powerOfP = 1;
+    int hashVal = 0;
+
+    // Loop to calculate the hash value
+    // by iterating over the elements of String
+    for (int i = 0; i < str.length; i++) {
+      hashVal = (hashVal + (int.parse(str[i]) + 1) * powerOfP) % m;
+      powerOfP = (powerOfP * p) % m;
+    }
+    return hashVal;
   }
 
   static void share(BuildContext context) {
