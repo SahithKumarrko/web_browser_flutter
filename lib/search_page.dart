@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/favorites.dart';
 import 'package:webpage_dev_console/helpers.dart';
-import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
@@ -88,8 +88,10 @@ class _SearchPageState extends State<SearchPage> {
     var url;
     if (!uurl.startsWith("http") && !Util.isLocalizedContentString(uurl)) {
       url = Uri.parse(settings.searchEngine.searchUrl + qurl.trim());
+    } else {
+      url = Uri.parse(qurl);
     }
-
+    print("Searching for URL :: $url");
     if (_webViewController != null) {
       _webViewController.loadUrl(urlRequest: URLRequest(url: url));
       var ww = browserModel.getCurrentTab()?.webViewModel;

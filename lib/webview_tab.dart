@@ -12,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/main.dart';
-import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/findResults.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/util.dart';
@@ -446,7 +446,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
               "javascript",
               "about",
               "ws"
-            ].contains(url.scheme)) {
+            ].contains(url.scheme.toLowerCase())) {
           print("URL if :: $url");
           String val = url.toString();
           // if (val.contains("://") && !val.startsWith("market")) {

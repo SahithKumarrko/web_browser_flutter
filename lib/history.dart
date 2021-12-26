@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
-import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';

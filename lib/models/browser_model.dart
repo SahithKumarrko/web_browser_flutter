@@ -14,7 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
-import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
 import 'package:webpage_dev_console/models/web_archive_model.dart';

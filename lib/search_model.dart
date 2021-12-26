@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/helpers.dart';
-import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
 

@@ -24,7 +24,7 @@ import 'package:webpage_dev_console/favorites.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/history.dart';
 import 'package:webpage_dev_console/main.dart';
-import 'package:webpage_dev_console/model_search.dart';
+import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
 import 'package:webpage_dev_console/models/findResults.dart';
