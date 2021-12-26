@@ -435,6 +435,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
       shouldOverrideUrlLoading: (controller, navigationAction) async {
         var url = navigationAction.request.url;
         print("URL :: $url");
+        NavigationActionPolicy policy = NavigationActionPolicy.ALLOW;
         if (url != null &&
             ![
               "http",
@@ -466,17 +467,22 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
           //   // and cancel the request
           //   return NavigationActionPolicy.CANCEL;
           // }
+          policy = NavigationActionPolicy.CANCEL;
           if (Platform.isAndroid) {
             print("LAUNCHING AI");
-            var intent =
-                AndroidIntent(action: 'action_view', data: Uri.encodeFull(val));
-            await intent.launch();
+            try {
+              var intent = AndroidIntent(
+                  action: 'action_view', data: Uri.encodeFull(val));
+              await intent.launch();
+            } catch (exp) {
+              print("error : while launching intent :: $exp");
+            }
+
             print("Launched");
-            return NavigationActionPolicy.CANCEL;
           }
         }
-        print("ALLOWING");
-        return NavigationActionPolicy.ALLOW;
+        print("ALLOWING :: $url :: $policy");
+        return policy;
       },
       onFindResultReceived: (wc, current, total, completed) {
         if (completed) {
