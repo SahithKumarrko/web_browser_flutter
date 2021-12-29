@@ -631,8 +631,11 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         }
         if (widget.webViewModel.title != null) {
           browserModel.addToHistory(Search(
+              date: "",
               title: widget.webViewModel.title.toString().trim(),
-              url: widget.webViewModel.url,
+              url: widget.webViewModel.url == null
+                  ? ""
+                  : widget.webViewModel.url.toString(),
               isHistory: true,
               isIncognito: browserModel.isIncognito ||
                   widget.webViewModel.isIncognitoMode));

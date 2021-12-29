@@ -160,6 +160,7 @@ class Init {
     await Future.delayed(const Duration(seconds: 1), () async {
       var browserModel = Provider.of<BrowserModel>(context, listen: false);
       await browserModel.restore();
+      await browserModel.initializeStore();
     });
   }
 }

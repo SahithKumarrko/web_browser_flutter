@@ -292,8 +292,11 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                 if (!isLoading) {
                   await wc?.reload();
                   browserModel.addToHistory(Search(
+                      date: "",
                       title: webViewModel.title.toString(),
-                      url: webViewModel.url,
+                      url: webViewModel.url == null
+                          ? ""
+                          : webViewModel.url.toString(),
                       isHistory: true,
                       isIncognito: browserModel.isIncognito ||
                           webViewModel.isIncognitoMode));

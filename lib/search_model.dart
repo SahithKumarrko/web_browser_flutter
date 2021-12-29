@@ -8,6 +8,7 @@ import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
+import 'package:webpage_dev_console/objectbox.g.dart';
 
 class SearchModel extends ChangeNotifier {
   bool _isLoading = false;
@@ -39,24 +40,29 @@ class SearchModel extends ChangeNotifier {
 
   Future<void> onQueryChanged(
       BuildContext context, String query, bool startPage, String url) async {
-    // if (query == _query && _query.isNotEmpty) return;
-
     _isLoading = true;
     notifyListeners();
     query = query.trim();
 
     if (query.isNotEmpty) {
       var browserModel = Provider.of<BrowserModel>(context, listen: false);
-      var sortedKeys = browserModel.history.keys.toList().reversed;
-      List<Search> webHistory = [];
-      for (String key in sortedKeys) {
-        List<Search> res = browserModel.history[key] ?? [];
-        webHistory.addAll(res);
-      }
+      List<Search> webHistory = browserModel.searchbox
+              ?.query(Search_.title
+                  .contains(query, caseSensitive: false)
+                  .or(Search_.url.contains(query, caseSensitive: false)))
+              .build()
+              .find()
+              .reversed
+              .toList() ??
+          [];
+
       for (String key in browserModel.favorites.keys.toList().reversed) {
         List<FavoriteModel> res = browserModel.favorites[key] ?? [];
         for (FavoriteModel i in res) {
-          webHistory.add(Search(title: i.title.toString(), url: i.url));
+          webHistory.add(Search(
+              date: key,
+              title: i.title.toString(),
+              url: i.url == null ? "" : i.url.toString()));
         }
       }
 
@@ -68,31 +74,14 @@ class SearchModel extends ChangeNotifier {
           for (var i = webHistory.length; i > 0; i--) {
             Search h = webHistory.elementAt(i - 1);
             if (h.title.length != 0) {
-              String hTitle = Helper.getTitle(h.title).trim();
-              List<String> lq = query.split(" ");
-              bool y = false, y2 = false;
-              bool isHome =
-                  h.url.toString().toLowerCase().startsWith(url.toLowerCase());
-
-              for (String qq in lq) {
-                if ((hTitle.toLowerCase().contains(qq) || qq.isEmpty) &&
-                    !hTitle
-                        .toString()
-                        .toLowerCase()
-                        .startsWith(url.toLowerCase())) y = true;
-                if (h.url!.toString().toLowerCase().contains(qq) && !isHome)
-                  y2 = true;
-              }
-              // dev.log(
-              //     "L1 :: $query :: ${h.url} :: $isHome :: $startPage :: $y :: $y2");
-              if ((y || y2) && hTitle.replaceAll(query, "").trim() != "") {
-                history.add(Search(
-                    title: hTitle,
-                    url: (isHome) ? null : h.url,
-                    isHistory: true,
-                    hashValue: hTitle.trim().toLowerCase().hashCode));
-                // dev.log("L1 :: ${history.last}");
-              }
+              history.add(Search(
+                  date: "",
+                  title: h.title,
+                  url: h.url.toLowerCase().contains(url.toLowerCase())
+                      ? ""
+                      : h.url,
+                  isHistory: true,
+                  hashValue: h.title.trim().toLowerCase().hashCode));
             }
           }
           history = history.toSet().toList();
@@ -103,7 +92,6 @@ class SearchModel extends ChangeNotifier {
           final body = json.decode(utf8.decode(response.bodyBytes));
           List<Search> results = [];
           var r = body[1];
-          // dev.log("$r");
           int qhv = query.trim().toLowerCase().hashCode;
           for (var i in r) {
             var tit = Helper.htmlToString(i[0].toString()).trim().toLowerCase();
@@ -112,27 +100,22 @@ class SearchModel extends ChangeNotifier {
               bool found = false;
               if (history.length != 0) {
                 for (var element in history) {
-                  // dev.log("$query :: $qhv ::  ${element.hashValue} :: $ttt");
-                  // dev.log(
-                  //     "PP :: ${Helper.htmlToString(element.title).trim().toLowerCase()} :: ${Helper.htmlToString(i[0].toString()).trim().toLowerCase()}");
                   if (element.hashValue != -1 &&
                       (element.hashValue == ttt || ttt == qhv)) {
                     found = true;
                     break;
                   }
                 }
-                // dev.log("PP :: $found");
                 if (!found) {
-                  results.add(Search(title: i[0].toString()));
+                  results
+                      .add(Search(date: "", url: "", title: i[0].toString()));
                   continue;
                 }
               }
-              if (history.length == 0 && ttt != query.trim().toLowerCase())
-                results.add(Search(title: i[0].toString()));
+              if (history.isEmpty && ttt != query.trim().toLowerCase().hashCode)
+                results.add(Search(date: "", url: "", title: i[0].toString()));
             }
           }
-
-          // dev.log("$results");
 
           var hl = history.length;
           history = history.sublist(0, hl >= 4 ? 4 : hl);
@@ -141,9 +124,8 @@ class SearchModel extends ChangeNotifier {
           history = history.toSet().toList();
         }
         _suggestions = history;
-        // dev.log("L1 :: $history");
       } catch (e) {
-        // print("error : " + e.toString());
+        print("error : " + e.toString());
       }
     } else {
       _suggestions = [];

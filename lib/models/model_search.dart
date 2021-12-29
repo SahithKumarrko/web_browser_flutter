@@ -1,22 +1,31 @@
+import 'package:objectbox/objectbox.dart';
 import 'package:webpage_dev_console/helpers.dart';
 
+@Entity()
 class Search {
+  @Id()
+  int id = 0;
+  String date;
   final String title;
-  final Uri? url;
+  final String url;
   final bool isHistory;
   final bool isIncognito;
   int hashValue;
   Search(
-      {required this.title,
-      this.url,
+      {required this.date,
+      required this.title,
+      required this.url,
       this.isHistory = false,
       this.hashValue = -1,
       this.isIncognito = false});
 
   bool get hasSearch => title.isNotEmpty == true;
 
+  set searchDate(String d) => date = d;
+
   factory Search.fromJson(Map<String, dynamic> props) {
     return Search(
+      date: props["date"],
       title: props["title"],
       url: props["url"],
       isHistory: props["isHistory"],
@@ -27,8 +36,9 @@ class Search {
   static Search? fromMap(Map<String, dynamic>? map) {
     return map != null
         ? Search(
+            date: map["date"],
             title: map["title"],
-            url: Uri.parse(map["url"]),
+            url: map["url"],
             isHistory: true,
             isIncognito: map["isIncognito"])
         : null;
@@ -36,10 +46,10 @@ class Search {
 
   Map<String, dynamic> toMap() {
     return {
+      "date": date,
       "title": Helper.htmlToString(title),
-      "url": url?.toString(),
+      "url": url.toString(),
       "isIncognito": isIncognito,
-      // "hashValue": hashValue
     };
   }
 
@@ -57,7 +67,7 @@ class Search {
 
   @override
   String toString() =>
-      'Search(title: $title,url: $url, isHistory: $isHistory,isIncognito: $isIncognito)';
+      'Search(date: $date, title: $title,url: $url, isHistory: $isHistory,isIncognito: $isIncognito)';
 
   @override
   bool operator ==(Object o) {

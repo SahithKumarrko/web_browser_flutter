@@ -78,7 +78,6 @@ class _SearchPageState extends State<SearchPage> {
   Color cb = Colors.black87;
 
   void searchQuery(String qurl) {
-    // searchController.close();
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
     var settings = browserModel.getSettings();
 
@@ -102,9 +101,6 @@ class _SearchPageState extends State<SearchPage> {
         }
         ww?.history?.list?.add(WebHistoryItem());
         ww?.curIndex = ww.curIndex + 1;
-        // var ci = ww?.curIndex;
-        // var whh = ww?.history;
-        // print("HI-S :: $ci :: $whh");
         browserModel.save();
       }
     } else {
@@ -115,28 +111,22 @@ class _SearchPageState extends State<SearchPage> {
 
   void getCopiedContents() async {
     ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
-    print("CD :: $data");
+
     _validURL = false;
 
-    // try {
-    //   _validURL = Uri.parse(data?.text.toString() ?? "").isAbsolute;
-    // } catch (e) {}
     String cpdata = data?.text.toString() ?? "";
     cpdata = cpdata.trim();
     if (cpdata.toLowerCase().startsWith(RegExp("http[s]{0,1}:[/]{2}"))) {
       _validURL = true;
     }
-    print("VURL :: $_validURL");
     if (_validURL)
       setState(() {
         copiedContents = data?.text.toString() ?? "";
 
-        print("copied");
+        print("copied :: $copiedContents");
       });
     else
       copiedContents = "";
-
-    print("copied contents :: $copiedContents");
   }
 
   void handleSearch(String q) {
@@ -296,8 +286,6 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                           ),
                         ),
-                        //   ],
-                        // ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
@@ -317,9 +305,7 @@ class _SearchPageState extends State<SearchPage> {
                               onPressed: () {
                                 Clipboard.setData(ClipboardData(
                                     text: _webViewModel.url.toString()));
-                                // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                //   content: Text("Copied!"),
-                                // ));
+
                                 Helper.showBasicFlash(
                                     duration: Duration(seconds: 2),
                                     msg: "Copied!",
@@ -427,7 +413,6 @@ class _SearchPageState extends State<SearchPage> {
           } else {
             Navigator.pop(context);
           }
-          // var title = await _webViewController!.getTitle();
 
           focusChanged();
         },
@@ -437,10 +422,6 @@ class _SearchPageState extends State<SearchPage> {
             const Duration(milliseconds: 100),
             () => model.clear(),
           );
-          // model.clear();
-          print("Querying : $value");
-          // searchController.query = Helper.htmlToString(value);
-          // query = searchController.query;
           searchQuery(Helper.htmlToString(value));
           Navigator.pop(context);
         },
@@ -494,17 +475,7 @@ class _SearchPageState extends State<SearchPage> {
     String val = "";
     String tit = search.title;
     var scheme = tit.split("//");
-//     if (["http", "https", "file", "chrome", "data", "javascript", "about", "ws"]
-//         .contains(scheme)){
-//         String abc = tit.split("//").sublist(1).join("//").trim(),rep = "";
-//  if(abc.startsWith("<b>")){
 
-//  }
-//       val = scheme +
-//           ":" +
-//           "//" + rep + abc
-//           ;
-//
     if (scheme.length >= 2) {
       tit = scheme.first.trim() + "://" + scheme.sublist(1).join("//").trim();
     }
@@ -514,30 +485,21 @@ class _SearchPageState extends State<SearchPage> {
 
     int startInd = 0;
     if (t2.length != 0) {
-      // dev.log("Getting content");
       for (var i = 0; i < t2.length && i < t1.length; i++) {
         if (t1.elementAt(i) != t2.elementAt(i)) {
-          // dev.log("breaking at $i");
-
           break;
         } else
           startInd = i + 1;
       }
     }
-    // dev.log("$t1 \n\n $t2\n$startInd");
     title = tit.split(" ").sublist(startInd).join(" ");
     if (tit.split(" ").sublist(0, startInd).join(" ").trim().endsWith("</b>"))
       title = "<b>" + title;
-    // if (startInd > 0 && title.length != 0) {
-    //   title = "... " + title;
-    // } else if (startInd > 0 && search.title.length != 0) {
-    //   return SizedBox();
-    // }
+
     if (startInd > 0) {
       title = "... " + title;
     }
 
-    dev.log("Final :: ${searchController.query}  :: $title");
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -548,17 +510,15 @@ class _SearchPageState extends State<SearchPage> {
               const Duration(milliseconds: 100),
               () => model.clear(),
             );
-            // searchController.query = Helper.htmlToString(search.title);
-            // query = searchController.query;
             searchQuery(Helper.htmlToString(
-                search.url != null ? search.url.toString() : search.title));
+                search.url != "" ? search.url.toString() : search.title));
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                search.url != null
+                search.url != ""
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -566,9 +526,8 @@ class _SearchPageState extends State<SearchPage> {
                               url: search.url
                                       .toString()
                                       .startsWith(RegExp("http[s]{0,1}:[/]{2}"))
-                                  ? Uri.parse((search.url?.origin ??
-                                          settings.searchEngine.url) +
-                                      "/favicon.ico")
+                                  ? Helper.getFavIconUrl(
+                                      search.url, settings.searchEngine.url)
                                   : null,
                               maxWidth: 24.0,
                               height: 24.0)
@@ -599,10 +558,10 @@ class _SearchPageState extends State<SearchPage> {
                         data: title,
                         style: {
                           "body": Style(
-                              fontSize: search.url != null
+                              fontSize: search.url != ""
                                   ? FontSize(16)
                                   : FontSize(18),
-                              fontWeight: search.url != null
+                              fontWeight: search.url != ""
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                               fontFamily: Theme.of(context)
@@ -613,7 +572,7 @@ class _SearchPageState extends State<SearchPage> {
                               textOverflow: TextOverflow.ellipsis),
                         },
                       ),
-                      search.url != null
+                      search.url != ""
                           ? Padding(
                               padding: const EdgeInsets.only(left: 8.0),
                               child: Text(search.url.toString(),
@@ -627,14 +586,12 @@ class _SearchPageState extends State<SearchPage> {
                     ],
                   ),
                 ),
-                //   ],
-                // ),
                 SizedBox(
                   width: 24,
                   child: IconButton(
                     onPressed: () {
-                      searchController.query = search.url != null
-                          ? search.url!.toString()
+                      searchController.query = search.url != ""
+                          ? search.url
                           : Helper.htmlToString(search.title) + " ";
                     },
                     icon: Icon(

@@ -41,6 +41,12 @@ class Helper {
     return parsedString;
   }
 
+  static getFavIconUrl(String url, String secondUrl) {
+    url = url.trim();
+    var u = Uri.parse(url);
+    return Uri.parse((url == "" ? secondUrl : u.origin) + "/favicon.ico");
+  }
+
   static int polynomialRollingHash(String str) {
     // P and M
     int p = 293;

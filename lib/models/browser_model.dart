@@ -5,12 +5,11 @@ import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
@@ -19,6 +18,7 @@ import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
 import 'package:webpage_dev_console/models/web_archive_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
+import 'package:webpage_dev_console/objectbox.g.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
 
 import 'search_engine_model.dart';
@@ -87,12 +87,23 @@ class BrowserModel extends ChangeNotifier {
   bool _showTabScroller = false;
   LinkedHashMap<String, List<TaskInfo>> _tasks = LinkedHashMap();
 
+  Store? _store;
+  Box<Search>? searchbox;
+
   bool loadingVisible = false;
   late BuildContext loadctx;
 
   bool _isIncognito = false;
 
   bool get showTabScroller => _showTabScroller;
+
+  initializeStore() async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
+    searchbox = _store?.box<Search>();
+  }
+
+  Store? get searchStore => _store;
 
   set showTabScroller(bool value) {
     if (value != _showTabScroller) {
@@ -124,10 +135,6 @@ class BrowserModel extends ChangeNotifier {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CircularProgressIndicator(),
-          // Container(
-          //   margin: EdgeInsets.only(left: 18),
-          //   child: Text("Loading..."),
-          // ),
         ],
       ),
     );
@@ -154,16 +161,6 @@ class BrowserModel extends ChangeNotifier {
 
   bool get areTasksNotEmpty => _tasks.length != 0;
 
-  // updateDownloadTask(String? id, DownloadTaskStatus? status, int? progress) {
-  //   if (_tasks != null && _tasks!.isNotEmpty) {
-  //     final task = _tasks!.firstWhere((_task) => _task.taskId == id);
-
-  //     task.status = status;
-  //     task.progress = progress;
-  //     // notifyListeners();
-  //   }
-  // }
-
   LinkedHashMap<String, List<TaskInfo>> get tasks => _tasks;
 
   BrowserModel(currentWebViewModel) {
@@ -175,9 +172,6 @@ class BrowserModel extends ChangeNotifier {
 
   UnmodifiableListView<WebViewTab> get incognitowebViewTabs =>
       UnmodifiableListView(_incognitowebViewTabs);
-
-  // UnmodifiableListView<FavoriteModel> get favorites =>
-  //     UnmodifiableListView(_favorites);
 
   UnmodifiableMapView<String, WebArchiveModel> get webArchives =>
       UnmodifiableMapView(_webArchives);
@@ -220,9 +214,6 @@ class BrowserModel extends ChangeNotifier {
       _currentWebViewModel.updateWithValue(webViewTabs.last.webViewModel);
     }
 
-    // if (_incogcurrentTabIndex >= 0) {
-    //   _currentWebViewModel.updateWithValue(webViewTabs.last.webViewModel);
-    // }
     notifyListeners();
   }
 
@@ -237,20 +228,6 @@ class BrowserModel extends ChangeNotifier {
   }
 
   void closeTab(int index) {
-    // if (_webViewTabs.length == 1) {
-    //   print("Changing");
-    //   var settings = getSettings();
-
-    //   addTab(
-    //       WebViewTab(
-    //         key: GlobalKey(),
-    //         webViewModel:
-    //             WebViewModel(url: Uri.parse(settings.searchEngine.searchUrl)),
-    //       ),
-    //       false);
-    //   // return SizedBox.shrink();
-    //   print("yup");
-    // }
     _webViewTabs.removeAt(index);
     if (_currentTabIndex == 0 && _webViewTabs.length > 0)
       _currentTabIndex = 0;
@@ -271,20 +248,6 @@ class BrowserModel extends ChangeNotifier {
   }
 
   void closeIncognitoTab(int index) {
-    // if (_webViewTabs.length == 1) {
-    //   print("Changing");
-    //   var settings = getSettings();
-
-    //   addTab(
-    //       WebViewTab(
-    //         key: GlobalKey(),
-    //         webViewModel:
-    //             WebViewModel(url: Uri.parse(settings.searchEngine.searchUrl)),
-    //       ),
-    //       false);
-    //   // return SizedBox.shrink();
-    //   print("yup");
-    // }
     print("Closing incognito tab");
     _incognitowebViewTabs.removeAt(index);
     if (_incogcurrentTabIndex == 0 && _incognitowebViewTabs.length > 0)
@@ -401,16 +364,8 @@ class BrowserModel extends ChangeNotifier {
     }
   }
 
-  // void addFavorites(List<FavoriteModel> favorites) {
-  //   _favorites.addAll(favorites);
-
-  //   // notifyListeners();
-  // }
-
   void clearFavorites() {
     favorites.clear();
-
-    // notifyListeners();
   }
 
   void removeFavorite(FavoriteModel favorite) {
@@ -462,8 +417,6 @@ class BrowserModel extends ChangeNotifier {
         }
       }
     });
-
-    // notifyListeners();
   }
 
   BrowserSettings getSettings() {
@@ -472,30 +425,29 @@ class BrowserModel extends ChangeNotifier {
 
   void updateSettings(BrowserSettings settings) {
     _settings = settings;
-
-    // notifyListeners();
   }
 
   void setCurrentWebViewModel(WebViewModel webViewModel) {
     _currentWebViewModel = webViewModel;
   }
 
-  addToHistory(Search search) {
-    search.hashValue = search.title.trim().toLowerCase().hashCode;
+  addToHistory(Search search) async {
     if (search.title.isNotEmpty) {
       String date = DateFormat.yMMMd().format(DateTime.now());
-      for (Search s in history[date] ?? []) {
-        if (s.title.compareTo(search.title) == 0 ||
-            s.url.toString().compareTo(search.url.toString()) == 0) {
-          history[date]?.remove(s);
+      search.date = date;
+      if (_store == null) {
+        await initializeStore();
+      }
+      _store
+          ?.box<Search>()
+          .query(Search_.date
+              .equals(date)
+              .and(Search_.title.equals(search.title))
+              .or(Search_.url.equals(search.url)))
+          .build()
+          .remove();
 
-          break;
-        }
-      }
-      if (!history.containsKey(date)) {
-        history[date] = [];
-      }
-      history[date]?.insert(0, search);
+      _store?.box<Search>().put(search);
     }
   }
 
@@ -531,35 +483,15 @@ class BrowserModel extends ChangeNotifier {
       return;
     }
 
-    // this.clearFavorites();
     this.closeAllTabs();
     this.clearWebArchives();
-
-    // List<Map<String, dynamic>> favoritesList =
-    //     browserData["favorites"]?.cast<Map<String, dynamic>>() ?? [];
-    // List<FavoriteModel> favorites =
-    //     favoritesList.map((e) => FavoriteModel.fromMap(e)!).toList();
-
-    // Map<String, dynamic> webArchivesMap =
-    //     browserData["webArchives"]?.cast<String, dynamic>() ?? {};
-    // Map<String, WebArchiveModel> webArchives = webArchivesMap.map(
-    //     (key, value) => MapEntry(
-    //         key, WebArchiveModel.fromMap(value?.cast<String, dynamic>())!));
 
     BrowserSettings settings = BrowserSettings.fromMap(
             browserData["settings"]?.cast<String, dynamic>()) ??
         BrowserSettings();
-    Map<String, dynamic> historyList =
-        browserData["history"]?.cast<String, dynamic>() ?? {};
-    // this.history = historyList.map((e) => Search.fromMap(e)!).toList();
-    for (String key in historyList.keys) {
-      List<dynamic> values = historyList[key] ?? [];
-      this.history[key] = values.map((e) => Search.fromMap(e)!).toList();
-    }
 
     Map<String, dynamic> favList =
         browserData["favorites"]?.cast<String, dynamic>() ?? {};
-    // this.history = historyList.map((e) => Search.fromMap(e)!).toList();
     for (String key in favList.keys) {
       List<dynamic> values = favList[key] ?? [];
       this.favorites[key] =
@@ -568,7 +500,6 @@ class BrowserModel extends ChangeNotifier {
 
     Map<String, dynamic> downloadList =
         browserData["downloads"]?.cast<String, dynamic>() ?? {};
-    // this.history = historyList.map((e) => Search.fromMap(e)!).toList();
     for (String key in downloadList.keys) {
       List<dynamic> values = downloadList[key] ?? [];
       this._tasks[key] = values.map((e) => TaskInfo.fromMap(e)!).toList();
@@ -584,14 +515,11 @@ class BrowserModel extends ChangeNotifier {
     webViewTabs.sort(
         (a, b) => a.webViewModel.tabIndex!.compareTo(b.webViewModel.tabIndex!));
 
-    // this.addFavorites(favorites);
-    // this.addWebArchives(webArchives);
     this.updateSettings(settings);
     this.addTabs(webViewTabs);
-    // dev.log("DAta :::::  ${browserData["incognitowebViewTabs"]}");
     List<Map<String, dynamic>> incogwebViewTabList =
         browserData["incognitowebViewTabs"]?.cast<Map<String, dynamic>>() ?? [];
-    // dev.log("CCCCCCCC :::::::  $incogwebViewTabList");
+
     try {
       List<WebViewTab> inwebViewTabs = incogwebViewTabList
           .map((e) => WebViewTab(
@@ -599,11 +527,9 @@ class BrowserModel extends ChangeNotifier {
                 webViewModel: WebViewModel.fromMap(e)!,
               ))
           .toList();
-      // print("got inco data");
       inwebViewTabs.sort((a, b) =>
           a.webViewModel.tabIndex!.compareTo(b.webViewModel.tabIndex!));
-      // print("completed sorting");
-      // dev.log("TABS :::::::::::   $inwebViewTabs");
+
       this.addIncognitoTabs(inwebViewTabs);
     } catch (e) {
       dev.log("ERROR ::: $e");
@@ -617,10 +543,6 @@ class BrowserModel extends ChangeNotifier {
     currentTabIndex = min(currentTabIndex, this._webViewTabs.length - 1);
 
     if (currentTabIndex >= 0) this.showTab(currentTabIndex);
-    // if (initialRestore) {
-    //   var hm = Provider.of<HelperModel>(context, listen: false);
-    //   Future.delayed(Duration(seconds: 5), () => hm.restored = true);
-    // }
   }
 
   Map<String, dynamic> toMap() {
@@ -629,13 +551,10 @@ class BrowserModel extends ChangeNotifier {
       "webViewTabs": _webViewTabs.map((e) => e.webViewModel.toMap()).toList(),
       "incognitowebViewTabs":
           _incognitowebViewTabs.map((e) => e.webViewModel.toMap()).toList(),
-      // "webArchives":
-      //     _webArchives.map((key, value) => MapEntry(key, value.toMap())),
       "currentTabIndex": _currentTabIndex,
       "incognitocurrentTabIndex": _incogcurrentTabIndex,
       "settings": _settings.toMap(),
       "currentWebViewModel": _currentWebViewModel.toMap(),
-      "history": convertSearchToMap(),
       "downloads": convertDownloadsToMap()
     };
   }
@@ -653,15 +572,6 @@ class BrowserModel extends ChangeNotifier {
     LinkedHashMap<String, List<Map<String, dynamic>>> res = LinkedHashMap();
     for (String key in _tasks.keys) {
       List<TaskInfo> values = _tasks[key] ?? [];
-      res[key] = values.map((e) => e.toMap()).toList();
-    }
-    return res;
-  }
-
-  Map<String, List<Map<String, dynamic>>> convertSearchToMap() {
-    LinkedHashMap<String, List<Map<String, dynamic>>> res = LinkedHashMap();
-    for (String key in history.keys) {
-      List<Search> values = history[key] ?? [];
       res[key] = values.map((e) => e.toMap()).toList();
     }
     return res;
