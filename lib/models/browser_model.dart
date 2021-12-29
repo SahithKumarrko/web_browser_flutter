@@ -89,6 +89,7 @@ class BrowserModel extends ChangeNotifier {
 
   Store? _store;
   Box<Search>? searchbox;
+  Box<FavoriteModel>? favouritebox;
 
   bool loadingVisible = false;
   late BuildContext loadctx;
@@ -101,6 +102,7 @@ class BrowserModel extends ChangeNotifier {
     Directory dir = await getApplicationDocumentsDirectory();
     _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
     searchbox = _store?.box<Search>();
+    favouritebox = _store?.box<FavoriteModel>();
   }
 
   Store? get searchStore => _store;
@@ -340,41 +342,43 @@ class BrowserModel extends ChangeNotifier {
   }
 
   bool containsFavorite(FavoriteModel favorite) {
-    var keys = favorites.keys.toList();
-    for (var k in keys) {
-      for (FavoriteModel f in (favorites[k] ?? [])) {
-        if ((f.title == favorite.title || favorite.title.toString().isEmpty) &&
-            f.url == favorite.url) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return (favouritebox
+                ?.query(FavoriteModel_.title
+                    .equals(favorite.title)
+                    .or(FavoriteModel_.url.equals(favorite.url)))
+                .build()
+                .count() ??
+            0) >
+        0;
   }
 
   void addFavorite(FavoriteModel favorite) {
-    dev.log(favorites.toString());
     if (!containsFavorite(favorite)) {
-      print("uuu");
       String date = DateFormat.yMMMd().format(DateTime.now());
-      if (!favorites.containsKey(date)) {
-        favorites[date] = [];
-      }
-      favorites[date]?.insert(0, favorite);
+
+      favouritebox?.put(
+          FavoriteModel(date: date, url: favorite.url, title: favorite.title));
     }
   }
 
   void clearFavorites() {
-    favorites.clear();
+    // favorites.clear();
+    favouritebox?.removeAll();
   }
 
   void removeFavorite(FavoriteModel favorite) {
-    var keys = favorites.keys.toList();
-    for (var k in keys) {
-      favorites[k]?.removeWhere((f) =>
-          ((f.title == favorite.title || favorite.title.toString().isEmpty) &&
-              f.url == favorite.url));
-    }
+    // var keys = favorites.keys.toList();
+    // for (var k in keys) {
+    //   favorites[k]?.removeWhere((f) =>
+    //       ((f.title == favorite.title || favorite.title.toString().isEmpty) &&
+    //           f.url == favorite.url));
+    // }
+    favouritebox
+        ?.query(FavoriteModel_.title
+            .equals(favorite.title)
+            .or(FavoriteModel_.url.equals(favorite.url)))
+        .build()
+        .remove();
   }
 
   void addWebArchive(String url, WebArchiveModel webArchiveModel) {
@@ -490,13 +494,13 @@ class BrowserModel extends ChangeNotifier {
             browserData["settings"]?.cast<String, dynamic>()) ??
         BrowserSettings();
 
-    Map<String, dynamic> favList =
-        browserData["favorites"]?.cast<String, dynamic>() ?? {};
-    for (String key in favList.keys) {
-      List<dynamic> values = favList[key] ?? [];
-      this.favorites[key] =
-          values.map((e) => FavoriteModel.fromMap(e)!).toList();
-    }
+    // Map<String, dynamic> favList =
+    //     browserData["favorites"]?.cast<String, dynamic>() ?? {};
+    // for (String key in favList.keys) {
+    //   List<dynamic> values = favList[key] ?? [];
+    //   this.favorites[key] =
+    //       values.map((e) => FavoriteModel.fromMap(e)!).toList();
+    // }
 
     Map<String, dynamic> downloadList =
         browserData["downloads"]?.cast<String, dynamic>() ?? {};
@@ -547,7 +551,7 @@ class BrowserModel extends ChangeNotifier {
 
   Map<String, dynamic> toMap() {
     return {
-      "favorites": convertFavoriteToMap(),
+      // "favorites": convertFavoriteToMap(),
       "webViewTabs": _webViewTabs.map((e) => e.webViewModel.toMap()).toList(),
       "incognitowebViewTabs":
           _incognitowebViewTabs.map((e) => e.webViewModel.toMap()).toList(),
@@ -577,12 +581,12 @@ class BrowserModel extends ChangeNotifier {
     return res;
   }
 
-  Map<String, List<Map<String, dynamic>>> convertFavoriteToMap() {
-    LinkedHashMap<String, List<Map<String, dynamic>>> res = LinkedHashMap();
-    for (String key in favorites.keys) {
-      List<FavoriteModel> values = favorites[key] ?? [];
-      res[key] = values.map((e) => e.toMap()).toList();
-    }
-    return res;
-  }
+  // Map<String, List<Map<String, dynamic>>> convertFavoriteToMap() {
+  //   LinkedHashMap<String, List<Map<String, dynamic>>> res = LinkedHashMap();
+  //   for (String key in favorites.keys) {
+  //     List<FavoriteModel> values = favorites[key] ?? [];
+  //     res[key] = values.map((e) => e.toMap()).toList();
+  //   }
+  //   return res;
+  // }
 }

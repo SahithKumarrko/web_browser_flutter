@@ -9,11 +9,11 @@ import 'package:provider/provider.dart';
 import 'package:webpage_dev_console/c_popmenuitem.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
-import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
+import 'package:webpage_dev_console/objectbox.g.dart';
 import 'package:webpage_dev_console/tab_viewer_popup_menu_actions.dart';
 import 'package:webpage_dev_console/util.dart';
 
@@ -34,6 +34,9 @@ bool isRemoved = false;
 Map<String, List<int>> items = {};
 late FItem ritem;
 GlobalKey appBarKey = GlobalKey();
+Box<FavoriteModel>? store;
+var count = 0, total = 0;
+var nextcount = 0;
 
 class FItem {
   FItem(
@@ -103,6 +106,9 @@ class _FavoriteState extends State<Favorite> {
     browserModel = Provider.of<BrowserModel>(context, listen: false);
 
     settings = browserModel.getSettings();
+
+    store = browserModel.favouritebox;
+    count = 0;
   }
 
   Future initialize(BuildContext context) async {
@@ -110,42 +116,57 @@ class _FavoriteState extends State<Favorite> {
     // the splash screen is displayed.  Remove the following example because
     // delaying the user experience is a bad design practice!
     await Future.delayed(const Duration(seconds: 1), () async {
-      generateHistoryValues("", false);
+      generateHistoryValues("", false, 40);
     });
   }
 
-  generateHistoryValues(String searchValue, bool needUpdate) {
-    var keys = browserModel.history.keys.toList().reversed;
+  generateHistoryValues(String searchValue, bool needUpdate, int offset) {
+    QueryBuilder<FavoriteModel>? q;
+    if (searchValue.isNotEmpty)
+      q = store?.query(FavoriteModel_.title
+          .contains(searchValue.trim(), caseSensitive: false)
+          .and(FavoriteModel_.url
+              .contains(searchValue.trim(), caseSensitive: false)));
+    else
+      q = store?.query();
+    q?.order(FavoriteModel_.id, flags: Order.descending);
+    print("Count :: $count :: Offset :: $offset");
+    var qq = q?.build()
+      ?..offset = count
+      ..limit = offset;
+    qq
+      ?..offset = count
+      ..limit = offset;
+    List<FavoriteModel>? litems = qq?.find();
+
+    count = count + offset;
     int ind = 0;
     _data = [];
     items = {};
     searchValue = searchValue.toLowerCase();
-    for (String k in keys) {
-      var v = browserModel.favorites[k] ?? [];
-      if (v.length != 0) {
-        var c = 0;
-        _data.add(FItem(date: k, search: null));
 
-        items[k] = [];
-        items[k]!.addAll([c, ind]);
-        ind = ind + 1;
-        for (FavoriteModel s in v) {
-          if (searchValue == "" ||
-              s.title!.toLowerCase().contains(searchValue) ||
-              s.url!.origin.toString().toLowerCase().contains(searchValue)) {
-            _data.add(
-                FItem(date: k, search: s, key: GlobalKey(), ikey: GlobalKey()));
-            c += 1;
-            ind = ind + 1;
-          }
+    var dates = litems?.map((e) => e.date).toList();
+    for (String k in dates ?? []) {
+      var c = 0;
+      _data.add(FItem(date: k, search: null));
+
+      items[k] = [];
+      items[k]!.addAll([c, ind]);
+      ind = ind + 1;
+      for (FavoriteModel s in litems ?? []) {
+        if (s.date == k) {
+          _data.add(
+              FItem(date: k, search: s, key: GlobalKey(), ikey: GlobalKey()));
+          c += 1;
+          ind = ind + 1;
         }
-        if (c == 0) {
-          items.remove(k);
-          _data.removeAt(ind - 1);
-          ind = ind - 1;
-        } else {
-          items[k]![0] = c;
-        }
+      }
+      if (c == 0) {
+        items.remove(k);
+        _data.removeAt(ind - 1);
+        ind = ind - 1;
+      } else {
+        items[k]![0] = c;
       }
     }
     if (needUpdate) {
@@ -171,7 +192,8 @@ class _FavoriteState extends State<Favorite> {
             else if (longPressed) {
               _selectedList.clear();
               longPressed = false;
-              generateHistoryValues("", true);
+              count = 0;
+              generateHistoryValues("", true, 50);
               clearAllSwitcher.currentState?.setState(() {});
               nohist.currentState?.setState(() {});
               appBarKey.currentState?.setState(() {});
@@ -179,7 +201,8 @@ class _FavoriteState extends State<Favorite> {
               appBarKey.currentState?.setState(() {
                 showSearchField = false;
               });
-              generateHistoryValues("", true);
+              count = 0;
+              generateHistoryValues("", true, 50);
               txtc.clear();
               clearAllSwitcher.currentState?.setState(() {});
             }
@@ -411,9 +434,9 @@ class _HisItemState extends State<HisItem> {
                                   isSelected: item.isSelected,
                                   url: item.search!.url.toString().startsWith(
                                           RegExp("http[s]{0,1}:[/]{2}"))
-                                      ? Uri.parse((item.search!.url?.origin ??
-                                              settings.searchEngine.url) +
-                                          "/favicon.ico")
+                                      ? Helper.getFavIconUrl(
+                                          item.search?.url ?? "",
+                                          settings.searchEngine.url)
                                       : null,
                                   maxWidth: 24.0,
                                   key: item.ikey,
@@ -432,11 +455,14 @@ class _HisItemState extends State<HisItem> {
                                 style: Theme.of(context).textTheme.headline3,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              item.search!.url != null
+                              item.search!.url != ""
                                   ? Text(
-                                      item.search!.url.toString().startsWith(
+                                      item.search!.url.startsWith(
                                               RegExp("http[s]{0,1}:[/]{2}"))
-                                          ? (item.search!.url?.origin ?? "")
+                                          ? (item.search!.url != ""
+                                                  ? Uri.parse(item.search!.url)
+                                                      .origin
+                                                  : "")
                                               .replaceFirst(
                                                   RegExp("http[s]{0,1}:[/]{2}"),
                                                   "")
@@ -477,16 +503,13 @@ class _HisItemState extends State<HisItem> {
               }
             }
             AnimatedListRemovedItemBuilder builder = (context, animation) {
-              browserModel.favorites[ritem.date] = _data
-                  .where((element) => element.search != null)
-                  .toList()
-                  .where((element) => (element.date == ritem.date &&
-                      element.search!.title != ritem.search!.title &&
-                      element.search!.url != ritem.search!.url))
-                  .toList()
-                  .map((e) => e.search!)
-                  .toList();
-              browserModel.save();
+              store
+                  ?.query(FavoriteModel_.date
+                      .equals(ritem.date)
+                      .and(FavoriteModel_.title.equals(ritem.search!.title))
+                      .and(FavoriteModel_.url.equals(ritem.search!.url)))
+                  .build()
+                  .remove();
               items[ritem.date]![0] = (items[ritem.date]![0] - 1);
               ritem.isDeleted = true;
 
@@ -567,19 +590,15 @@ class _ClearAllHState extends State<ClearAllH> {
                           TextButton(
                             onPressed: () {
                               if (!showSearchField) {
-                                widget.hbrowserModel.favorites =
-                                    LinkedHashMap();
+                                store?.removeAll();
                               } else {
-                                var prevh = widget.hbrowserModel.favorites;
-                                for (FItem hitem in _data) {
-                                  if (hitem.search != null) {
-                                    prevh[hitem.date]?.removeWhere((element) =>
-                                        element.url == hitem.search?.url);
-                                  }
-                                }
-                                widget.hbrowserModel.favorites = prevh;
+                                var ritems = _data
+                                    .where((element) => element.search != null)
+                                    .toList()
+                                    .map((e) => e.search?.id ?? 0)
+                                    .toList();
+                                store?.removeMany(ritems);
                               }
-                              widget.hbrowserModel.save();
                               _data.clear();
                               setState(() => _listKey = GlobalKey());
                               nohist.currentState?.setState(() {});
@@ -630,7 +649,7 @@ class HistoryAppBar extends StatefulWidget implements PreferredSizeWidget {
   HistoryAppBar({required this.generateHistoryValues, Key? key})
       : super(key: key);
 
-  final Function(String, bool) generateHistoryValues;
+  final Function(String, bool, int) generateHistoryValues;
 
   @override
   _HistoryAppBarState createState() => _HistoryAppBarState();
@@ -674,7 +693,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               setState(() {
                 showSearchField = false;
               });
-              widget.generateHistoryValues("", true);
+              count = 0;
+              widget.generateHistoryValues("", true, 50);
               txtc.clear();
               clearAllSwitcher.currentState?.setState(() {});
             },
@@ -699,7 +719,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               ),
               controller: txtc,
               onChanged: (value) {
-                widget.generateHistoryValues(value.toString(), true);
+                count = 0;
+                widget.generateHistoryValues(value.toString(), true, 50);
                 clearAllSwitcher.currentState?.setState(() {});
               },
             ),
@@ -711,7 +732,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             ),
             onTap: () {
               txtc.clear();
-              widget.generateHistoryValues("", true);
+              count = 0;
+              widget.generateHistoryValues("", true, 50);
             },
           ),
         ],
@@ -793,7 +815,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   });
                   _selectedList = [];
                   longPressed = false;
-                  widget.generateHistoryValues("", true);
+                  count = 0;
+                  widget.generateHistoryValues("", true, 50);
                   clearAllSwitcher.currentState?.setState(() {});
                 },
               ),
@@ -830,19 +853,16 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                           actions: <Widget>[
                             TextButton(
                               onPressed: () {
-                                var prevh = browserModel.favorites;
-                                for (FItem hitem in _selectedList) {
-                                  if (hitem.search != null) {
-                                    prevh[hitem.date]?.removeWhere((element) =>
-                                        element.url == hitem.search?.url);
-                                  }
-                                }
-                                browserModel.favorites = prevh;
-
-                                browserModel.save();
+                                var ritems = _selectedList
+                                    .where((element) => element.search != null)
+                                    .toList()
+                                    .map((e) => e.search?.id ?? 0)
+                                    .toList();
+                                store?.removeMany(ritems);
                                 _selectedList.clear();
                                 longPressed = false;
-                                widget.generateHistoryValues("", true);
+                                count = 0;
+                                widget.generateHistoryValues("", true, 50);
                                 clearAllSwitcher.currentState?.setState(() {});
                                 nohist.currentState?.setState(() {});
                                 appBarKey.currentState?.setState(() {});
@@ -927,14 +947,16 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
       case TabViewerPopupMenuActions.NEW_TAB:
         Future.delayed(const Duration(milliseconds: 300), () {
           _selectedList.forEach((element) {
-            Helper.addNewTab(url: element.search?.url, context: context);
+            Helper.addNewTab(
+                url: Uri.parse(element.search?.url ?? ""), context: context);
           });
         });
         Navigator.pop(context);
         break;
       case TabViewerPopupMenuActions.NEW_INCOGNITO_TAB:
         _selectedList.forEach((element) {
-          Helper.addNewIncognitoTab(url: element.search?.url, context: context);
+          Helper.addNewIncognitoTab(
+              url: Uri.parse(element.search?.url ?? ""), context: context);
         });
 
         Navigator.pop(context);
@@ -948,8 +970,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             context: this.context);
         _selectedList = [];
         longPressed = false;
-
-        widget.generateHistoryValues("", true);
+        count = 0;
+        widget.generateHistoryValues("", true, 50);
         clearAllSwitcher.currentState?.setState(() {});
         nohist.currentState?.setState(() {});
         setState(() {});

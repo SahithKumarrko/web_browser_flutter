@@ -456,9 +456,12 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                   if (webViewModel.url != null &&
                       webViewModel.url!.toString().isNotEmpty) {
                     favorite = FavoriteModel(
-                        url: webViewModel.url,
-                        title: webViewModel.title ?? "",
-                        favicon: webViewModel.favicon);
+                      date: "",
+                      url: webViewModel.url == null
+                          ? ""
+                          : webViewModel.url.toString(),
+                      title: webViewModel.title ?? "",
+                    );
                     isFavorite = browserModel.containsFavorite(favorite);
                   }
 
@@ -1358,9 +1361,10 @@ class _FavState extends State<Fav> {
     if (webViewModel?.url != null &&
         (webViewModel?.url ?? "").toString().isNotEmpty) {
       favorite = FavoriteModel(
-          url: webViewModel?.url,
-          title: webViewModel?.title ?? "",
-          favicon: webViewModel?.favicon);
+        date: "",
+        url: webViewModel?.url.toString() ?? "",
+        title: webViewModel?.title ?? "",
+      );
       isFavorite = browserModel.containsFavorite(favorite);
     }
     print("Settting");

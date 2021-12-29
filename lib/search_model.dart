@@ -8,6 +8,7 @@ import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/models/model_search.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/favorite_model.dart';
+import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/objectbox.g.dart';
 
 class SearchModel extends ChangeNotifier {
@@ -46,45 +47,59 @@ class SearchModel extends ChangeNotifier {
 
     if (query.isNotEmpty) {
       var browserModel = Provider.of<BrowserModel>(context, listen: false);
-      List<Search> webHistory = browserModel.searchbox
-              ?.query(Search_.title
+      var webviewModel = Provider.of<WebViewModel>(context, listen: false);
+      var hr = browserModel.searchbox
+          ?.query((Search_.title
                   .contains(query, caseSensitive: false)
                   .or(Search_.url.contains(query, caseSensitive: false)))
-              .build()
-              .find()
-              .reversed
-              .toList() ??
-          [];
+              .and(Search_.url
+                  .notEquals(webviewModel.url == null
+                      ? ""
+                      : webviewModel.url.toString())
+                  .and(Search_.title.notEquals(webviewModel.title == null
+                      ? ""
+                      : webviewModel.title.toString()))))
+          .build();
+      List<Search> webHistory = (hr?.find() ?? []).reversed.toSet().toList();
 
-      for (String key in browserModel.favorites.keys.toList().reversed) {
-        List<FavoriteModel> res = browserModel.favorites[key] ?? [];
-        for (FavoriteModel i in res) {
-          webHistory.add(Search(
-              date: key,
-              title: i.title.toString(),
-              url: i.url == null ? "" : i.url.toString()));
-        }
-      }
+      var q = browserModel.favouritebox
+          ?.query((FavoriteModel_.title
+                  .contains(query, caseSensitive: false)
+                  .or(FavoriteModel_.url.contains(query, caseSensitive: false)))
+              .and(FavoriteModel_.url
+                  .notEquals(webviewModel.url == null
+                      ? ""
+                      : webviewModel.url.toString())
+                  .and(FavoriteModel_.title.notEquals(webviewModel.title == null
+                      ? ""
+                      : webviewModel.title.toString()))))
+          .build();
+      List<FavoriteModel> favorites =
+          (q?.find() ?? []).reversed.toSet().toList();
+      // var fav = [];
+      // for (FavoriteModel i in favorites) {
+      //   fav
+      //       .add(Search(date: i.date, title: i.title, url: i.url.toLowerCase().contains(url.toLowerCase())
+      //               ? ""
+      //               : i.url));
+      // }
 
       if (query.isNotEmpty) _query = query;
 
       try {
         history = [];
         if (!startPage) {
-          for (var i = webHistory.length; i > 0; i--) {
-            Search h = webHistory.elementAt(i - 1);
-            if (h.title.length != 0) {
-              history.add(Search(
-                  date: "",
-                  title: h.title,
-                  url: h.url.toLowerCase().contains(url.toLowerCase())
-                      ? ""
-                      : h.url,
-                  isHistory: true,
-                  hashValue: h.title.trim().toLowerCase().hashCode));
-            }
-          }
-          history = history.toSet().toList();
+          // for (var h in webHistory) {
+          //   history.add(Search(
+          //       date: "",
+          //       title: h.title,
+          //       url: h.url.toLowerCase().contains(url.toLowerCase())
+          //           ? ""
+          //           : h.url,
+          //       isHistory: true,
+          //       hashValue: h.title.trim().toLowerCase().hashCode));
+          // }
+          // history = history.toSet().toList();
 
           var gurl =
               "https://www.google.com/complete/search?client=hp&hl=en&sugexp=msedr&gs_rn=62&gs_ri=hp&cp=1&gs_id=9c&q=$query&xhr=t";
@@ -117,9 +132,41 @@ class SearchModel extends ChangeNotifier {
             }
           }
 
-          var hl = history.length;
-          history = history.sublist(0, hl >= 4 ? 4 : hl);
-          history.addAll(results.sublist(0, results.length - history.length));
+          var hl = webHistory.length;
+          var rl = results.length;
+          var fl = favorites.length;
+          var occ = rl >= 4 ? 4 : rl;
+          var av = (8 - occ);
+          var s1 = (av / 2).round();
+          hl = hl >= s1 ? s1 : hl;
+          fl = (fl > 0) ? ((fl % av + 1) - hl) : 0;
+          if ((hl + fl) != av) {
+            var free = (av - (hl + fl));
+            hl = hl +
+                ((webHistory.length - hl) >= free
+                    ? free
+                    : webHistory.length - hl);
+          }
+
+          if ((hl + fl) != av) {
+            var free = (av - (hl + fl));
+            fl = fl +
+                ((favorites.length - fl) >= free
+                    ? free
+                    : favorites.length - fl);
+          }
+
+          if ((hl + fl) != av) {
+            var free = (av - (hl + fl));
+            occ = occ +
+                ((results.length - occ) >= free ? free : results.length - occ);
+          }
+
+          history.addAll(webHistory.sublist(0, hl));
+          history.addAll(favorites
+              .sublist(0, fl)
+              .map((e) => Search(date: e.date, title: e.title, url: e.url)));
+          history.addAll(results.sublist(0, occ));
 
           history = history.toSet().toList();
         }

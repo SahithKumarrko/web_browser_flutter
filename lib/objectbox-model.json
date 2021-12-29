@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:1300888286620171038",
-      "lastPropertyId": "7:876347798358778359",
+      "lastPropertyId": "9:7704480446693326580",
       "name": "Search",
       "properties": [
         {
@@ -46,9 +46,38 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "2:7328970738351426234",
+      "lastPropertyId": "4:8601400343866443591",
+      "name": "FavoriteModel",
+      "properties": [
+        {
+          "id": "1:2787545597919625002",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6178328983856487033",
+          "name": "url",
+          "type": 9
+        },
+        {
+          "id": "3:5562136508085463483",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "4:8601400343866443591",
+          "name": "date",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "1:1300888286620171038",
+  "lastEntityId": "2:7328970738351426234",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
@@ -56,7 +85,10 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    3947727189489955420,
+    7704480446693326580
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

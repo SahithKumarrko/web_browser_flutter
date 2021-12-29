@@ -36,8 +36,7 @@ Map<String, List<int>> items = {};
 late HItem ritem;
 GlobalKey appBarKey = GlobalKey();
 Box<Search>? store;
-var count = 0, total = 0;
-var nextcount = 0;
+var count = 0;
 
 class History extends StatefulWidget {
   History({
@@ -112,6 +111,8 @@ class _HistoryState extends State<History>
 
     store = browserModel.searchbox;
 
+    count = 0;
+
     // total = store?.count() ?? 0;
   }
 
@@ -125,7 +126,6 @@ class _HistoryState extends State<History>
   }
 
   generateHistoryValues(String searchValue, bool needUpdate, int offset) {
-    log("Val :: ${store?.getAll().toString()}");
     QueryBuilder<Search>? q;
     if (searchValue.isNotEmpty)
       q = store?.query(Search_.title
@@ -136,10 +136,9 @@ class _HistoryState extends State<History>
       q = store?.query(Search_.isIncognito.equals(false));
     q?.order(Search_.id, flags: Order.descending);
     print("Count :: $count :: Offset :: $offset");
-    var qq = q?.build()?..offset = count;
-    // qq
-    //   ?..offset = count
-    //   ..limit = offset;
+    var qq = q?.build()
+      ?..offset = count
+      ..limit = offset;
     List<Search>? litems = qq?.find();
     log("Q :: $litems");
     count = count + offset;
@@ -162,15 +161,14 @@ class _HistoryState extends State<History>
               HItem(date: k, search: v, key: GlobalKey(), ikey: GlobalKey()));
           c += 1;
           ind = ind + 1;
-
-          if (c == 0) {
-            items.remove(k);
-            _data.removeAt(ind - 1);
-            ind = ind - 1;
-          } else {
-            items[k]![0] = c;
-          }
         }
+      }
+      if (c == 0) {
+        items.remove(k);
+        _data.removeAt(ind - 1);
+        ind = ind - 1;
+      } else {
+        items[k]![0] = c;
       }
     }
     if (needUpdate) {
@@ -196,6 +194,7 @@ class _HistoryState extends State<History>
             else if (longPressed) {
               _selectedList.clear();
               longPressed = false;
+              count = 0;
               generateHistoryValues("", true, 50);
               clearAllSwitcher.currentState?.setState(() {});
               nohist.currentState?.setState(() {});
@@ -204,6 +203,7 @@ class _HistoryState extends State<History>
               appBarKey.currentState?.setState(() {
                 showSearchField = false;
               });
+              count = 0;
               generateHistoryValues("", true, 50);
               txtc.clear();
               clearAllSwitcher.currentState?.setState(() {});
@@ -277,27 +277,38 @@ class _HistoryState extends State<History>
     );
   }
 
-  AnimatedList _buildhistoryList() {
-    return AnimatedList(
-      key: _listKey,
-      initialItemCount: _data.length,
-      physics: BouncingScrollPhysics(),
-      padding: EdgeInsets.only(bottom: 16),
-      itemBuilder: (context, index, animation) {
-        if (index < _data.length) {
-          HItem item = _data.elementAt(index);
+  _onEndScroll(ScrollMetrics metrics) {
+    print("Scroll End");
+  }
 
-          return Column(children: [
-            HisItem(
-              item: item,
-              index: index,
-              animation: animation,
-              key: item.key,
-            )
-          ]);
+  Widget _buildhistoryList() {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollEndNotification) {
+          _onEndScroll(notification.metrics);
         }
-        return SizedBox.shrink();
+        return false;
       },
+      child: AnimatedList(
+        key: _listKey,
+        initialItemCount: _data.length,
+        padding: EdgeInsets.only(bottom: 16),
+        itemBuilder: (context, index, animation) {
+          if (index < _data.length) {
+            HItem item = _data.elementAt(index);
+
+            return Column(children: [
+              HisItem(
+                item: item,
+                index: index,
+                animation: animation,
+                key: item.key,
+              )
+            ]);
+          }
+          return SizedBox.shrink();
+        },
+      ),
     );
   }
 
@@ -725,6 +736,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               this.setState(() {
                 showSearchField = false;
               });
+              count = 0;
               widget.generateHistoryValues("", true, 50);
               txtc.clear();
               clearAllSwitcher.currentState?.setState(() {});
@@ -750,6 +762,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               ),
               controller: txtc,
               onChanged: (value) {
+                count = 0;
                 widget.generateHistoryValues(value.toString(), true, 50);
                 clearAllSwitcher.currentState?.setState(() {});
               },
@@ -762,6 +775,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             ),
             onTap: () {
               txtc.clear();
+              count = 0;
               widget.generateHistoryValues("", true, 50);
             },
           ),
@@ -841,6 +855,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   });
                   _selectedList = [];
                   longPressed = false;
+                  count = 0;
                   widget.generateHistoryValues("", true, 50);
                   clearAllSwitcher.currentState?.setState(() {});
                 },
@@ -886,6 +901,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                                 store?.removeMany(ritems);
                                 _selectedList.clear();
                                 longPressed = false;
+                                count = 0;
                                 widget.generateHistoryValues("", true, 50);
                                 clearAllSwitcher.currentState?.setState(() {});
                                 nohist.currentState?.setState(() {});
@@ -994,7 +1010,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             context: this.context);
         _selectedList = [];
         longPressed = false;
-
+        count = 0;
         widget.generateHistoryValues("", true, 50);
         clearAllSwitcher.currentState?.setState(() {});
         nohist.currentState?.setState(() {});

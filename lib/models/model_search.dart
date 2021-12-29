@@ -1,4 +1,5 @@
 import 'package:objectbox/objectbox.dart';
+import 'package:quiver/core.dart';
 import 'package:webpage_dev_console/helpers.dart';
 
 @Entity()
@@ -20,8 +21,6 @@ class Search {
       this.isIncognito = false});
 
   bool get hasSearch => title.isNotEmpty == true;
-
-  set searchDate(String d) => date = d;
 
   factory Search.fromJson(Map<String, dynamic> props) {
     return Search(
@@ -73,9 +72,9 @@ class Search {
   bool operator ==(Object o) {
     if (identical(this, o)) return true;
 
-    return o is Search && o.title == title;
+    return o is Search && o.title == title && o.url == url;
   }
 
   @override
-  int get hashCode => title.trim().toLowerCase().hashCode;
+  int get hashCode => hash2(title, url);
 }
