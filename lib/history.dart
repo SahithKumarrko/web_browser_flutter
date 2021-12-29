@@ -18,33 +18,36 @@ import 'package:webpage_dev_console/objectbox.g.dart';
 import 'package:webpage_dev_console/tab_viewer_popup_menu_actions.dart';
 import 'package:webpage_dev_console/util.dart';
 
-bool showSearchField = false;
-GlobalKey clearAllSwitcher = GlobalKey();
-List<HItem> _data = [];
+class HistoryVars {
+  bool showSearchField = false;
+  GlobalKey clearAllSwitcher = GlobalKey();
+  List<HItem> data = [];
+  bool isloading = false;
+  List<HItem> selectedList = [];
+  GlobalKey<AnimatedListState> listKey = GlobalKey();
 
-List<HItem> _selectedList = [];
-GlobalKey<AnimatedListState> _listKey = GlobalKey();
+  TextEditingController txtc = TextEditingController();
+  GlobalKey nohist = GlobalKey();
+  bool longPressed = false;
+  late BrowserModel browserModel;
+  late BrowserSettings settings;
+  String curDate = "";
+  bool isRemoved = false;
+  Map<String, List<int>> items = {};
+  late HItem ritem;
+  GlobalKey appBarKey = GlobalKey();
+  GlobalKey loadmoredataKey = GlobalKey();
+  Box<Search>? store;
+  var count = 0;
+  bool nodata = false;
+}
 
-TextEditingController txtc = TextEditingController();
-GlobalKey nohist = GlobalKey();
-bool longPressed = false;
-late BrowserModel browserModel;
-late BrowserSettings settings;
-String curDate = "";
-bool isRemoved = false;
-Map<String, List<int>> items = {};
-late HItem ritem;
-GlobalKey appBarKey = GlobalKey();
-Box<Search>? store;
-var count = 0;
+late HistoryVars historyVars;
 
 class History extends StatefulWidget {
   History({
     Key? key,
-  }) : super(key: key) {
-    _selectedList = [];
-    longPressed = false;
-  }
+  }) : super(key: key);
 
   @override
   _HistoryState createState() => _HistoryState();
@@ -71,6 +74,39 @@ class HItem {
       'HItem(title: $date,url: $search,isSelected : $isSelected)';
 }
 
+class LoadMoreData extends StatefulWidget {
+  LoadMoreData({Key? key}) : super(key: key);
+
+  @override
+  _LoadMoreDataState createState() => _LoadMoreDataState();
+}
+
+class _LoadMoreDataState extends State<LoadMoreData> {
+  @override
+  Widget build(BuildContext context) {
+    return historyVars.isloading &&
+            !historyVars.nodata &&
+            historyVars.data.length != 0
+        ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          )
+        : historyVars.nodata && historyVars.data.length != 0
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("No More History Available"))
+            : SizedBox();
+  }
+}
+
 class CAS extends StatefulWidget {
   CAS({required this.buildhistoryList, required this.buildNoHistory, Key? key})
       : super(key: key);
@@ -87,7 +123,7 @@ class _CASState extends State<CAS> {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 300),
-      child: (_data.length > 1)
+      child: (historyVars.data.length > 1)
           ? widget.buildhistoryList()
           : widget.buildNoHistory(),
     );
@@ -103,15 +139,17 @@ class _HistoryState extends State<History>
 
   @override
   void initState() {
-    showSearchField = false;
+    historyVars = HistoryVars();
+    historyVars.showSearchField = false;
     super.initState();
-    browserModel = Provider.of<BrowserModel>(context, listen: false);
+    historyVars.browserModel =
+        Provider.of<BrowserModel>(context, listen: false);
 
-    settings = browserModel.getSettings();
+    historyVars.settings = historyVars.browserModel.getSettings();
 
-    store = browserModel.searchbox;
+    historyVars.store = historyVars.browserModel.searchbox;
 
-    count = 0;
+    historyVars.count = 0;
 
     // total = store?.count() ?? 0;
   }
@@ -121,60 +159,93 @@ class _HistoryState extends State<History>
     // the splash screen is displayed.  Remove the following example because
     // delaying the user experience is a bad design practice!
     await Future.delayed(const Duration(seconds: 1), () async {
-      generateHistoryValues("", false, 40);
+      generateHistoryValues("", false, 1);
     });
   }
+
+  var previousSearch = "";
+
+  List<HItem> tdata = [];
+  Map<String, List<int>> ttitems = {};
 
   generateHistoryValues(String searchValue, bool needUpdate, int offset) {
     QueryBuilder<Search>? q;
     if (searchValue.isNotEmpty)
-      q = store?.query(Search_.title
+      q = historyVars.store?.query(Search_.title
           .contains(searchValue.trim(), caseSensitive: false)
           .and(Search_.url.contains(searchValue.trim(), caseSensitive: false))
           .and(Search_.isIncognito.equals(false)));
     else
-      q = store?.query(Search_.isIncognito.equals(false));
+      q = historyVars.store?.query(Search_.isIncognito.equals(false));
     q?.order(Search_.id, flags: Order.descending);
-    print("Count :: $count :: Offset :: $offset");
+    print("Count :: ${historyVars.count} :: Offset :: $offset");
     var qq = q?.build()
-      ?..offset = count
+      ?..offset = historyVars.count
       ..limit = offset;
     List<Search>? litems = qq?.find();
     log("Q :: $litems");
-    count = count + offset;
-
+    historyVars.count = historyVars.count + offset;
+    historyVars.nodata = false;
+    if ((litems?.length ?? 0) < historyVars.count) {
+      historyVars.nodata = true;
+    }
     int ind = 0;
-    _data = [];
-    items = {};
     searchValue = searchValue.toLowerCase();
+    if (((searchValue.isNotEmpty || historyVars.showSearchField) &&
+            searchValue != previousSearch) ||
+        historyVars.selectedList.length != 0) {
+      historyVars.data = [];
+      historyVars.items = {};
+      tdata = historyVars.data;
+      ttitems = historyVars.items;
+    } else {
+      if (tdata.length != 0) {
+        historyVars.data = tdata;
+        historyVars.items = ttitems;
+      }
+    }
+    var dl = historyVars.data.length;
+    var il = historyVars.items.length;
     var dates = litems?.map((e) => e.date).toList();
     for (String k in dates ?? []) {
       var c = 0;
-      _data.add(HItem(date: k, search: null));
+      historyVars.data.add(HItem(date: k, search: null));
 
-      items[k] = [];
-      items[k]!.addAll([c, ind]);
+      historyVars.items[k] = [];
+      historyVars.items[k]!.addAll([c, ind]);
       ind = ind + 1;
       for (Search v in litems ?? []) {
         if (v.date == k) {
-          _data.add(
+          historyVars.data.add(
               HItem(date: k, search: v, key: GlobalKey(), ikey: GlobalKey()));
           c += 1;
           ind = ind + 1;
         }
       }
       if (c == 0) {
-        items.remove(k);
-        _data.removeAt(ind - 1);
+        historyVars.items.remove(k);
+        historyVars.data.removeAt(ind - 1);
         ind = ind - 1;
       } else {
-        items[k]![0] = c;
+        historyVars.items[k]![0] = c;
       }
     }
+
+    log("Fianal :: ${historyVars.data}");
+
     if (needUpdate) {
-      _listKey.currentState?.setState(() {});
-      nohist.currentState?.setState(() {});
+      historyVars.listKey.currentState?.setState(() {});
+      historyVars.nohist.currentState?.setState(() {});
+
+      if (historyVars.isloading) {
+        historyVars.isloading = false;
+        for (int i = dl; i <= historyVars.data.length; i++) {
+          historyVars.listKey.currentState?.insertItem(i);
+        }
+        historyVars.loadmoredataKey.currentState?.setState(() {});
+      }
     }
+    previousSearch = searchValue;
   }
 
   Widget buildHistory() {
@@ -183,30 +254,30 @@ class _HistoryState extends State<History>
       data: (SchedulerBinding.instance!.window.platformBrightness ==
                   Brightness.dark ||
               ct.cv == Brightness.dark ||
-              browserModel.isIncognito)
+              historyVars.browserModel.isIncognito)
           ? AppTheme.darkTheme
           : AppTheme.lightTheme,
       child: SafeArea(
         child: WillPopScope(
           onWillPop: () async {
-            if (!showSearchField && !longPressed)
+            if (!historyVars.showSearchField && !historyVars.longPressed)
               Navigator.pop(context);
-            else if (longPressed) {
-              _selectedList.clear();
-              longPressed = false;
-              count = 0;
+            else if (historyVars.longPressed) {
+              historyVars.selectedList.clear();
+              historyVars.longPressed = false;
+              historyVars.count = 0;
               generateHistoryValues("", true, 50);
-              clearAllSwitcher.currentState?.setState(() {});
-              nohist.currentState?.setState(() {});
-              appBarKey.currentState?.setState(() {});
+              historyVars.clearAllSwitcher.currentState?.setState(() {});
+              historyVars.nohist.currentState?.setState(() {});
+              historyVars.appBarKey.currentState?.setState(() {});
             } else {
-              appBarKey.currentState?.setState(() {
-                showSearchField = false;
+              historyVars.appBarKey.currentState?.setState(() {
+                historyVars.showSearchField = false;
               });
-              count = 0;
+              historyVars.count = 0;
               generateHistoryValues("", true, 50);
-              txtc.clear();
-              clearAllSwitcher.currentState?.setState(() {});
+              historyVars.txtc.clear();
+              historyVars.clearAllSwitcher.currentState?.setState(() {});
             }
 
             return false;
@@ -215,7 +286,7 @@ class _HistoryState extends State<History>
             resizeToAvoidBottomInset: true,
             appBar: HistoryAppBar(
               generateHistoryValues: generateHistoryValues,
-              key: appBarKey,
+              key: historyVars.appBarKey,
             ),
             body: FutureBuilder(
               future: initialize(context),
@@ -233,17 +304,20 @@ class _HistoryState extends State<History>
                   return Column(
                     children: [
                       ClearAllH(
-                        dataLen: _data.length,
-                        hbrowserModel: browserModel,
-                        key: clearAllSwitcher,
+                        dataLen: historyVars.data.length,
+                        hbrowserModel: historyVars.browserModel,
+                        key: historyVars.clearAllSwitcher,
                       ),
                       Expanded(
                         child: CAS(
                           buildNoHistory: _buildNoHistory,
                           buildhistoryList: _buildhistoryList,
-                          key: nohist,
+                          key: historyVars.nohist,
                         ),
                       ),
+                      LoadMoreData(
+                        key: historyVars.loadmoredataKey,
+                      )
                     ],
                   );
                 }
@@ -279,6 +353,13 @@ class _HistoryState extends State<History>
 
   _onEndScroll(ScrollMetrics metrics) {
     print("Scroll End");
+    if (!historyVars.isloading) {
+      historyVars.isloading = true;
+      historyVars.loadmoredataKey.currentState?.setState(() {});
+      Future.delayed(Duration(seconds: 2), () {
+        generateHistoryValues(historyVars.txtc.value.text, true, 50);
+      });
+    }
   }
 
   Widget _buildhistoryList() {
@@ -290,12 +371,12 @@ class _HistoryState extends State<History>
         return false;
       },
       child: AnimatedList(
-        key: _listKey,
-        initialItemCount: _data.length,
+        key: historyVars.listKey,
+        initialItemCount: historyVars.data.length,
         padding: EdgeInsets.only(bottom: 16),
         itemBuilder: (context, index, animation) {
-          if (index < _data.length) {
-            HItem item = _data.elementAt(index);
+          if (index < historyVars.data.length) {
+            HItem item = historyVars.data.elementAt(index);
 
             return Column(children: [
               HisItem(
@@ -371,36 +452,39 @@ class _HisItemState extends State<HisItem>
                 sizeFactor: animation,
                 child: InkWell(
                   onLongPress: () {
-                    if (!longPressed) {
-                      longPressed = true;
-                      _listKey.currentState?.setState(() {});
-                      clearAllSwitcher.currentState?.setState(() {});
+                    if (!historyVars.longPressed) {
+                      historyVars.longPressed = true;
+                      historyVars.listKey.currentState?.setState(() {});
+                      historyVars.clearAllSwitcher.currentState
+                          ?.setState(() {});
                     }
                     if (!item.isSelected) {
-                      _selectedList.add(item);
+                      historyVars.selectedList.add(item);
                     } else {
-                      _selectedList.remove(item);
-                      if (_selectedList.length == 0) {
-                        longPressed = false;
-                        _listKey.currentState?.setState(() {});
-                        clearAllSwitcher.currentState?.setState(() {});
+                      historyVars.selectedList.remove(item);
+                      if (historyVars.selectedList.length == 0) {
+                        historyVars.longPressed = false;
+                        historyVars.listKey.currentState?.setState(() {});
+                        historyVars.clearAllSwitcher.currentState
+                            ?.setState(() {});
                       }
                     }
                     widget.item.key?.currentState?.setState(() {
                       widget.item.isSelected = !widget.item.isSelected;
                     });
-                    appBarKey.currentState?.setState(() {});
+                    historyVars.appBarKey.currentState?.setState(() {});
                   },
                   onTap: () {
-                    if (!longPressed) {
+                    if (!historyVars.longPressed) {
                       var webViewModel =
                           Provider.of<WebViewModel>(context, listen: false);
                       var _webViewController = webViewModel.webViewController;
                       var url = Uri.parse(widget.item.search!.url.toString());
                       if (!url.scheme.startsWith("http") &&
                           !Util.isLocalizedContent(url)) {
-                        url = Uri.parse(settings.searchEngine.searchUrl +
-                            widget.item.search!.url.toString().trim());
+                        url = Uri.parse(
+                            historyVars.settings.searchEngine.searchUrl +
+                                widget.item.search!.url.toString().trim());
                       }
 
                       if (_webViewController != null) {
@@ -414,20 +498,21 @@ class _HisItemState extends State<HisItem>
                       Navigator.pop(context);
                     } else {
                       if (item.isSelected) {
-                        _selectedList.remove(item);
-                        if (_selectedList.length == 0) {
-                          longPressed = false;
-                          _listKey.currentState?.setState(() {});
-                          clearAllSwitcher.currentState?.setState(() {});
+                        historyVars.selectedList.remove(item);
+                        if (historyVars.selectedList.length == 0) {
+                          historyVars.longPressed = false;
+                          historyVars.listKey.currentState?.setState(() {});
+                          historyVars.clearAllSwitcher.currentState
+                              ?.setState(() {});
                         }
                       } else {
-                        _selectedList.add(item);
+                        historyVars.selectedList.add(item);
                       }
                       item.key?.currentState?.setState(() {
                         item.isSelected = !item.isSelected;
                       });
 
-                      appBarKey.currentState?.setState(() {});
+                      historyVars.appBarKey.currentState?.setState(() {});
                     }
                   },
                   child: Padding(
@@ -453,7 +538,7 @@ class _HisItemState extends State<HisItem>
                                   url: item.search!.url.toString().startsWith(
                                           RegExp("http[s]{0,1}:[/]{2}"))
                                       ? Helper.getFavIconUrl(item.search!.url,
-                                          settings.searchEngine.url)
+                                          historyVars.settings.searchEngine.url)
                                       : null,
                                   maxWidth: 24.0,
                                   key: item.ikey,
@@ -472,7 +557,7 @@ class _HisItemState extends State<HisItem>
                                 style: Theme.of(context).textTheme.headline3,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              item.search!.url != null
+                              item.search!.url != ""
                                   ? Text(
                                       item.search!.url.toString().startsWith(
                                               RegExp("http[s]{0,1}:[/]{2}"))
@@ -492,7 +577,7 @@ class _HisItemState extends State<HisItem>
                             ],
                           ),
                         ),
-                        longPressed
+                        historyVars.longPressed
                             ? SizedBox(
                                 width: 28,
                               )
@@ -513,10 +598,10 @@ class _HisItemState extends State<HisItem>
           padding: EdgeInsets.zero,
           constraints: BoxConstraints(),
           onPressed: () {
-            ritem = _data.removeAt(index);
-            for (int i = 0; i < _data.length; i++) {
-              if (_data[i].search == null) {
-                items[_data[i].date]![1] = i;
+            historyVars.ritem = historyVars.data.removeAt(index);
+            for (int i = 0; i < historyVars.data.length; i++) {
+              if (historyVars.data[i].search == null) {
+                historyVars.items[historyVars.data[i].date]![1] = i;
               }
             }
             AnimatedListRemovedItemBuilder builder = (context, animation) {
@@ -529,31 +614,36 @@ class _HisItemState extends State<HisItem>
               //     .toList()
               //     .map((e) => e.search!)
               //     .toList();
-              store
+              historyVars.store
                   ?.query(Search_.date
-                      .equals(ritem.date)
-                      .and(Search_.title.equals(ritem.search!.title))
-                      .and(Search_.url.equals(ritem.search!.url)))
+                      .equals(historyVars.ritem.date)
+                      .and(
+                          Search_.title.equals(historyVars.ritem.search!.title))
+                      .and(Search_.url.equals(historyVars.ritem.search!.url)))
                   .build()
                   .remove();
               // browserModel.save();
-              items[ritem.date]![0] = (items[ritem.date]![0] - 1);
-              ritem.isDeleted = true;
+              historyVars.items[historyVars.ritem.date]![0] =
+                  (historyVars.items[historyVars.ritem.date]![0] - 1);
+              historyVars.ritem.isDeleted = true;
 
-              return _buildItem(ritem, index, animation);
+              return _buildItem(historyVars.ritem, index, animation);
             };
-            _listKey.currentState?.removeItem(index, builder);
+            historyVars.listKey.currentState?.removeItem(index, builder);
 
-            if (items[ritem.date]![0] <= 1) {
+            if (historyVars.items[historyVars.ritem.date]![0] <= 1) {
               AnimatedListRemovedItemBuilder builder2 = (context, animation) {
-                return _buildItem(_data.removeAt(items[ritem.date]![1]),
-                    items[ritem.date]![1], animation);
+                return _buildItem(
+                    historyVars.data.removeAt(
+                        historyVars.items[historyVars.ritem.date]![1]),
+                    historyVars.items[historyVars.ritem.date]![1],
+                    animation);
               };
-              _listKey.currentState
-                  ?.removeItem(items[ritem.date]![1], builder2);
+              historyVars.listKey.currentState?.removeItem(
+                  historyVars.items[historyVars.ritem.date]![1], builder2);
 
-              nohist.currentState?.setState(() {});
-              clearAllSwitcher.currentState?.setState(() {});
+              historyVars.nohist.currentState?.setState(() {});
+              historyVars.clearAllSwitcher.currentState?.setState(() {});
             }
           },
           icon: FaIcon(
@@ -595,12 +685,12 @@ class _ClearAllHState extends State<ClearAllH> {
           padding: const EdgeInsets.all(8.0),
           child: TextButton(
             child: Text(
-              (!showSearchField)
+              (!historyVars.showSearchField)
                   ? "Clear Browsing History"
                   : "Clear All Searched Results",
               key: vk,
               style: TextStyle(
-                color: (!longPressed)
+                color: (!historyVars.longPressed)
                     ? Colors.blue
                     : Theme.of(context).disabledColor,
                 decoration: TextDecoration.underline,
@@ -608,21 +698,21 @@ class _ClearAllHState extends State<ClearAllH> {
               ),
             ),
             onPressed: () {
-              if (!longPressed) {
+              if (!historyVars.longPressed) {
                 showDialog(
                     context: context,
                     builder: (_) {
                       return AlertDialog(
                         title: Text('Warning'),
-                        content: Text(!showSearchField
+                        content: Text(!historyVars.showSearchField
                             ? 'Do you really want to clear all your history?'
                             : 'Do you really want to clear this history?'),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () {
-                              if (!showSearchField) {
+                              if (!historyVars.showSearchField) {
                                 // widget.hbrowserModel.history = LinkedHashMap();
-                                store?.removeAll();
+                                historyVars.store?.removeAll();
                               } else {
                                 // var prevh = widget.hbrowserModel.history;
                                 // for (HItem hitem in _data) {
@@ -634,17 +724,18 @@ class _ClearAllHState extends State<ClearAllH> {
                                 //   }
                                 // }
                                 // widget.hbrowserModel.history = prevh;
-                                var ritems = _data
+                                var ritems = historyVars.data
                                     .where((element) => element.search != null)
                                     .toList()
                                     .map((e) => e.search?.id ?? 0)
                                     .toList();
-                                store?.removeMany(ritems);
+                                historyVars.store?.removeMany(ritems);
                               }
                               // widget.hbrowserModel.save();
-                              _data.clear();
-                              this.setState(() => _listKey = GlobalKey());
-                              nohist.currentState?.setState(() {});
+                              historyVars.data.clear();
+                              this.setState(
+                                  () => historyVars.listKey = GlobalKey());
+                              historyVars.nohist.currentState?.setState(() {});
                               Navigator.pop(context);
                             },
                             child: Text(
@@ -681,7 +772,7 @@ class _ClearAllHState extends State<ClearAllH> {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 200),
-      child: (_data.length > 1)
+      child: (historyVars.data.length > 1)
           ? _buildClearAllHistory(context)
           : SizedBox.shrink(),
     );
@@ -708,14 +799,14 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
 
   @override
   void dispose() {
-    txtc.dispose();
+    historyVars.txtc.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    txtc = TextEditingController();
+    historyVars.txtc = TextEditingController();
   }
 
   Widget _buildSTF({required Key key}) {
@@ -734,12 +825,12 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             ),
             onTap: () {
               this.setState(() {
-                showSearchField = false;
+                historyVars.showSearchField = false;
               });
-              count = 0;
+              historyVars.count = 0;
               widget.generateHistoryValues("", true, 50);
-              txtc.clear();
-              clearAllSwitcher.currentState?.setState(() {});
+              historyVars.txtc.clear();
+              historyVars.clearAllSwitcher.currentState?.setState(() {});
             },
           ),
           Expanded(
@@ -760,11 +851,11 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 disabledBorder: InputBorder.none,
                 fillColor: Colors.black54,
               ),
-              controller: txtc,
+              controller: historyVars.txtc,
               onChanged: (value) {
-                count = 0;
+                historyVars.count = 0;
                 widget.generateHistoryValues(value.toString(), true, 50);
-                clearAllSwitcher.currentState?.setState(() {});
+                historyVars.clearAllSwitcher.currentState?.setState(() {});
               },
             ),
           ),
@@ -774,8 +865,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               color: Theme.of(context).colorScheme.onBackground,
             ),
             onTap: () {
-              txtc.clear();
-              count = 0;
+              historyVars.txtc.clear();
+              historyVars.count = 0;
               widget.generateHistoryValues("", true, 50);
             },
           ),
@@ -803,9 +894,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               InkWell(
                 onTap: () {
                   this.setState(() {
-                    showSearchField = true;
+                    historyVars.showSearchField = true;
                   });
-                  clearAllSwitcher.currentState?.setState(() {});
+                  historyVars.clearAllSwitcher.currentState?.setState(() {});
                 },
                 child: Icon(
                   Icons.search,
@@ -851,20 +942,23 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 ),
                 onTap: () {
                   this.setState(() {
-                    showSearchField = false;
+                    historyVars.showSearchField = false;
                   });
-                  _selectedList = [];
-                  longPressed = false;
-                  count = 0;
+                  for (var i in historyVars.selectedList) {
+                    i.isSelected = false;
+                  }
+                  historyVars.selectedList = [];
+                  historyVars.longPressed = false;
+                  historyVars.count = 0;
                   widget.generateHistoryValues("", true, 50);
-                  clearAllSwitcher.currentState?.setState(() {});
+                  historyVars.clearAllSwitcher.currentState?.setState(() {});
                 },
               ),
               SizedBox(
                 width: 12,
               ),
               Text(
-                "${_selectedList.length} Selected",
+                "${historyVars.selectedList.length} Selected",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -880,9 +974,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               InkWell(
                 onTap: () {
                   this.setState(() {
-                    showSearchField = false;
+                    historyVars.showSearchField = false;
                   });
-                  clearAllSwitcher.currentState?.setState(() {});
+                  historyVars.clearAllSwitcher.currentState?.setState(() {});
                   showDialog(
                       context: context,
                       builder: (_) {
@@ -893,19 +987,22 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                           actions: <Widget>[
                             TextButton(
                               onPressed: () {
-                                var ritems = _selectedList
+                                var ritems = historyVars.selectedList
                                     .where((element) => element.search != null)
                                     .toList()
                                     .map((e) => e.search?.id ?? 0)
                                     .toList();
-                                store?.removeMany(ritems);
-                                _selectedList.clear();
-                                longPressed = false;
-                                count = 0;
+                                historyVars.store?.removeMany(ritems);
+                                historyVars.selectedList.clear();
+                                historyVars.longPressed = false;
+                                historyVars.count = 0;
                                 widget.generateHistoryValues("", true, 50);
-                                clearAllSwitcher.currentState?.setState(() {});
-                                nohist.currentState?.setState(() {});
-                                appBarKey.currentState?.setState(() {});
+                                historyVars.clearAllSwitcher.currentState
+                                    ?.setState(() {});
+                                historyVars.nohist.currentState
+                                    ?.setState(() {});
+                                historyVars.appBarKey.currentState
+                                    ?.setState(() {});
                                 Navigator.pop(context);
                               },
                               child: Text(
@@ -962,7 +1059,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ));
-                    if (_selectedList.length == 1) {
+                    if (historyVars.selectedList.length == 1) {
                       popupitems.add(CustomPopupMenuItem<String>(
                         enabled: true,
                         value: "Copy Link",
@@ -986,7 +1083,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
     switch (choice) {
       case TabViewerPopupMenuActions.NEW_TAB:
         Future.delayed(const Duration(milliseconds: 300), () {
-          _selectedList.forEach((element) {
+          historyVars.selectedList.forEach((element) {
             Helper.addNewTab(
                 url: Uri.parse(element.search?.url ?? ""), context: context);
           });
@@ -994,7 +1091,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         Navigator.pop(context);
         break;
       case TabViewerPopupMenuActions.NEW_INCOGNITO_TAB:
-        _selectedList.forEach((element) {
+        historyVars.selectedList.forEach((element) {
           Helper.addNewIncognitoTab(
               url: Uri.parse(element.search?.url ?? ""), context: context);
         });
@@ -1003,17 +1100,18 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         break;
       case "Copy Link":
         Clipboard.setData(ClipboardData(
-            text: _selectedList.elementAt(0).search?.url.toString()));
+            text:
+                historyVars.selectedList.elementAt(0).search?.url.toString()));
         Helper.showBasicFlash(
             duration: Duration(seconds: 2),
             msg: "Copied!",
             context: this.context);
-        _selectedList = [];
-        longPressed = false;
-        count = 0;
+        historyVars.selectedList = [];
+        historyVars.longPressed = false;
+        historyVars.count = 0;
         widget.generateHistoryValues("", true, 50);
-        clearAllSwitcher.currentState?.setState(() {});
-        nohist.currentState?.setState(() {});
+        historyVars.clearAllSwitcher.currentState?.setState(() {});
+        historyVars.nohist.currentState?.setState(() {});
         this.setState(() {});
         break;
     }
@@ -1025,9 +1123,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
       color: Theme.of(context).scaffoldBackgroundColor,
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 200),
-        child: (showSearchField && !longPressed)
+        child: (historyVars.showSearchField && !historyVars.longPressed)
             ? _buildSTF(key: ksf)
-            : longPressed
+            : historyVars.longPressed
                 ? _buildLongPressed(key: deleteBar)
                 : _buildHTab(key: ktab),
         transitionBuilder: (child, animation) => FadeTransition(
