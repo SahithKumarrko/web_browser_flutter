@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -17,26 +18,73 @@ import 'package:webpage_dev_console/objectbox.g.dart';
 import 'package:webpage_dev_console/tab_viewer_popup_menu_actions.dart';
 import 'package:webpage_dev_console/util.dart';
 
-bool showSearchField = false;
-GlobalKey clearAllSwitcher = GlobalKey();
-List<FItem> _data = [];
+class FavoriteVars {
+  bool showSearchField = false;
+  GlobalKey clearAllSwitcher = GlobalKey();
+  List<FItem> data = [];
 
-List<FItem> _selectedList = [];
-GlobalKey<AnimatedListState> _listKey = GlobalKey();
+  List<FItem> selectedList = [];
+  GlobalKey<AnimatedListState> listKey = GlobalKey();
 
-TextEditingController txtc = TextEditingController();
-GlobalKey nohist = GlobalKey();
-bool longPressed = false;
-late BrowserModel browserModel;
-late BrowserSettings settings;
-String curDate = "";
-bool isRemoved = false;
-Map<String, List<int>> items = {};
-late FItem ritem;
-GlobalKey appBarKey = GlobalKey();
-Box<FavoriteModel>? store;
-var count = 0, total = 0;
-var nextcount = 0;
+  TextEditingController txtc = TextEditingController();
+  GlobalKey nohist = GlobalKey();
+  bool longPressed = false;
+  late BrowserModel browserModel;
+  late BrowserSettings settings;
+  String curDate = "";
+  bool isRemoved = false;
+  Map<String, List<int>> items = {};
+  late FItem ritem;
+  GlobalKey appBarKey = GlobalKey();
+  Box<FavoriteModel>? store;
+  var count = 0;
+
+  bool nodata = false;
+  bool nodataT = false;
+  bool isLoadingT = false;
+
+  bool change = false;
+
+  bool isloading = false;
+  bool loadFreshly = false;
+
+  GlobalKey loadmoredataKey = GlobalKey();
+}
+
+late FavoriteVars favoriteVars;
+
+class LoadMoreData extends StatefulWidget {
+  LoadMoreData({Key? key}) : super(key: key);
+
+  @override
+  _LoadMoreDataState createState() => _LoadMoreDataState();
+}
+
+class _LoadMoreDataState extends State<LoadMoreData> {
+  @override
+  Widget build(BuildContext context) {
+    return favoriteVars.isloading &&
+            !favoriteVars.nodata &&
+            favoriteVars.data.length != 0
+        ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          )
+        : favoriteVars.nodata && favoriteVars.data.length != 0
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("No More Favorites Available"))
+            : SizedBox();
+  }
+}
 
 class FItem {
   FItem(
@@ -75,7 +123,7 @@ class _CASState extends State<CAS> {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 300),
-      child: (_data.length > 1)
+      child: (favoriteVars.data.length > 1)
           ? widget.buildhistoryList()
           : widget.buildNoHistory(),
     );
@@ -85,10 +133,7 @@ class _CASState extends State<CAS> {
 class Favorite extends StatefulWidget {
   Favorite({
     Key? key,
-  }) : super(key: key) {
-    _selectedList = [];
-    longPressed = false;
-  }
+  }) : super(key: key);
 
   @override
   _FavoriteState createState() => _FavoriteState();
@@ -103,12 +148,14 @@ class _FavoriteState extends State<Favorite> {
   @override
   void initState() {
     super.initState();
-    browserModel = Provider.of<BrowserModel>(context, listen: false);
+    favoriteVars = FavoriteVars();
+    favoriteVars.browserModel =
+        Provider.of<BrowserModel>(context, listen: false);
 
-    settings = browserModel.getSettings();
+    favoriteVars.settings = favoriteVars.browserModel.getSettings();
 
-    store = browserModel.favouritebox;
-    count = 0;
+    favoriteVars.store = favoriteVars.browserModel.favouritebox;
+    favoriteVars.count = 0;
   }
 
   Future initialize(BuildContext context) async {
@@ -120,59 +167,83 @@ class _FavoriteState extends State<Favorite> {
     });
   }
 
+  var previousSearch = "";
   generateHistoryValues(String searchValue, bool needUpdate, int offset) {
     QueryBuilder<FavoriteModel>? q;
     if (searchValue.isNotEmpty)
-      q = store?.query(FavoriteModel_.title
+      q = favoriteVars.store?.query(FavoriteModel_.title
           .contains(searchValue.trim(), caseSensitive: false)
           .and(FavoriteModel_.url
               .contains(searchValue.trim(), caseSensitive: false)));
     else
-      q = store?.query();
+      q = favoriteVars.store?.query();
     q?.order(FavoriteModel_.id, flags: Order.descending);
-    print("Count :: $count :: Offset :: $offset");
+    print("Count :: ${favoriteVars.count} :: Offset :: $offset");
     var qq = q?.build()
-      ?..offset = count
+      ?..offset = favoriteVars.count
       ..limit = offset;
     qq
-      ?..offset = count
+      ?..offset = favoriteVars.count
       ..limit = offset;
+
     List<FavoriteModel>? litems = qq?.find();
+    log("Items :: $litems");
+    favoriteVars.nodata = false;
 
-    count = count + offset;
+    favoriteVars.count = favoriteVars.count + offset;
+    if ((litems?.length ?? 0) < favoriteVars.count) {
+      favoriteVars.nodata = true;
+    }
     int ind = 0;
-    _data = [];
-    items = {};
+    if (favoriteVars.loadFreshly ||
+        (favoriteVars.showSearchField && !favoriteVars.isloading)) {
+      favoriteVars.data = [];
+      favoriteVars.items = {};
+      favoriteVars.loadFreshly = false;
+      // tdata = favoriteVars.data;
+      // ttitems = favoriteVars.items;
+    }
     searchValue = searchValue.toLowerCase();
-
-    var dates = litems?.map((e) => e.date).toList();
+    var dl = favoriteVars.data.length;
+    var dates = litems?.map((e) => e.date).toSet().toList();
+    log("Dates : $dates :: ${dates?.length}");
     for (String k in dates ?? []) {
       var c = 0;
-      _data.add(FItem(date: k, search: null));
+      favoriteVars.data.add(FItem(date: k, search: null));
 
-      items[k] = [];
-      items[k]!.addAll([c, ind]);
+      favoriteVars.items[k] = [];
+      favoriteVars.items[k]!.addAll([c, ind]);
       ind = ind + 1;
       for (FavoriteModel s in litems ?? []) {
         if (s.date == k) {
-          _data.add(
+          favoriteVars.data.add(
               FItem(date: k, search: s, key: GlobalKey(), ikey: GlobalKey()));
           c += 1;
           ind = ind + 1;
         }
       }
       if (c == 0) {
-        items.remove(k);
-        _data.removeAt(ind - 1);
+        favoriteVars.items.remove(k);
+        favoriteVars.data.removeAt(ind - 1);
         ind = ind - 1;
       } else {
-        items[k]![0] = c;
+        favoriteVars.items[k]![0] = c;
       }
     }
+    log("Final :: ${favoriteVars.data}");
     if (needUpdate) {
-      _listKey.currentState?.setState(() {});
-      nohist.currentState?.setState(() {});
+      favoriteVars.listKey.currentState?.setState(() {});
+      favoriteVars.nohist.currentState?.setState(() {});
+
+      if (favoriteVars.isloading) {
+        favoriteVars.isloading = false;
+        for (int i = dl; i <= favoriteVars.data.length; i++) {
+          favoriteVars.listKey.currentState?.insertItem(i);
+        }
+      }
+      favoriteVars.loadmoredataKey.currentState?.setState(() {});
     }
+    previousSearch = searchValue;
   }
 
   Widget buildHistory() {
@@ -181,30 +252,34 @@ class _FavoriteState extends State<Favorite> {
       data: (SchedulerBinding.instance!.window.platformBrightness ==
                   Brightness.dark ||
               ct.cv == Brightness.dark ||
-              browserModel.isIncognito)
+              favoriteVars.browserModel.isIncognito)
           ? AppTheme.darkTheme
           : AppTheme.lightTheme,
       child: SafeArea(
         child: WillPopScope(
           onWillPop: () async {
-            if (!showSearchField && !longPressed)
+            if (!favoriteVars.showSearchField && !favoriteVars.longPressed)
               Navigator.pop(context);
-            else if (longPressed) {
-              _selectedList.clear();
-              longPressed = false;
-              count = 0;
-              generateHistoryValues("", true, 50);
-              clearAllSwitcher.currentState?.setState(() {});
-              nohist.currentState?.setState(() {});
-              appBarKey.currentState?.setState(() {});
+            else if (favoriteVars.longPressed) {
+              favoriteVars.selectedList.clear();
+              favoriteVars.longPressed = false;
+
+              favoriteVars.clearAllSwitcher.currentState?.setState(() {});
+              favoriteVars.nohist.currentState?.setState(() {});
+              favoriteVars.appBarKey.currentState?.setState(() {});
+              for (var i in favoriteVars.selectedList) {
+                i.isSelected = false;
+              }
             } else {
-              appBarKey.currentState?.setState(() {
-                showSearchField = false;
+              favoriteVars.appBarKey.currentState?.setState(() {
+                favoriteVars.showSearchField = false;
               });
-              count = 0;
+              favoriteVars.count = 0;
+              favoriteVars.loadFreshly = true;
+              favoriteVars.txtc.clear();
+              favoriteVars.clearAllSwitcher.currentState?.setState(() {});
+
               generateHistoryValues("", true, 50);
-              txtc.clear();
-              clearAllSwitcher.currentState?.setState(() {});
             }
 
             return false;
@@ -213,7 +288,7 @@ class _FavoriteState extends State<Favorite> {
             resizeToAvoidBottomInset: true,
             appBar: HistoryAppBar(
               generateHistoryValues: generateHistoryValues,
-              key: appBarKey,
+              key: favoriteVars.appBarKey,
             ),
             body: FutureBuilder(
               future: initialize(context),
@@ -231,17 +306,20 @@ class _FavoriteState extends State<Favorite> {
                   return Column(
                     children: [
                       ClearAllH(
-                        dataLen: _data.length,
-                        hbrowserModel: browserModel,
-                        key: clearAllSwitcher,
+                        dataLen: favoriteVars.data.length,
+                        hbrowserModel: favoriteVars.browserModel,
+                        key: favoriteVars.clearAllSwitcher,
                       ),
                       Expanded(
                         child: CAS(
                           buildNoHistory: _buildNoHistory,
                           buildhistoryList: _buildhistoryList,
-                          key: nohist,
+                          key: favoriteVars.nohist,
                         ),
                       ),
+                      LoadMoreData(
+                        key: favoriteVars.loadmoredataKey,
+                      )
                     ],
                   );
                 }
@@ -275,27 +353,46 @@ class _FavoriteState extends State<Favorite> {
     );
   }
 
-  AnimatedList _buildhistoryList() {
-    return AnimatedList(
-      key: _listKey,
-      initialItemCount: _data.length,
-      physics: BouncingScrollPhysics(),
-      padding: EdgeInsets.only(bottom: 16),
-      itemBuilder: (context, index, animation) {
-        if (index < _data.length) {
-          FItem item = _data.elementAt(index);
+  _onEndScroll(ScrollMetrics metrics) {
+    log("Scroll End");
+    if (!favoriteVars.isloading && !favoriteVars.nodata) {
+      favoriteVars.isloading = true;
+      favoriteVars.loadmoredataKey.currentState?.setState(() {});
+      Future.delayed(Duration(seconds: 1), () {
+        generateHistoryValues(favoriteVars.txtc.value.text, true, 50);
+      });
+    }
+  }
 
-          return Column(children: [
-            HisItem(
-              item: item,
-              index: index,
-              animation: animation,
-              key: item.key,
-            )
-          ]);
+  Widget _buildhistoryList() {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollEndNotification) {
+          _onEndScroll(notification.metrics);
         }
-        return SizedBox.shrink();
+        return false;
       },
+      child: AnimatedList(
+        key: favoriteVars.listKey,
+        initialItemCount: favoriteVars.data.length,
+        physics: BouncingScrollPhysics(),
+        padding: EdgeInsets.only(bottom: 16),
+        itemBuilder: (context, index, animation) {
+          if (index < favoriteVars.data.length) {
+            FItem item = favoriteVars.data.elementAt(index);
+
+            return Column(children: [
+              HisItem(
+                item: item,
+                index: index,
+                animation: animation,
+                key: item.key,
+              )
+            ]);
+          }
+          return SizedBox.shrink();
+        },
+      ),
     );
   }
 
@@ -353,36 +450,39 @@ class _HisItemState extends State<HisItem> {
                 sizeFactor: animation,
                 child: InkWell(
                   onLongPress: () {
-                    if (!longPressed) {
-                      longPressed = true;
-                      _listKey.currentState?.setState(() {});
-                      clearAllSwitcher.currentState?.setState(() {});
+                    if (!favoriteVars.longPressed) {
+                      favoriteVars.longPressed = true;
+                      favoriteVars.listKey.currentState?.setState(() {});
+                      favoriteVars.clearAllSwitcher.currentState
+                          ?.setState(() {});
                     }
                     if (!item.isSelected) {
-                      _selectedList.add(item);
+                      favoriteVars.selectedList.add(item);
                     } else {
-                      _selectedList.remove(item);
-                      if (_selectedList.length == 0) {
-                        longPressed = false;
-                        _listKey.currentState?.setState(() {});
-                        clearAllSwitcher.currentState?.setState(() {});
+                      favoriteVars.selectedList.remove(item);
+                      if (favoriteVars.selectedList.length == 0) {
+                        favoriteVars.longPressed = false;
+                        favoriteVars.listKey.currentState?.setState(() {});
+                        favoriteVars.clearAllSwitcher.currentState
+                            ?.setState(() {});
                       }
                     }
                     widget.item.key?.currentState?.setState(() {
                       widget.item.isSelected = !widget.item.isSelected;
                     });
-                    appBarKey.currentState?.setState(() {});
+                    favoriteVars.appBarKey.currentState?.setState(() {});
                   },
                   onTap: () {
-                    if (!longPressed) {
+                    if (!favoriteVars.longPressed) {
                       var webViewModel =
                           Provider.of<WebViewModel>(context, listen: false);
                       var _webViewController = webViewModel.webViewController;
                       var url = Uri.parse(widget.item.search!.url.toString());
                       if (!url.scheme.startsWith("http") &&
                           !Util.isLocalizedContent(url)) {
-                        url = Uri.parse(settings.searchEngine.searchUrl +
-                            widget.item.search!.url.toString().trim());
+                        url = Uri.parse(
+                            favoriteVars.settings.searchEngine.searchUrl +
+                                widget.item.search!.url.toString().trim());
                       }
 
                       if (_webViewController != null) {
@@ -396,20 +496,21 @@ class _HisItemState extends State<HisItem> {
                       Navigator.pop(context);
                     } else {
                       if (item.isSelected) {
-                        _selectedList.remove(item);
-                        if (_selectedList.length == 0) {
-                          longPressed = false;
-                          _listKey.currentState?.setState(() {});
-                          clearAllSwitcher.currentState?.setState(() {});
+                        favoriteVars.selectedList.remove(item);
+                        if (favoriteVars.selectedList.length == 0) {
+                          favoriteVars.longPressed = false;
+                          favoriteVars.listKey.currentState?.setState(() {});
+                          favoriteVars.clearAllSwitcher.currentState
+                              ?.setState(() {});
                         }
                       } else {
-                        _selectedList.add(item);
+                        favoriteVars.selectedList.add(item);
                       }
                       item.key?.currentState?.setState(() {
                         item.isSelected = !item.isSelected;
                       });
 
-                      appBarKey.currentState?.setState(() {});
+                      favoriteVars.appBarKey.currentState?.setState(() {});
                     }
                   },
                   child: Padding(
@@ -436,7 +537,8 @@ class _HisItemState extends State<HisItem> {
                                           RegExp("http[s]{0,1}:[/]{2}"))
                                       ? Helper.getFavIconUrl(
                                           item.search?.url ?? "",
-                                          settings.searchEngine.url)
+                                          favoriteVars
+                                              .settings.searchEngine.url)
                                       : null,
                                   maxWidth: 24.0,
                                   key: item.ikey,
@@ -475,7 +577,7 @@ class _HisItemState extends State<HisItem> {
                             ],
                           ),
                         ),
-                        longPressed
+                        favoriteVars.longPressed
                             ? SizedBox(
                                 width: 28,
                               )
@@ -496,37 +598,43 @@ class _HisItemState extends State<HisItem> {
           padding: EdgeInsets.zero,
           constraints: BoxConstraints(),
           onPressed: () {
-            ritem = _data.removeAt(index);
-            for (int i = 0; i < _data.length; i++) {
-              if (_data[i].search == null) {
-                items[_data[i].date]![1] = i;
+            favoriteVars.ritem = favoriteVars.data.removeAt(index);
+            for (int i = 0; i < favoriteVars.data.length; i++) {
+              if (favoriteVars.data[i].search == null) {
+                favoriteVars.items[favoriteVars.data[i].date]![1] = i;
               }
             }
             AnimatedListRemovedItemBuilder builder = (context, animation) {
-              store
+              favoriteVars.store
                   ?.query(FavoriteModel_.date
-                      .equals(ritem.date)
-                      .and(FavoriteModel_.title.equals(ritem.search!.title))
-                      .and(FavoriteModel_.url.equals(ritem.search!.url)))
+                      .equals(favoriteVars.ritem.date)
+                      .and(FavoriteModel_.title
+                          .equals(favoriteVars.ritem.search!.title))
+                      .and(FavoriteModel_.url
+                          .equals(favoriteVars.ritem.search!.url)))
                   .build()
                   .remove();
-              items[ritem.date]![0] = (items[ritem.date]![0] - 1);
-              ritem.isDeleted = true;
+              favoriteVars.items[favoriteVars.ritem.date]![0] =
+                  (favoriteVars.items[favoriteVars.ritem.date]![0] - 1);
+              favoriteVars.ritem.isDeleted = true;
 
-              return _buildItem(ritem, index, animation);
+              return _buildItem(favoriteVars.ritem, index, animation);
             };
-            _listKey.currentState?.removeItem(index, builder);
+            favoriteVars.listKey.currentState?.removeItem(index, builder);
 
-            if (items[ritem.date]![0] <= 1) {
+            if (favoriteVars.items[favoriteVars.ritem.date]![0] <= 1) {
               AnimatedListRemovedItemBuilder builder2 = (context, animation) {
-                return _buildItem(_data.removeAt(items[ritem.date]![1]),
-                    items[ritem.date]![1], animation);
+                return _buildItem(
+                    favoriteVars.data.removeAt(
+                        favoriteVars.items[favoriteVars.ritem.date]![1]),
+                    favoriteVars.items[favoriteVars.ritem.date]![1],
+                    animation);
               };
-              _listKey.currentState
-                  ?.removeItem(items[ritem.date]![1], builder2);
+              favoriteVars.listKey.currentState?.removeItem(
+                  favoriteVars.items[favoriteVars.ritem.date]![1], builder2);
 
-              nohist.currentState?.setState(() {});
-              clearAllSwitcher.currentState?.setState(() {});
+              favoriteVars.nohist.currentState?.setState(() {});
+              favoriteVars.clearAllSwitcher.currentState?.setState(() {});
             }
           },
           icon: FaIcon(
@@ -564,12 +672,12 @@ class _ClearAllHState extends State<ClearAllH> {
           padding: const EdgeInsets.all(8.0),
           child: TextButton(
             child: Text(
-              (!showSearchField)
+              (!favoriteVars.showSearchField)
                   ? "Clear All Bookmarks"
                   : "Clear All Searched Results",
               key: vk,
               style: TextStyle(
-                color: (!longPressed)
+                color: (!favoriteVars.longPressed)
                     ? Colors.blue
                     : Theme.of(context).disabledColor,
                 decoration: TextDecoration.underline,
@@ -577,31 +685,32 @@ class _ClearAllHState extends State<ClearAllH> {
               ),
             ),
             onPressed: () {
-              if (!longPressed) {
+              if (!favoriteVars.longPressed) {
                 showDialog(
                     context: context,
                     builder: (_) {
                       return AlertDialog(
                         title: Text('Warning'),
-                        content: Text(!showSearchField
+                        content: Text(!favoriteVars.showSearchField
                             ? 'Do you really want to clear all your bookmarks?'
                             : 'Do you really want to clear these bookmarks?'),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () {
-                              if (!showSearchField) {
-                                store?.removeAll();
+                              if (!favoriteVars.showSearchField) {
+                                favoriteVars.store?.removeAll();
                               } else {
-                                var ritems = _data
+                                var ritems = favoriteVars.data
                                     .where((element) => element.search != null)
                                     .toList()
                                     .map((e) => e.search?.id ?? 0)
                                     .toList();
-                                store?.removeMany(ritems);
+                                favoriteVars.store?.removeMany(ritems);
                               }
-                              _data.clear();
-                              setState(() => _listKey = GlobalKey());
-                              nohist.currentState?.setState(() {});
+                              favoriteVars.data.clear();
+                              setState(
+                                  () => favoriteVars.listKey = GlobalKey());
+                              favoriteVars.nohist.currentState?.setState(() {});
                               Navigator.pop(context);
                             },
                             child: Text(
@@ -638,7 +747,7 @@ class _ClearAllHState extends State<ClearAllH> {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 200),
-      child: (_data.length > 1)
+      child: (favoriteVars.data.length > 1)
           ? _buildClearAllHistory(context)
           : SizedBox.shrink(),
     );
@@ -665,14 +774,14 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
 
   @override
   void dispose() {
-    txtc.dispose();
+    favoriteVars.txtc.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    txtc = TextEditingController();
+    favoriteVars.txtc = TextEditingController();
   }
 
   Widget _buildSTF({required Key key}) {
@@ -691,12 +800,13 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
             ),
             onTap: () {
               setState(() {
-                showSearchField = false;
+                favoriteVars.showSearchField = false;
               });
-              count = 0;
+              favoriteVars.loadFreshly = true;
+              favoriteVars.count = 0;
               widget.generateHistoryValues("", true, 50);
-              txtc.clear();
-              clearAllSwitcher.currentState?.setState(() {});
+              favoriteVars.txtc.clear();
+              favoriteVars.clearAllSwitcher.currentState?.setState(() {});
             },
           ),
           Expanded(
@@ -717,11 +827,11 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 disabledBorder: InputBorder.none,
                 fillColor: Colors.black54,
               ),
-              controller: txtc,
+              controller: favoriteVars.txtc,
               onChanged: (value) {
-                count = 0;
+                favoriteVars.count = 0;
                 widget.generateHistoryValues(value.toString(), true, 50);
-                clearAllSwitcher.currentState?.setState(() {});
+                favoriteVars.clearAllSwitcher.currentState?.setState(() {});
               },
             ),
           ),
@@ -731,8 +841,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               color: Theme.of(context).colorScheme.onBackground,
             ),
             onTap: () {
-              txtc.clear();
-              count = 0;
+              favoriteVars.txtc.clear();
+              favoriteVars.count = 0;
               widget.generateHistoryValues("", true, 50);
             },
           ),
@@ -762,9 +872,10 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                 InkWell(
                   onTap: () {
                     setState(() {
-                      showSearchField = true;
+                      favoriteVars.showSearchField = true;
                     });
-                    clearAllSwitcher.currentState?.setState(() {});
+                    favoriteVars.clearAllSwitcher.currentState?.setState(() {});
+                    // favoriteVars.loadmoredataKey.currentState?.setState(() {});
                   },
                   child: Icon(
                     Icons.search,
@@ -810,21 +921,22 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   color: Colors.white,
                 ),
                 onTap: () {
-                  setState(() {
-                    showSearchField = false;
-                  });
-                  _selectedList = [];
-                  longPressed = false;
-                  count = 0;
+                  for (var i in favoriteVars.selectedList) {
+                    i.isSelected = false;
+                  }
+                  favoriteVars.selectedList = [];
+                  favoriteVars.longPressed = false;
+                  favoriteVars.count = 0;
                   widget.generateHistoryValues("", true, 50);
-                  clearAllSwitcher.currentState?.setState(() {});
+                  this.setState(() {});
+                  favoriteVars.clearAllSwitcher.currentState?.setState(() {});
                 },
               ),
               SizedBox(
                 width: 12,
               ),
               Text(
-                "${_selectedList.length} Selected",
+                "${favoriteVars.selectedList.length} Selected",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -840,9 +952,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               InkWell(
                 onTap: () {
                   setState(() {
-                    showSearchField = false;
+                    favoriteVars.showSearchField = false;
                   });
-                  clearAllSwitcher.currentState?.setState(() {});
+                  favoriteVars.clearAllSwitcher.currentState?.setState(() {});
                   showDialog(
                       context: context,
                       builder: (_) {
@@ -853,19 +965,22 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                           actions: <Widget>[
                             TextButton(
                               onPressed: () {
-                                var ritems = _selectedList
+                                var ritems = favoriteVars.selectedList
                                     .where((element) => element.search != null)
                                     .toList()
                                     .map((e) => e.search?.id ?? 0)
                                     .toList();
-                                store?.removeMany(ritems);
-                                _selectedList.clear();
-                                longPressed = false;
-                                count = 0;
+                                favoriteVars.store?.removeMany(ritems);
+                                favoriteVars.selectedList.clear();
+                                favoriteVars.longPressed = false;
+                                favoriteVars.count = 0;
                                 widget.generateHistoryValues("", true, 50);
-                                clearAllSwitcher.currentState?.setState(() {});
-                                nohist.currentState?.setState(() {});
-                                appBarKey.currentState?.setState(() {});
+                                favoriteVars.clearAllSwitcher.currentState
+                                    ?.setState(() {});
+                                favoriteVars.nohist.currentState
+                                    ?.setState(() {});
+                                favoriteVars.appBarKey.currentState
+                                    ?.setState(() {});
                                 Navigator.pop(context);
                               },
                               child: Text(
@@ -922,7 +1037,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ));
-                    if (_selectedList.length == 1) {
+                    if (favoriteVars.selectedList.length == 1) {
                       popupitems.add(CustomPopupMenuItem<String>(
                         enabled: true,
                         value: "Copy Link",
@@ -946,7 +1061,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
     switch (choice) {
       case TabViewerPopupMenuActions.NEW_TAB:
         Future.delayed(const Duration(milliseconds: 300), () {
-          _selectedList.forEach((element) {
+          favoriteVars.selectedList.forEach((element) {
             Helper.addNewTab(
                 url: Uri.parse(element.search?.url ?? ""), context: context);
           });
@@ -954,7 +1069,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         Navigator.pop(context);
         break;
       case TabViewerPopupMenuActions.NEW_INCOGNITO_TAB:
-        _selectedList.forEach((element) {
+        favoriteVars.selectedList.forEach((element) {
           Helper.addNewIncognitoTab(
               url: Uri.parse(element.search?.url ?? ""), context: context);
         });
@@ -963,17 +1078,18 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
         break;
       case "Copy Link":
         Clipboard.setData(ClipboardData(
-            text: _selectedList.elementAt(0).search?.url.toString()));
+            text:
+                favoriteVars.selectedList.elementAt(0).search?.url.toString()));
         Helper.showBasicFlash(
             duration: Duration(seconds: 2),
             msg: "Copied!",
             context: this.context);
-        _selectedList = [];
-        longPressed = false;
-        count = 0;
+        favoriteVars.selectedList = [];
+        favoriteVars.longPressed = false;
+        favoriteVars.count = 0;
         widget.generateHistoryValues("", true, 50);
-        clearAllSwitcher.currentState?.setState(() {});
-        nohist.currentState?.setState(() {});
+        favoriteVars.clearAllSwitcher.currentState?.setState(() {});
+        favoriteVars.nohist.currentState?.setState(() {});
         setState(() {});
         break;
     }
@@ -985,9 +1101,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
       color: Theme.of(context).scaffoldBackgroundColor,
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 200),
-        child: (showSearchField && !longPressed)
+        child: (favoriteVars.showSearchField && !favoriteVars.longPressed)
             ? _buildSTF(key: ksf)
-            : longPressed
+            : favoriteVars.longPressed
                 ? _buildLongPressed(key: deleteBar)
                 : _buildHTab(key: ktab),
         transitionBuilder: (child, animation) => FadeTransition(

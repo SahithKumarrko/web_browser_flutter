@@ -48,20 +48,6 @@ class HistoryVars {
   bool change = false;
 
   bool loadFreshly = false;
-
-  copy_load(bool a, bool b) {
-    nodataT = nodata;
-    isLoadingT = isloading;
-    nodata = b;
-    isloading = a;
-    change = true;
-  }
-
-  retain_load() {
-    nodata = nodataT;
-    isloading = isLoadingT;
-    change = false;
-  }
 }
 
 late HistoryVars historyVars;
@@ -232,6 +218,7 @@ class _HistoryState extends State<History>
         (historyVars.showSearchField && !historyVars.isloading)) {
       historyVars.data = [];
       historyVars.items = {};
+      historyVars.loadFreshly = false;
       // tdata = historyVars.data;
       // ttitems = historyVars.items;
     }
@@ -242,7 +229,7 @@ class _HistoryState extends State<History>
     //   }
     // }
     var dl = historyVars.data.length;
-    var dates = litems?.map((e) => e.date).toList();
+    var dates = litems?.map((e) => e.date).toSet().toList();
     for (String k in dates ?? []) {
       var c = 0;
       historyVars.data.add(HItem(date: k, search: null));
@@ -401,7 +388,7 @@ class _HistoryState extends State<History>
     if (!historyVars.isloading && !historyVars.nodata) {
       historyVars.isloading = true;
       historyVars.loadmoredataKey.currentState?.setState(() {});
-      Future.delayed(Duration(seconds: 2), () {
+      Future.delayed(Duration(seconds: 1), () {
         generateHistoryValues(historyVars.txtc.value.text, true, 50);
       });
     }
@@ -948,7 +935,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   });
                   historyVars.clearAllSwitcher.currentState?.setState(() {});
                   // historyVars.copy_load(false, false);
-                  historyVars.loadmoredataKey.currentState?.setState(() {});
+                  // historyVars.loadmoredataKey.currentState?.setState(() {});
                 },
                 child: Icon(
                   Icons.search,
@@ -993,9 +980,9 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   color: Colors.white,
                 ),
                 onTap: () {
-                  this.setState(() {
-                    historyVars.showSearchField = false;
-                  });
+                  // this.setState(() {
+                  //   historyVars.showSearchField = false;
+                  // });
                   for (var i in historyVars.selectedList) {
                     i.isSelected = false;
                   }
@@ -1003,6 +990,7 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                   historyVars.longPressed = false;
                   historyVars.count = 0;
                   widget.generateHistoryValues("", true, 50);
+                  this.setState(() {});
                   historyVars.clearAllSwitcher.currentState?.setState(() {});
                 },
               ),
