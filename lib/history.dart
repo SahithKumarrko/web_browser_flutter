@@ -15,6 +15,7 @@ import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/models/browser_model.dart';
 import 'package:webpage_dev_console/models/webview_model.dart';
 import 'package:webpage_dev_console/objectbox.g.dart';
+import 'package:webpage_dev_console/search_model.dart';
 import 'package:webpage_dev_console/tab_viewer_popup_menu_actions.dart';
 import 'package:webpage_dev_console/util.dart';
 
@@ -40,6 +41,27 @@ class HistoryVars {
   Box<Search>? store;
   var count = 0;
   bool nodata = false;
+
+  bool nodataT = false;
+  bool isLoadingT = false;
+
+  bool change = false;
+
+  bool loadFreshly = false;
+
+  copy_load(bool a, bool b) {
+    nodataT = nodata;
+    isLoadingT = isloading;
+    nodata = b;
+    isloading = a;
+    change = true;
+  }
+
+  retain_load() {
+    nodata = nodataT;
+    isloading = isLoadingT;
+    change = false;
+  }
 }
 
 late HistoryVars historyVars;
@@ -134,13 +156,17 @@ class _HistoryState extends State<History>
     with AutomaticKeepAliveClientMixin<History> {
   @override
   void dispose() {
+    // WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
   }
 
   @override
   void initState() {
     historyVars = HistoryVars();
+    // WidgetsBinding.instance!.addObserver(this);
     historyVars.showSearchField = false;
+    // historyVars.isKeyboardVisible =
+    //     WidgetsBinding.instance!.window.viewInsets.bottom > 0.0;
     super.initState();
     historyVars.browserModel =
         Provider.of<BrowserModel>(context, listen: false);
@@ -154,12 +180,23 @@ class _HistoryState extends State<History>
     // total = store?.count() ?? 0;
   }
 
+  // @override
+  // void didChangeMetrics() {
+  //   final bottomInset = WidgetsBinding.instance!.window.viewInsets.bottom;
+  //   final newValue = bottomInset > 0.0;
+  //   if (newValue != historyVars.isKeyboardVisible) {
+  //     historyVars.isKeyboardVisible = newValue;
+  //     print("Changed keyboard :: $newValue");
+  //     historyVars.appBarKey.currentState?.setState(() {});
+  //   }
+  // }
+
   Future initialize(BuildContext context) async {
     // This is where you can initialize the resources needed by your app while
     // the splash screen is displayed.  Remove the following example because
     // delaying the user experience is a bad design practice!
     await Future.delayed(const Duration(seconds: 1), () async {
-      generateHistoryValues("", false, 1);
+      generateHistoryValues("", false, 50);
     });
   }
 
@@ -191,21 +228,20 @@ class _HistoryState extends State<History>
     }
     int ind = 0;
     searchValue = searchValue.toLowerCase();
-    if (((searchValue.isNotEmpty || historyVars.showSearchField) &&
-            searchValue != previousSearch) ||
-        historyVars.selectedList.length != 0) {
+    if (historyVars.loadFreshly ||
+        (historyVars.showSearchField && !historyVars.isloading)) {
       historyVars.data = [];
       historyVars.items = {};
-      tdata = historyVars.data;
-      ttitems = historyVars.items;
-    } else {
-      if (tdata.length != 0) {
-        historyVars.data = tdata;
-        historyVars.items = ttitems;
-      }
+      // tdata = historyVars.data;
+      // ttitems = historyVars.items;
     }
+    //  else {
+    //   if (tdata.length != 0 && !historyVars.showSearchField) {
+    //     historyVars.data = tdata;
+    //     historyVars.items = ttitems;
+    //   }
+    // }
     var dl = historyVars.data.length;
-    var il = historyVars.items.length;
     var dates = litems?.map((e) => e.date).toList();
     for (String k in dates ?? []) {
       var c = 0;
@@ -242,8 +278,8 @@ class _HistoryState extends State<History>
         for (int i = dl; i <= historyVars.data.length; i++) {
           historyVars.listKey.currentState?.insertItem(i);
         }
-        historyVars.loadmoredataKey.currentState?.setState(() {});
       }
+      historyVars.loadmoredataKey.currentState?.setState(() {});
     }
     previousSearch = searchValue;
   }
@@ -265,21 +301,30 @@ class _HistoryState extends State<History>
             else if (historyVars.longPressed) {
               historyVars.selectedList.clear();
               historyVars.longPressed = false;
-              historyVars.count = 0;
-              generateHistoryValues("", true, 50);
+              // historyVars.count = 0;
+              // generateHistoryValues("", true, 50);
               historyVars.clearAllSwitcher.currentState?.setState(() {});
               historyVars.nohist.currentState?.setState(() {});
               historyVars.appBarKey.currentState?.setState(() {});
+              for (var i in historyVars.selectedList) {
+                i.isSelected = false;
+              }
             } else {
               historyVars.appBarKey.currentState?.setState(() {
                 historyVars.showSearchField = false;
               });
-              historyVars.count = 0;
-              generateHistoryValues("", true, 50);
+              historyVars.loadFreshly = true;
               historyVars.txtc.clear();
               historyVars.clearAllSwitcher.currentState?.setState(() {});
-            }
 
+              historyVars.count = 0;
+              log("going back");
+              generateHistoryValues("", true, 50);
+            }
+            // if (historyVars.change) {
+            //   historyVars.retain_load();
+            //   historyVars.loadmoredataKey.currentState?.setState(() {});
+            // }
             return false;
           },
           child: Scaffold(
@@ -353,7 +398,7 @@ class _HistoryState extends State<History>
 
   _onEndScroll(ScrollMetrics metrics) {
     print("Scroll End");
-    if (!historyVars.isloading) {
+    if (!historyVars.isloading && !historyVars.nodata) {
       historyVars.isloading = true;
       historyVars.loadmoredataKey.currentState?.setState(() {});
       Future.delayed(Duration(seconds: 2), () {
@@ -827,6 +872,11 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
               this.setState(() {
                 historyVars.showSearchField = false;
               });
+              // if (historyVars.change) {
+              //   historyVars.retain_load();
+              //   historyVars.loadmoredataKey.currentState?.setState(() {});
+              // }
+              historyVars.loadFreshly = true;
               historyVars.count = 0;
               widget.generateHistoryValues("", true, 50);
               historyVars.txtc.clear();
@@ -897,6 +947,8 @@ class _HistoryAppBarState extends State<HistoryAppBar> {
                     historyVars.showSearchField = true;
                   });
                   historyVars.clearAllSwitcher.currentState?.setState(() {});
+                  // historyVars.copy_load(false, false);
+                  historyVars.loadmoredataKey.currentState?.setState(() {});
                 },
                 child: Icon(
                   Icons.search,
