@@ -9,13 +9,16 @@ import 'package:flash/flash.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:webpage_dev_console/TaskInfo.dart';
+import 'package:webpage_dev_console/browser.dart';
 import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/history.dart';
+import 'package:webpage_dev_console/models/app_theme.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -62,14 +65,24 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      contentPadding: EdgeInsets.all(0.0),
-      content: SingleChildScrollView(
-        child: Container(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: _buildDialogLongPressHitTestResult(),
+    var ct = Provider.of<ChangeTheme>(context, listen: true);
+    var browserModel = Provider.of<BrowserModel>(context, listen: true);
+    return Theme(
+      data: (SchedulerBinding.instance!.window.platformBrightness ==
+                  Brightness.dark ||
+              ct.cv == Brightness.dark ||
+              browserModel.isIncognito)
+          ? AppTheme.darkTheme
+          : AppTheme.lightTheme,
+      child: AlertDialog(
+        contentPadding: EdgeInsets.all(0.0),
+        content: SingleChildScrollView(
+          child: Container(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: _buildDialogLongPressHitTestResult(),
+            ),
           ),
         ),
       ),
@@ -109,7 +122,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
         // _buildImageTile(),
         _buildOpenImageNewTab(),
         _buildDownload(),
-        _buildSearchImageOnGoogle(),
+        // _buildSearchImageOnGoogle(),
         _buildShareImage(),
       ];
     }
@@ -202,13 +215,19 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
 
     return ListTile(
-      title: const Text("Open in a new tab"),
+      title: Text(
+        "Open in a new tab",
+        style: Theme.of(context).textTheme.bodyText1?.copyWith(
+              fontSize: 18.0,
+            ),
+      ),
       onTap: () {
         browserModel.addTab(
             WebViewTab(
               key: GlobalKey(),
               webViewModel: WebViewModel(
                   url: widget.requestFocusNodeHrefResult?.url,
+                  isIncognitoMode: browserModel.isIncognito,
                   openedByUser: true),
             ),
             true);
@@ -221,7 +240,12 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
 
     return ListTile(
-      title: const Text("Open in a new incognito tab"),
+      title: Text(
+        "Open in a new incognito tab",
+        style: Theme.of(context).textTheme.bodyText1?.copyWith(
+              fontSize: 18.0,
+            ),
+      ),
       onTap: () {
         browserModel.addTab(
             WebViewTab(
@@ -239,7 +263,12 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
 
   Widget _buildCopyAddressLink() {
     return ListTile(
-      title: const Text("Copy address link"),
+      title: Text(
+        "Copy address link",
+        style: Theme.of(context).textTheme.bodyText1?.copyWith(
+              fontSize: 18.0,
+            ),
+      ),
       onTap: () {
         Clipboard.setData(ClipboardData(
             text: widget.requestFocusNodeHrefResult?.url.toString() ??
@@ -253,7 +282,12 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
   Widget _buildShareLink() {
     return ListTile(
       title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        const Text("Share link"),
+        Text(
+          "Share link",
+          style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                fontSize: 18.0,
+              ),
+        ),
         Padding(
           padding: EdgeInsets.only(right: 12.5),
           child: Icon(
@@ -341,7 +375,12 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
           barrierDismissible: true,
           builder: (actx) {
             return AlertDialog(
-              title: Text("Save as"),
+              title: Text(
+                "Save as",
+                style: Theme.of(this.context).textTheme.bodyText1?.copyWith(
+                      fontSize: 18.0,
+                    ),
+              ),
               content: TextField(
                 controller: frController,
                 autofocus: true,
@@ -500,7 +539,12 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
 
   Widget _buildDownload() {
     return ListTile(
-      title: const Text("Save"),
+      title: Text(
+        "Save",
+        style: Theme.of(context).textTheme.bodyText1?.copyWith(
+              fontSize: 18.0,
+            ),
+      ),
       onTap: () async {
         // Navigator.pop(context);
         bool isImage = false;
@@ -568,7 +612,12 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
   Widget _buildShareImage() {
     return ListTile(
       title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        const Text("Share image"),
+        Text(
+          "Share image",
+          style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                fontSize: 18.0,
+              ),
+        ),
         Padding(
           padding: EdgeInsets.only(right: 12.5),
           child: Icon(
@@ -591,14 +640,20 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
 
     return ListTile(
-      title: const Text("Image in a new tab"),
+      title: Text(
+        "Image in a new tab",
+        style: Theme.of(context).textTheme.bodyText1?.copyWith(
+              fontSize: 18.0,
+            ),
+      ),
       onTap: () {
         browserModel.addTab(
             WebViewTab(
               key: GlobalKey(),
               webViewModel: WebViewModel(
                   url: Uri.parse(widget.hitTestResult.extra ?? "about:blank"),
-                  openedByUser: true),
+                  isIncognitoMode: browserModel.isIncognito,
+                  openedByUser: false),
             ),
             true);
         Navigator.pop(context);
@@ -610,7 +665,12 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
     var browserModel = Provider.of<BrowserModel>(context, listen: false);
 
     return ListTile(
-      title: const Text("Search this image on Google"),
+      title: Text(
+        "Search this image on Google",
+        style: Theme.of(context).textTheme.bodyText1?.copyWith(
+              fontSize: 18.0,
+            ),
+      ),
       onTap: () {
         if (widget.hitTestResult.extra != null) {
           var url = "http://images.google.com/searchbyimage?image_url=" +

@@ -629,7 +629,9 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         if (isCurrentTab(currentWebViewModel)) {
           currentWebViewModel.updateWithValue(widget.webViewModel);
         }
-        if (widget.webViewModel.title != null) {
+        if (widget.webViewModel.title != null &&
+            !(browserModel.isIncognito ||
+                widget.webViewModel.isIncognitoMode)) {
           browserModel.addToHistory(Search(
               date: "",
               title: widget.webViewModel.title.toString().trim(),
@@ -637,8 +639,7 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
                   ? ""
                   : widget.webViewModel.url.toString(),
               isHistory: true,
-              isIncognito: browserModel.isIncognito ||
-                  widget.webViewModel.isIncognitoMode));
+              isIncognito: false));
         }
         // var hhhh = browserModel.getCurrentTab()?.webViewModel.history;
         // print("TAB HIS :: $hhhh");
