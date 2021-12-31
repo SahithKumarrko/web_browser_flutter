@@ -19,6 +19,7 @@ import 'package:webpage_dev_console/custom_image.dart';
 import 'package:webpage_dev_console/helpers.dart';
 import 'package:webpage_dev_console/history.dart';
 import 'package:webpage_dev_console/models/app_theme.dart';
+import 'package:webpage_dev_console/page_download.dart';
 import 'package:webpage_dev_console/webview_tab.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -90,6 +91,7 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
   }
 
   List<Widget> _buildDialogLongPressHitTestResult() {
+    var browserModel = Provider.of<BrowserModel>(context, listen: false);
     if (widget.hitTestResult.type ==
             InAppWebViewHitTestResultType.SRC_ANCHOR_TYPE ||
         widget.hitTestResult.type ==
@@ -108,7 +110,9 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
         _buildLinkTile(),
         Divider(),
         _buildOpenNewTab(),
-        _buildOpenNewIncognitoTab(),
+        !widget.webViewModel.isIncognitoMode
+            ? _buildOpenNewIncognitoTab()
+            : SizedBox(),
         _buildCopyAddressLink(),
         _buildShareLink(),
       ];
@@ -157,13 +161,15 @@ class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
           ],
         ),
       ),
-      title: Text(
-        title,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
+      // title: Text(
+      //   title,
+      //   style: Theme.of(context).textTheme.headline2,
+      //   maxLines: 2,
+      //   overflow: TextOverflow.ellipsis,
+      // ),
       subtitle: Text(
         widget.requestFocusNodeHrefResult?.url?.toString() ?? "",
+        style: Theme.of(context).textTheme.bodyText2,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
