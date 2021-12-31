@@ -1,7 +1,6 @@
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -11,22 +10,19 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:webpage_dev_console/TaskInfo.dart';
-import 'package:webpage_dev_console/browser.dart';
-import 'package:webpage_dev_console/custom_image.dart';
-import 'package:webpage_dev_console/helpers.dart';
-import 'package:webpage_dev_console/history.dart';
-import 'package:webpage_dev_console/models/app_theme.dart';
-import 'package:webpage_dev_console/page_download.dart';
-import 'package:webpage_dev_console/webview_tab.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:share/share.dart';
-import 'package:http/http.dart' as http;
+import 'package:webpage_dev_console/TaskInfo.dart';
+import 'package:webpage_dev_console/custom_image.dart';
+import 'package:webpage_dev_console/helpers.dart';
+import 'package:webpage_dev_console/models/app_theme.dart';
+import 'package:webpage_dev_console/webview_tab.dart';
+
 import 'models/browser_model.dart';
 import 'models/webview_model.dart';
 
