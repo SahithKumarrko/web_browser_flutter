@@ -75,9 +75,28 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:3514058454246896276",
+      "lastPropertyId": "2:2707004979770255805",
+      "name": "AdblockerModel",
+      "properties": [
+        {
+          "id": "1:8129311783443186935",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2707004979770255805",
+          "name": "host",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:7328970738351426234",
+  "lastEntityId": "3:3514058454246896276",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

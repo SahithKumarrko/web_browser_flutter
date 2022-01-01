@@ -9,6 +9,7 @@ import 'package:objectbox/internal.dart'; // generated code can access "internal
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import 'models/AdBlockerModel.dart';
 import 'models/favorite_model.dart';
 import 'models/model_search.dart';
 
@@ -87,6 +88,25 @@ final _entities = <ModelEntity>[
             flags: 0)
       ],
       relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(3, 3514058454246896276),
+      name: 'AdblockerModel',
+      lastPropertyId: const IdUid(2, 2707004979770255805),
+      flags: 0,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 8129311783443186935),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        ModelProperty(
+            id: const IdUid(2, 2707004979770255805),
+            name: 'host',
+            type: 9,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
 ];
 
@@ -110,7 +130,7 @@ Future<Store> openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(2, 7328970738351426234),
+      lastEntityId: const IdUid(3, 3514058454246896276),
       lastIndexId: const IdUid(0, 0),
       lastRelationId: const IdUid(0, 0),
       lastSequenceId: const IdUid(0, 0),
@@ -200,6 +220,33 @@ ModelDefinition getObjectBoxModel() {
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
           return object;
+        }),
+    AdblockerModel: EntityDefinition<AdblockerModel>(
+        model: _entities[2],
+        toOneRelations: (AdblockerModel object) => [],
+        toManyRelations: (AdblockerModel object) => {},
+        getId: (AdblockerModel object) => object.id,
+        setId: (AdblockerModel object, int id) {
+          object.id = id;
+        },
+        objectToFB: (AdblockerModel object, fb.Builder fbb) {
+          final hostOffset = fbb.writeString(object.host);
+          fbb.startTable(3);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, hostOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = AdblockerModel(
+              host:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''))
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+
+          return object;
         })
   };
 
@@ -250,4 +297,15 @@ class FavoriteModel_ {
   /// see [FavoriteModel.date]
   static final date =
       QueryStringProperty<FavoriteModel>(_entities[1].properties[3]);
+}
+
+/// [AdblockerModel] entity fields to define ObjectBox queries.
+class AdblockerModel_ {
+  /// see [AdblockerModel.id]
+  static final id =
+      QueryIntegerProperty<AdblockerModel>(_entities[2].properties[0]);
+
+  /// see [AdblockerModel.host]
+  static final host =
+      QueryStringProperty<AdblockerModel>(_entities[2].properties[1]);
 }
