@@ -91,6 +91,8 @@ class BrowserModel extends ChangeNotifier {
   Box<Search>? searchbox;
   Box<FavoriteModel>? favouritebox;
 
+  bool adBlockerInitialized = false;
+
   bool loadingVisible = false;
   late BuildContext loadctx;
 

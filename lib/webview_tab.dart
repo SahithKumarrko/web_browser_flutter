@@ -211,6 +211,8 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         }
       },
       onLoadStart: (controller, url) async {
+        bool? ab = await controller.getAdBlocker();
+        log("Adblocker :: $ab");
         widget.webViewModel.isSecure = Util.urlIsSecure(url!);
         widget.webViewModel.url = url;
         widget.webViewModel.loaded = false;
@@ -252,6 +254,16 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
             await widget.webViewModel.webViewController
                 ?.zoomBy(zoomFactor: 0.02);
           }
+        }
+        await controller.setAdBlocker(false);
+        bool? ab = await controller.getAdBlocker();
+        log("Adblocker c: $ab");
+        if (!browserModel.adBlockerInitialized) {
+          print("Checking adblocker initialization");
+          bool? init = await controller.checkAdBlockerInitialized();
+          browserModel.adBlockerInitialized = init ?? true;
+          print(
+              "adblocker initialization :: $init :: ${browserModel.adBlockerInitialized}");
         }
 
         // print("RT :: " +

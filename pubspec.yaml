@@ -37,7 +37,9 @@ dependencies:
     path: packages/flutter_downloader
   flutter_highlight: ^0.7.0
   flutter_html: ^2.2.1
-  flutter_inappwebview: ^5.3.2
+  # flutter_inappwebview: ^5.3.2
+  flutter_inappwebview:
+    path: packages/flutter_inappwebview
   flutter_native_splash: ^1.2.4
   flutter_svg: ^0.22.0
   font_awesome_flutter: ^9.0.0-nullsafety
