@@ -98,6 +98,8 @@ class BrowserModel extends ChangeNotifier {
 
   bool _isIncognito = false;
 
+  bool stillLoading = true;
+
   bool get showTabScroller => _showTabScroller;
 
   initializeStore() async {

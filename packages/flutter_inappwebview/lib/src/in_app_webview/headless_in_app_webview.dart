@@ -354,7 +354,7 @@ class HeadlessInAppWebView implements WebView {
   void Function(InAppWebViewController controller, int progress)?
       onProgressChanged;
   @override
-  void Function(int progress)? onInitialization;
+  void Function(int progress, bool completed)? onInitialization;
 
   @override
   Future<ClientCertResponse?> Function(InAppWebViewController controller,

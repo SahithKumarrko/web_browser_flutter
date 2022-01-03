@@ -661,6 +661,7 @@ final public class InAppWebView extends InputAwareWebView {
         BufferedReader reader = null;
         int progress = 0;
         Box<AdBlocker> box = Objectbox.get().boxFor(AdBlocker.class);
+        box.removeAll();
         long total = 5225061;
         long c = 0;
         int divider = 174168;
@@ -679,11 +680,13 @@ final public class InAppWebView extends InputAwareWebView {
                 box.put(ab);
                 c = c + 1;
                 progress = Math.round ((c/total) *100);
-if(progress%divider==0){
+//                Log.d("InitAdblocker","Progress :: "+String.valueOf(progress));
+if(c%divider==0){
   Map<String, Object> obj = new HashMap<>();
   obj.put("progress", progress);
+  obj.put("completed", false);
   channel.invokeMethod("onInitialization", obj);
-  Log.d("InitAdblocker","Progress :: "+String.valueOf(progress));
+  Log.d("InitAdblocker","Progress :: "+String.valueOf(progress)+" C :: "+String.valueOf(c));
 }
 
               }
@@ -704,6 +707,11 @@ if(progress%divider==0){
             }
           }
         }
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("progress", progress);
+        obj.put("completed", true);
+
+        channel.invokeMethod("onInitialization", obj);
       }
     });
   }

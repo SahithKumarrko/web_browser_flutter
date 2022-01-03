@@ -64,7 +64,7 @@ abstract class WebView {
   final void Function(InAppWebViewController controller, int progress)?
       onProgressChanged;
 
-  final void Function(int progress)? onInitialization;
+  final void Function(int progress, bool completed)? onInitialization;
 
   ///Event fired when the [WebView] receives a [ConsoleMessage].
   ///

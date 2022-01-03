@@ -266,7 +266,7 @@ class InAppWebView extends StatefulWidget implements WebView {
       onProgressChanged;
 
   @override
-  final void Function(int progress)? onInitialization;
+  final void Function(int progress, bool completed)? onInitialization;
 
   @override
   final Future<ClientCertResponse?> Function(InAppWebViewController controller,

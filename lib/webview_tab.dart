@@ -22,6 +22,8 @@ import 'long_press_alert_dialog.dart';
 import 'models/browser_model.dart';
 import 'package:http/http.dart' as http;
 
+int adBlockerProgress = 0;
+
 class WebViewTab extends StatefulWidget {
   WebViewTab({required this.key, required this.webViewModel}) : super(key: key);
 
@@ -45,6 +47,8 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
   late String _localPath;
   late PermissionStatus _permissionReady;
   InAppWebViewController? _webViewController;
+  GlobalKey adb = GlobalKey();
+  bool stillLoading = true;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -255,16 +259,31 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
                 ?.zoomBy(zoomFactor: 0.02);
           }
         }
-        await controller.setAdBlocker(false);
-        bool? ab = await controller.getAdBlocker();
-        log("Adblocker c: $ab");
-        if (!browserModel.adBlockerInitialized) {
-          print("Checking adblocker initialization");
-          bool? init = await controller.checkAdBlockerInitialized();
-          browserModel.adBlockerInitialized = init ?? true;
-          print(
-              "adblocker initialization :: $init :: ${browserModel.adBlockerInitialized}");
-        }
+        // await controller.setAdBlocker(false);
+        // bool? ab = await controller.getAdBlocker();
+        // log("Adblocker c: $ab");
+        // if (!browserModel.adBlockerInitialized && browserModel.stillLoading) {
+        //   print("Checking adblocker initialization");
+        //   bool? init = await controller.checkAdBlockerInitialized();
+        //   browserModel.adBlockerInitialized = init ?? true;
+        //   print(
+        //       "adblocker initialization :: $init :: ${browserModel.adBlockerInitialized}");
+
+        //   if (!browserModel.adBlockerInitialized) {
+        //     print("Init AdBlocker");
+
+        //     showDialog(
+        //         context: this.context,
+        //         builder: (ctx) {
+        //           Widget w = AdblockerInitDialog(
+        //             key: adb,
+        //           );
+        //           controller.initializeAdBlocker();
+        //           return w;
+        //         });
+        //   }
+        //   browserModel.stillLoading = false;
+        // }
 
         // print("RT :: " +
         //     widget.webViewModel.title.toString() +
@@ -305,6 +324,16 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
 
         if (isCurrentTab(currentWebViewModel)) {
           currentWebViewModel.updateWithValue(widget.webViewModel);
+        }
+      },
+      onInitialization: (progress, completed) {
+        print("Completed : $completed");
+        if (completed || progress > 99) {
+          Navigator.pop(context);
+        } else {
+          adb.currentState?.setState(() {
+            adBlockerProgress = progress;
+          });
         }
       },
       onUpdateVisitedHistory: (controller, url, androidIsReload) async {
@@ -778,6 +807,30 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
     return Container(
       color: Colors.white,
       child: _buildWebView(),
+    );
+  }
+}
+
+class AdblockerInitDialog extends StatefulWidget {
+  const AdblockerInitDialog({Key? key}) : super(key: key);
+
+  @override
+  _AdblockerInitDialogState createState() => _AdblockerInitDialogState();
+}
+
+class _AdblockerInitDialogState extends State<AdblockerInitDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: Row(
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(
+            width: 12,
+          ),
+          Text("Initializing AdBlocker ($adBlockerProgress)"),
+        ],
+      ),
     );
   }
 }

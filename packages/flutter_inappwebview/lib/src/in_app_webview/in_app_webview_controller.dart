@@ -168,8 +168,9 @@ class InAppWebViewController {
         if ((_webview != null && _webview!.onProgressChanged != null) ||
             _inAppBrowser != null) {
           int progress = call.arguments["progress"];
+          bool completed = call.arguments["completed"];
           if (_webview != null && _webview!.onProgressChanged != null)
-            _webview!.onInitialization!(progress);
+            _webview!.onInitialization!(progress, completed);
           else
             _inAppBrowser!.onInitialization(progress);
         }
@@ -934,7 +935,7 @@ class InAppWebViewController {
 
   Future initializeAdBlocker() async {
     Map<String, dynamic> args = <String, dynamic>{};
-    await _channel.invokeMethod('initializeAdBlocker', args);
+    _channel.invokeMethod('initializeAdBlocker', args);
   }
 
   Future<bool?> checkAdBlockerInitialized() async {
