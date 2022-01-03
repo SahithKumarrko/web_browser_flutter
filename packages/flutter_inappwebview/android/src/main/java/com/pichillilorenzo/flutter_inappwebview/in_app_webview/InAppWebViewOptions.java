@@ -79,7 +79,6 @@ public class InAppWebViewOptions implements Options<InAppWebView> {
   public Integer initialScale = 0;
   public Boolean needInitialFocus = true;
   public Boolean offscreenPreRaster = false;
-  public boolean adBlocker = true;
   public String sansSerifFontFamily = "sans-serif";
   public String serifFontFamily = "sans-serif";
   public String standardFontFamily = "sans-serif";
@@ -124,9 +123,6 @@ public class InAppWebViewOptions implements Options<InAppWebView> {
           break;
         case "useOnLoadResource":
           useOnLoadResource = (Boolean) value;
-          break;
-        case "useAdBlocker":
-          adBlocker = (Boolean) value;
           break;
         case "useOnDownloadStart":
           useOnDownloadStart = (Boolean) value;
@@ -378,7 +374,6 @@ public class InAppWebViewOptions implements Options<InAppWebView> {
     options.put("useOnLoadResource", useOnLoadResource);
     options.put("useOnDownloadStart", useOnDownloadStart);
     options.put("clearCache", clearCache);
-    options.put("useAdBlocker",adBlocker);
     options.put("userAgent", userAgent);
     options.put("applicationNameForUserAgent", applicationNameForUserAgent);
     options.put("javaScriptEnabled", javaScriptEnabled);

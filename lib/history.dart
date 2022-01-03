@@ -144,6 +144,11 @@ class _HistoryState extends State<History>
   void dispose() {
     // WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
+    try {
+      historyVars.data.clear();
+      historyVars.items.clear();
+      historyVars.selectedList.clear();
+    } catch (e) {}
   }
 
   @override

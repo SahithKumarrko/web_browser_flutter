@@ -49,7 +49,6 @@ class InAppWebView extends StatefulWidget implements WebView {
     this.onLoadHttpError,
     this.onConsoleMessage,
     this.onProgressChanged,
-    this.onInitialization,
     this.shouldOverrideUrlLoading,
     this.onLoadResource,
     this.onScrollChanged,
@@ -264,9 +263,6 @@ class InAppWebView extends StatefulWidget implements WebView {
   @override
   final void Function(InAppWebViewController controller, int progress)?
       onProgressChanged;
-
-  @override
-  final void Function(int progress, bool completed)? onInitialization;
 
   @override
   final Future<ClientCertResponse?> Function(InAppWebViewController controller,

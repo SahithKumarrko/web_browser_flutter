@@ -59,7 +59,6 @@ class HeadlessInAppWebView implements WebView {
       this.onLoadError,
       this.onLoadHttpError,
       this.onProgressChanged,
-      this.onInitialization,
       this.onConsoleMessage,
       this.shouldOverrideUrlLoading,
       this.onLoadResource,
@@ -353,8 +352,6 @@ class HeadlessInAppWebView implements WebView {
   @override
   void Function(InAppWebViewController controller, int progress)?
       onProgressChanged;
-  @override
-  void Function(int progress, bool completed)? onInitialization;
 
   @override
   Future<ClientCertResponse?> Function(InAppWebViewController controller,

@@ -215,8 +215,8 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
         }
       },
       onLoadStart: (controller, url) async {
-        bool? ab = await controller.getAdBlocker();
-        log("Adblocker :: $ab");
+        // bool? ab = await controller.getAdBlocker();
+        // log("Adblocker :: $ab");
         widget.webViewModel.isSecure = Util.urlIsSecure(url!);
         widget.webViewModel.url = url;
         widget.webViewModel.loaded = false;
@@ -326,16 +326,16 @@ class WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
           currentWebViewModel.updateWithValue(widget.webViewModel);
         }
       },
-      onInitialization: (progress, completed) {
-        print("Completed : $completed");
-        if (completed || progress > 99) {
-          Navigator.pop(context);
-        } else {
-          adb.currentState?.setState(() {
-            adBlockerProgress = progress;
-          });
-        }
-      },
+      // onInitialization: (progress, completed) {
+      //   print("Completed : $completed");
+      //   if (completed || progress > 99) {
+      //     Navigator.pop(context);
+      //   } else {
+      //     adb.currentState?.setState(() {
+      //       adBlockerProgress = progress;
+      //     });
+      //   }
+      // },
       onUpdateVisitedHistory: (controller, url, androidIsReload) async {
         widget.webViewModel.url = url;
         widget.webViewModel.title = await _webViewController?.getTitle();

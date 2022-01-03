@@ -105,8 +105,6 @@ class InAppWebViewOptions
   ///Set to `true` to have all the browser's cache cleared before the new WebView is opened. The default value is `false`.
   bool clearCache;
 
-  bool useAdBlocker;
-
   ///Sets the user-agent for the WebView.
   ///
   ///**NOTE**: available on iOS 9.0+.
@@ -231,7 +229,6 @@ class InAppWebViewOptions
       this.disableVerticalScroll = false,
       this.disableHorizontalScroll = false,
       this.disableContextMenu = false,
-      this.useAdBlocker = true,
       this.supportZoom = true,
       this.allowFileAccessFromFileURLs = false,
       this.allowUniversalAccessFromFileURLs = false}) {
@@ -270,7 +267,6 @@ class InAppWebViewOptions
       "incognito": incognito,
       "cacheEnabled": cacheEnabled,
       "transparentBackground": transparentBackground,
-      "useAdBlocker": useAdBlocker,
       "disableVerticalScroll": disableVerticalScroll,
       "disableHorizontalScroll": disableHorizontalScroll,
       "disableContextMenu": disableContextMenu,
@@ -312,7 +308,6 @@ class InAppWebViewOptions
         UserPreferredContentMode.fromValue(map["preferredContentMode"]);
     options.useShouldInterceptAjaxRequest =
         map["useShouldInterceptAjaxRequest"];
-    options.useAdBlocker = map["useAdBlocker"];
     options.useShouldInterceptFetchRequest =
         map["useShouldInterceptFetchRequest"];
     options.incognito = map["incognito"];

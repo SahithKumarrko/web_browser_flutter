@@ -328,7 +328,6 @@ class InAppBrowser {
   ///
   ///**Official Android API**: https://developer.android.com/reference/android/webkit/WebChromeClient#onProgressChanged(android.webkit.WebView,%20int)
   void onProgressChanged(int progress) {}
-  void onInitialization(int progress) {}
 
   ///Event fired when the [InAppBrowser] webview receives a [ConsoleMessage].
   ///

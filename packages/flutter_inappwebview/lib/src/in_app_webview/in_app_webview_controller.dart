@@ -71,11 +71,8 @@ class InAppWebViewController {
   ///Provides access to the JavaScript [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API): `window.sessionStorage` and `window.localStorage`.
   late WebStorage webStorage;
 
-  static int sid = 0;
-
   InAppWebViewController(dynamic id, WebView webview) {
     this._id = id;
-    sid = id;
     this._channel =
         MethodChannel('com.pichillilorenzo/flutter_inappwebview_$id');
     this._channel.setMethodCallHandler(handleMethod);
@@ -162,17 +159,6 @@ class InAppWebViewController {
             _webview!.onProgressChanged!(this, progress);
           else
             _inAppBrowser!.onProgressChanged(progress);
-        }
-        break;
-      case "onInitialization":
-        if ((_webview != null && _webview!.onProgressChanged != null) ||
-            _inAppBrowser != null) {
-          int progress = call.arguments["progress"];
-          bool completed = call.arguments["completed"];
-          if (_webview != null && _webview!.onProgressChanged != null)
-            _webview!.onInitialization!(progress, completed);
-          else
-            _inAppBrowser!.onInitialization(progress);
         }
         break;
       case "shouldOverrideUrlLoading":
@@ -925,29 +911,6 @@ class InAppWebViewController {
     Map<String, dynamic> args = <String, dynamic>{};
     String? url = await _channel.invokeMethod('getUrl', args);
     return url != null ? Uri.parse(url) : null;
-  }
-
-  Future setAdBlocker(bool value) async {
-    Map<String, dynamic> args = <String, dynamic>{};
-    args.putIfAbsent("useAdBlocker", () => value);
-    await _channel.invokeMethod('setAdBlocker', args);
-  }
-
-  Future initializeAdBlocker() async {
-    Map<String, dynamic> args = <String, dynamic>{};
-    _channel.invokeMethod('initializeAdBlocker', args);
-  }
-
-  Future<bool?> checkAdBlockerInitialized() async {
-    Map<String, dynamic> args = <String, dynamic>{};
-
-    return await _channel.invokeMethod('checkAdBlockerInitialized', args);
-  }
-
-  Future<bool?> getAdBlocker() async {
-    Map<String, dynamic> args = <String, dynamic>{};
-    bool? res = await _channel.invokeMethod('getAdBlocker', args);
-    return res;
   }
 
   ///Gets the title for the current page.

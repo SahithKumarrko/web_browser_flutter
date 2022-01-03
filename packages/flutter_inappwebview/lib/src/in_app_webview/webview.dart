@@ -64,8 +64,6 @@ abstract class WebView {
   final void Function(InAppWebViewController controller, int progress)?
       onProgressChanged;
 
-  final void Function(int progress, bool completed)? onInitialization;
-
   ///Event fired when the [WebView] receives a [ConsoleMessage].
   ///
   ///**Official Android API**: https://developer.android.com/reference/android/webkit/WebChromeClient#onConsoleMessage(android.webkit.ConsoleMessage)
@@ -684,7 +682,6 @@ abstract class WebView {
       this.onLoadError,
       this.onLoadHttpError,
       this.onProgressChanged,
-      this.onInitialization,
       this.onConsoleMessage,
       this.shouldOverrideUrlLoading,
       this.onLoadResource,

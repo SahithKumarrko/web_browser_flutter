@@ -167,21 +167,6 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
       case "isLoading":
         result.success((webView != null) && webView.isLoading());
         break;
-      case "getAdBlocker":
-        result.success(webView.adBlocker);
-        break;
-      case "setAdBlocker":
-        webView.adBlocker = (Boolean)call.argument("useAdBlocker");
-        result.success(null);
-        break;
-        case "initializeAdBlocker":
-        webView.initializeAdBlocker();
-        result.success(null);
-        break;
-      case "checkAdBlockerInitialized":
-        boolean b = webView.checkAdBlockerInitialized();
-        result.success(b);
-        break;
       case "takeScreenshot":
         if (webView != null) {
           Map<String, Object> screenshotConfiguration = (Map<String, Object>) call.argument("screenshotConfiguration");

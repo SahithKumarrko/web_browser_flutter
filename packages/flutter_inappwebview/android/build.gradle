@@ -2,16 +2,13 @@ group 'com.pichillilorenzo.flutter_inappwebview'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.objectboxVersion = "3.1.0"
     repositories {
         google()
         jcenter()
-        mavenCentral()
     }
 
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.3'
-        classpath("io.objectbox:objectbox-gradle-plugin:$objectboxVersion")
     }
 }
 
@@ -23,7 +20,6 @@ rootProject.allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: "io.objectbox"
 
 android {
     compileSdkVersion 30

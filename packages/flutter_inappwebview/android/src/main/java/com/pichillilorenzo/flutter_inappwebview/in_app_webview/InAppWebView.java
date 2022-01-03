@@ -45,14 +45,13 @@ import android.webkit.WebStorage;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
+
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
 import com.pichillilorenzo.flutter_inappwebview.JavaScriptBridgeInterface;
 import com.pichillilorenzo.flutter_inappwebview.R;
@@ -84,10 +83,8 @@ import com.pichillilorenzo.flutter_inappwebview.types.WebMessageListener;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -97,8 +94,6 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import io.flutter.plugin.common.MethodChannel;
-import io.objectbox.Box;
-import io.objectbox.BoxStore;
 import okhttp3.OkHttpClient;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
@@ -123,7 +118,6 @@ final public class InAppWebView extends InputAwareWebView {
   public JavaScriptBridgeInterface javaScriptBridgeInterface;
   public InAppWebViewOptions options;
   public boolean isLoading = false;
-  public boolean adBlocker = true;
   public OkHttpClient httpClient;
   public float zoomScale = 1.0f;
   int okHttpClientCacheSize = 10 * 1024 * 1024; // 10MB
@@ -185,7 +179,6 @@ final public class InAppWebView extends InputAwareWebView {
     super.reload();
   }
 
-
   public void prepare() {
 
     httpClient = new OkHttpClient().newBuilder().build();
@@ -225,8 +218,6 @@ final public class InAppWebView extends InputAwareWebView {
 
     if (options.useOnDownloadStart)
       setDownloadListener(new DownloadStartListener());
-    
-    adBlocker = options.adBlocker;
 
     WebSettings settings = getSettings();
 
@@ -645,73 +636,6 @@ final public class InAppWebView extends InputAwareWebView {
           e.printStackTrace();
           result.success(null);
         }
-      }
-    });
-  }
-
-  public boolean checkAdBlockerInitialized(){
-    return Objectbox.get().boxFor(AdBlocker.class).count(10) > 0;
-  }
-
-  public void initializeAdBlocker(){
-    Objectbox.get().runInTx(new Runnable() {
-      @Override
-      public void run() {
-        String[] files = {"filter_blocklist1.txt","filter_blocklist2.txt","filter_blocklist3.txt","filter_blocklist4.txt"};
-        BufferedReader reader = null;
-        int progress = 0;
-        Box<AdBlocker> box = Objectbox.get().boxFor(AdBlocker.class);
-        box.removeAll();
-        long total = 5225061;
-        long c = 0;
-        int divider = 174168;
-        for(int i=0;i<4;i++) {
-          try {
-            Log.d("InitAdblocker","Reading file :: "+files[i]);
-            reader = new BufferedReader(
-                    new InputStreamReader(getContext().getAssets().open(files[i]), "UTF-8"));
-
-            // do reading, usually loop until end of file reading
-            String mLine;
-            while ((mLine = reader.readLine()) != null) {
-              if(!mLine.isEmpty()){
-                AdBlocker ab = new AdBlocker();
-                ab.host = mLine;
-                box.put(ab);
-                c = c + 1;
-                progress = Math.round ((c/total) *100);
-//                Log.d("InitAdblocker","Progress :: "+String.valueOf(progress));
-if(c%divider==0){
-  Map<String, Object> obj = new HashMap<>();
-  obj.put("progress", progress);
-  obj.put("completed", false);
-  channel.invokeMethod("onInitialization", obj);
-  Log.d("InitAdblocker","Progress :: "+String.valueOf(progress)+" C :: "+String.valueOf(c));
-}
-
-              }
-
-            }
-
-
-          } catch (IOException e) {
-            Log.d("InitAdblocker","Exception occurred while reading file :: "+e.getMessage());
-          } finally {
-            if (reader != null) {
-              try {
-                reader.close();
-              } catch (IOException e) {
-                Log.d("InitAdblocker","Exception occurred while closing file :: "+e.getMessage());
-
-              }
-            }
-          }
-        }
-        Map<String, Object> obj = new HashMap<>();
-        obj.put("progress", progress);
-        obj.put("completed", true);
-
-        channel.invokeMethod("onInitialization", obj);
       }
     });
   }

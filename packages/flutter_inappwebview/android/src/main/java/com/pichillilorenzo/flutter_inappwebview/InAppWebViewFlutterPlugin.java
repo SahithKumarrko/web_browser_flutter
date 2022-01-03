@@ -11,7 +11,6 @@ import com.pichillilorenzo.flutter_inappwebview.credential_database.CredentialDa
 import com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserManager;
 import com.pichillilorenzo.flutter_inappwebview.in_app_webview.FlutterWebViewFactory;
 import com.pichillilorenzo.flutter_inappwebview.headless_in_app_webview.HeadlessInAppWebViewManager;
-import com.pichillilorenzo.flutter_inappwebview.in_app_webview.Objectbox;
 
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -95,7 +94,6 @@ public class InAppWebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
       credentialDatabaseHandler = new CredentialDatabaseHandler(this);
     }
     webViewFeatureManager = new WebViewFeatureManager(this);
-    Objectbox.init(applicationContext);
   }
 
   @Override
