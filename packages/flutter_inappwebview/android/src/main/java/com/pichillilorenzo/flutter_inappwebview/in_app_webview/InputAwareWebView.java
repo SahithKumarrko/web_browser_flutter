@@ -14,6 +14,8 @@ import android.widget.ListPopupWindow;
 
 import androidx.annotation.Nullable;
 
+import org.adblockplus.libadblockplus.android.webview.AdblockWebView;
+
 /**
  * A WebView subclass that mirrors the same implementation hacks that the system WebView does in
  * order to correctly create an InputConnection.
@@ -22,7 +24,7 @@ import androidx.annotation.Nullable;
  * on the WebView's dedicated input, or IME, thread. The majority of this proxying logic is in
  * https://github.com/flutter/plugins/blob/master/packages/webview_flutter/android/src/main/java/io/flutter/plugins/webviewflutter/InputAwareWebView.java
  */
-public class InputAwareWebView extends WebView {
+public class InputAwareWebView extends AdblockWebView {
   private static final String LOG_TAG = "InputAwareWebView";
   @Nullable
   public View containerView;

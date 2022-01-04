@@ -12,6 +12,8 @@ import com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserManag
 import com.pichillilorenzo.flutter_inappwebview.in_app_webview.FlutterWebViewFactory;
 import com.pichillilorenzo.flutter_inappwebview.headless_in_app_webview.HeadlessInAppWebViewManager;
 
+import org.adblockplus.libadblockplus.android.webview.BuildConfig;
+
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.BinaryMessenger;
@@ -19,6 +21,7 @@ import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.platform.PlatformViewRegistry;
 import io.flutter.view.FlutterView;
+import timber.log.Timber;
 
 public class InAppWebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
 
@@ -94,6 +97,9 @@ public class InAppWebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
       credentialDatabaseHandler = new CredentialDatabaseHandler(this);
     }
     webViewFeatureManager = new WebViewFeatureManager(this);
+    if (BuildConfig.DEBUG) {
+      Timber.plant(new Timber.DebugTree());
+    }
   }
 
   @Override
