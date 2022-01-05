@@ -1265,6 +1265,16 @@ class InAppWebViewController {
     await _channel.invokeMethod('reload', args);
   }
 
+  Future<void> enableAdBlocker() async {
+    Map<String, dynamic> args = <String, dynamic>{};
+    await _channel.invokeMethod('enableAdBlock', args);
+  }
+
+  Future<void> disableAdBlocker() async {
+    Map<String, dynamic> args = <String, dynamic>{};
+    await _channel.invokeMethod('disableAdBlock', args);
+  }
+
   ///Goes back in the history of the WebView.
   ///
   ///**Official Android API**: https://developer.android.com/reference/android/webkit/WebView#goBack()

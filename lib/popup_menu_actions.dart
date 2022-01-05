@@ -9,6 +9,7 @@ class PopupMenuActions {
   static const String DESKTOP_MODE = "Desktop mode";
   static const String SETTINGS = "Settings";
   static const String DEVELOPERS = "Developers";
+  static const String ADBLOCK = "Ad Blocker";
 
   static const List<String> choices = <String>[
     NEW_TAB,
@@ -20,6 +21,7 @@ class PopupMenuActions {
     FIND_ON_PAGE,
     DESKTOP_MODE,
     SETTINGS,
-    DEVELOPERS
+    DEVELOPERS,
+    ADBLOCK
   ];
 }

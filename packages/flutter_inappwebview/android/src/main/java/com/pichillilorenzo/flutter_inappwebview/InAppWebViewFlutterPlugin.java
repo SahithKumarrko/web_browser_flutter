@@ -9,6 +9,7 @@ import android.webkit.ValueCallback;
 import com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.ChromeSafariBrowserManager;
 import com.pichillilorenzo.flutter_inappwebview.credential_database.CredentialDatabaseHandler;
 import com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserManager;
+import com.pichillilorenzo.flutter_inappwebview.in_app_webview.AdBlock;
 import com.pichillilorenzo.flutter_inappwebview.in_app_webview.FlutterWebViewFactory;
 import com.pichillilorenzo.flutter_inappwebview.headless_in_app_webview.HeadlessInAppWebViewManager;
 
@@ -100,6 +101,7 @@ public class InAppWebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
     if (BuildConfig.DEBUG) {
       Timber.plant(new Timber.DebugTree());
     }
+    AdBlock.init(applicationContext);
   }
 
   @Override

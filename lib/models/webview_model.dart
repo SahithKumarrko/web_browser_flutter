@@ -28,6 +28,7 @@ class WebViewModel extends ChangeNotifier {
   late WebHistory? _history;
   int curIndex;
   bool _isLoading = false;
+  bool isAdBlockEnabled;
   WebViewModel(
       {int? tabIndex,
       Uri? url,
@@ -46,6 +47,7 @@ class WebViewModel extends ChangeNotifier {
       this.windowId,
       this.options,
       this.webViewController,
+      this.isAdBlockEnabled = true,
       this.openedByUser = false,
       this.needsToCompleteInitialLoad = true}) {
     _tabIndex = tabIndex;

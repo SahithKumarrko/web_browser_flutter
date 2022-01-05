@@ -109,6 +109,7 @@ class InAppWebViewOptions
   ///
   ///**NOTE**: available on iOS 9.0+.
   String userAgent;
+  bool isAdBlockEnabled;
 
   ///Append to the existing user-agent. Setting userAgent will override this.
   ///
@@ -210,6 +211,7 @@ class InAppWebViewOptions
       this.useOnLoadResource = false,
       this.useOnDownloadStart = false,
       this.clearCache = false,
+      this.isAdBlockEnabled = true,
       this.userAgent = "",
       this.applicationNameForUserAgent = "",
       this.javaScriptEnabled = true,
@@ -271,6 +273,7 @@ class InAppWebViewOptions
       "disableHorizontalScroll": disableHorizontalScroll,
       "disableContextMenu": disableContextMenu,
       "supportZoom": supportZoom,
+      "isAdBlockEnabled": isAdBlockEnabled,
       "allowFileAccessFromFileURLs": allowFileAccessFromFileURLs,
       "allowUniversalAccessFromFileURLs": allowUniversalAccessFromFileURLs
     };
@@ -306,6 +309,7 @@ class InAppWebViewOptions
     options.contentBlockers = contentBlockers;
     options.preferredContentMode =
         UserPreferredContentMode.fromValue(map["preferredContentMode"]);
+    options.isAdBlockEnabled = map["isAdBlockEnabled"];
     options.useShouldInterceptAjaxRequest =
         map["useShouldInterceptAjaxRequest"];
     options.useShouldInterceptFetchRequest =

@@ -98,6 +98,8 @@ class AndroidInAppWebViewOptions
   ///**NOTE**: available on Android 29+.
   AndroidForceDark? forceDark;
 
+  bool isAdBlockEnabled;
+
   ///Sets whether Geolocation API is enabled. The default value is `true`.
   bool geolocationEnabled;
 
@@ -241,6 +243,7 @@ class AndroidInAppWebViewOptions
 
   AndroidInAppWebViewOptions({
     this.textZoom = 100,
+    this.isAdBlockEnabled = true,
     this.clearSessionCache = false,
     this.builtInZoomControls = true,
     this.displayZoomControls = false,
@@ -315,6 +318,7 @@ class AndroidInAppWebViewOptions
       "appCachePath": appCachePath,
       "blockNetworkImage": blockNetworkImage,
       "blockNetworkLoads": blockNetworkLoads,
+      "isAdBlockEnabled": isAdBlockEnabled,
       "cacheMode": cacheMode?.toValue(),
       "cursiveFontFamily": cursiveFontFamily,
       "defaultFixedFontSize": defaultFixedFontSize,
@@ -412,6 +416,7 @@ class AndroidInAppWebViewOptions
     options.networkAvailable = map["networkAvailable"];
     options.scrollBarStyle =
         AndroidScrollBarStyle.fromValue(map["scrollBarStyle"]);
+    options.isAdBlockEnabled = map["isAdBlockEnabled"];
     options.verticalScrollbarPosition =
         AndroidVerticalScrollbarPosition.fromValue(
             map["verticalScrollbarPosition"]);

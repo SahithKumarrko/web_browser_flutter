@@ -107,6 +107,18 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
           result.success(null);
         }
         break;
+      case "enableAdBlock":
+        if(webView!=null){
+          webView.enableAdBlock();
+        }
+        result.success(null);
+        break;
+      case "disableAdBlock":
+        if(webView!=null){
+          webView.disableAdBlock();
+        }
+        result.success(null);
+        break;
       case "injectJavascriptFileFromUrl":
         if (webView != null) {
           String urlFile = (String) call.argument("urlFile");

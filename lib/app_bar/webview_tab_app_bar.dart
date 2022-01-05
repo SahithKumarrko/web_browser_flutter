@@ -851,6 +851,35 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
                         )
                       ]),
                 );
+              case PopupMenuActions.ADBLOCK:
+                return CustomPopupMenuItem<String>(
+                  enabled: (browserModel.isIncognito
+                          ? browserModel.getCurrentIncognitoTab()
+                          : browserModel.getCurrentTab()) !=
+                      null,
+                  value: choice,
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          choice,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
+                        Selector<WebViewModel, bool>(
+                          selector: (context, webViewModel) =>
+                              webViewModel.isAdBlockEnabled,
+                          builder: (context, value, child) {
+                            return Icon(
+                              value
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              // color: Colors.black,
+                            );
+                          },
+                        )
+                      ]),
+                );
+
               case PopupMenuActions.HISTORY:
                 return CustomPopupMenuItem<String>(
                   value: choice,
@@ -1018,6 +1047,10 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
         break;
       case PopupMenuActions.DESKTOP_MODE:
         toggleDesktopMode();
+        break;
+
+      case PopupMenuActions.ADBLOCK:
+        toggleAdblock();
         break;
       case PopupMenuActions.DEVELOPERS:
         Future.delayed(const Duration(milliseconds: 300), () {
@@ -1337,6 +1370,22 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
       );
 
       file.delete();
+    }
+  }
+
+  void toggleAdblock() {
+    var browserModel = Provider.of<BrowserModel>(context, listen: false);
+    var webViewModel = (browserModel.isIncognito
+            ? browserModel.getCurrentIncognitoTab()
+            : browserModel.getCurrentTab())
+        ?.webViewModel;
+    var _webViewController = webViewModel?.webViewController;
+    var c = webViewModel?.isAdBlockEnabled ?? true;
+    webViewModel?.isAdBlockEnabled = !c;
+    if (webViewModel?.isAdBlockEnabled ?? true) {
+      _webViewController?.enableAdBlocker();
+    } else {
+      _webViewController?.disableAdBlocker();
     }
   }
 }

@@ -81,6 +81,9 @@ import com.pichillilorenzo.flutter_inappwebview.types.UserScript;
 import com.pichillilorenzo.flutter_inappwebview.types.WebMessageChannel;
 import com.pichillilorenzo.flutter_inappwebview.types.WebMessageListener;
 
+import org.adblockplus.libadblockplus.android.settings.AdblockHelper;
+import org.adblockplus.libadblockplus.android.settings.AdblockSettings;
+import org.adblockplus.libadblockplus.android.settings.AdblockSettingsStorage;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -479,6 +482,14 @@ final public class InAppWebView extends InputAwareWebView {
         return false;
       }
     });
+    if(options.isAdBlockEnabled && !AdBlock.isAdBlockEnabled){
+      enableAdBlock();
+      AdBlock.isAdBlockEnabled = true;
+    }else if(!options.isAdBlockEnabled && AdBlock.isAdBlockEnabled){
+      disableAdBlock();
+
+      AdBlock.isAdBlockEnabled = false;
+    }
   }
 
   public void setIncognito(boolean enabled) {
@@ -946,6 +957,26 @@ final public class InAppWebView extends InputAwareWebView {
   public Map<String, Object> getOptions() {
     return (options != null) ? options.getRealOptions(this) : null;
   }
+
+  public void enableAdBlock(){
+    if (AdBlock.settings == null) // not yet saved
+    {
+      AdBlock.init(getContext());// default
+    }
+    AdBlock.settings.setAdblockEnabled(true);
+    AdBlock.storage.save(AdBlock.settings);
+  }
+
+  public void disableAdBlock(){
+    if (AdBlock.settings == null) // not yet saved
+    {
+      AdBlock.init(getContext());// default
+    }
+    AdBlock.settings.setAdblockEnabled(false);
+    AdBlock.storage.save(AdBlock.settings);
+  }
+
+
 
   public void enablePluginScriptAtRuntime(final String flagVariable,
                                           final boolean enable,
