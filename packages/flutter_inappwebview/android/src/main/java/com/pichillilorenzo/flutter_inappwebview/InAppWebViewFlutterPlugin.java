@@ -9,11 +9,8 @@ import android.webkit.ValueCallback;
 import com.pichillilorenzo.flutter_inappwebview.chrome_custom_tabs.ChromeSafariBrowserManager;
 import com.pichillilorenzo.flutter_inappwebview.credential_database.CredentialDatabaseHandler;
 import com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserManager;
-import com.pichillilorenzo.flutter_inappwebview.in_app_webview.AdBlock;
 import com.pichillilorenzo.flutter_inappwebview.in_app_webview.FlutterWebViewFactory;
 import com.pichillilorenzo.flutter_inappwebview.headless_in_app_webview.HeadlessInAppWebViewManager;
-
-import org.adblockplus.libadblockplus.android.webview.BuildConfig;
 
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
@@ -23,8 +20,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.platform.PlatformViewRegistry;
 import io.flutter.view.FlutterView;
 import timber.log.Timber;
-
-public class InAppWebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
+public class InAppWebViewFlutterPlugin implements FlutterPlugin, ActivityAware{
 
   protected static final String LOG_TAG = "InAppWebViewFlutterPL";
 
@@ -52,6 +48,7 @@ public class InAppWebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
   public FlutterView flutterView;
 
   public InAppWebViewFlutterPlugin() {}
+
 
   @SuppressWarnings("deprecation")
   public static void registerWith(PluginRegistry.Registrar registrar) {
@@ -97,11 +94,11 @@ public class InAppWebViewFlutterPlugin implements FlutterPlugin, ActivityAware {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       credentialDatabaseHandler = new CredentialDatabaseHandler(this);
     }
+
     webViewFeatureManager = new WebViewFeatureManager(this);
     if (BuildConfig.DEBUG) {
       Timber.plant(new Timber.DebugTree());
     }
-    AdBlock.init(applicationContext);
   }
 
   @Override

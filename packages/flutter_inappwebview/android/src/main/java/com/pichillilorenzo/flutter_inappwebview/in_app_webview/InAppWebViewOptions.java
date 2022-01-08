@@ -47,7 +47,6 @@ public class InAppWebViewOptions implements Options<InAppWebView> {
   public Boolean supportZoom = true;
   public Boolean allowFileAccessFromFileURLs = false;
   public Boolean allowUniversalAccessFromFileURLs = false;
-  public Boolean isAdBlockEnabled = true;
 
   public Integer textZoom = 100;
   public Boolean clearSessionCache = false;
@@ -133,9 +132,6 @@ public class InAppWebViewOptions implements Options<InAppWebView> {
           break;
         case "userAgent":
           userAgent = (String) value;
-          break;
-        case "isAdBlockEnabled":
-          isAdBlockEnabled = (Boolean) value;
           break;
         case "applicationNameForUserAgent":
           applicationNameForUserAgent = (String) value;
@@ -393,7 +389,6 @@ public class InAppWebViewOptions implements Options<InAppWebView> {
     options.put("useShouldInterceptFetchRequest", useShouldInterceptFetchRequest);
     options.put("incognito", incognito);
     options.put("cacheEnabled", cacheEnabled);
-    options.put("isAdBlockEnabled",isAdBlockEnabled);
     options.put("transparentBackground", transparentBackground);
     options.put("disableVerticalScroll", disableVerticalScroll);
     options.put("disableHorizontalScroll", disableHorizontalScroll);

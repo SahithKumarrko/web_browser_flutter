@@ -51,6 +51,6 @@ android {
         implementation 'com.squareup.okhttp3:mockwebserver:3.14.7'
         implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
         implementation 'org.adblockplus:adblock-android-webview:4.4.0'
-        implementation 'org.adblockplus:adblock-android-settings:+'
+        implementation 'org.adblockplus:adblock-android-settings:4.4.0'
     }
 }

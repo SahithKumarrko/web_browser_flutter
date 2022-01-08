@@ -1382,11 +1382,11 @@ class _WebViewTabAppBarState extends State<WebViewTabAppBar>
     var _webViewController = webViewModel?.webViewController;
     var c = webViewModel?.isAdBlockEnabled ?? true;
     webViewModel?.isAdBlockEnabled = !c;
-    if (webViewModel?.isAdBlockEnabled ?? true) {
-      _webViewController?.enableAdBlocker();
-    } else {
-      _webViewController?.disableAdBlocker();
-    }
+    // if (webViewModel?.isAdBlockEnabled ?? true) {
+    //   _webViewController?.enableAdBlocker();
+    // } else {
+    //   _webViewController?.disableAdBlocker();
+    // }
   }
 }
 

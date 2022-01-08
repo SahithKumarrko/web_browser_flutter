@@ -68,6 +68,8 @@ class InAppWebViewController {
   ///iOS controller that contains only ios-specific methods
   late IOSInAppWebViewController ios;
 
+  static late MethodChannel mych;
+
   ///Provides access to the JavaScript [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API): `window.sessionStorage` and `window.localStorage`.
   late WebStorage webStorage;
 
@@ -76,6 +78,7 @@ class InAppWebViewController {
     this._channel =
         MethodChannel('com.pichillilorenzo/flutter_inappwebview_$id');
     this._channel.setMethodCallHandler(handleMethod);
+    mych = MethodChannel('com.pichillilorenzo/flutter_inappwebview_$id');
     this._webview = webview;
     this._userScripts =
         List<UserScript>.from(webview.initialUserScripts ?? <UserScript>[]);
@@ -1273,6 +1276,11 @@ class InAppWebViewController {
   Future<void> disableAdBlocker() async {
     Map<String, dynamic> args = <String, dynamic>{};
     await _channel.invokeMethod('disableAdBlock', args);
+  }
+
+  static Future<void> onLowMemory() async {
+    Map<String, dynamic> args = <String, dynamic>{};
+    await mych.invokeMethod('onLowMemory', args);
   }
 
   ///Goes back in the history of the WebView.

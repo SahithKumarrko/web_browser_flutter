@@ -67,6 +67,24 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
         }
         result.success(true);
         break;
+      case "enableAdBlock":
+        if(webView!=null){
+          webView.enableAdBlock();
+        }
+        result.success(null);
+        break;
+      case "disableAdBlock":
+        if(webView!=null){
+          webView.disableAdBlock();
+        }
+        result.success(null);
+        break;
+        case "onLowMemory":
+        if(webView!=null){
+          webView.lowMemory();
+        }
+        result.success(null);
+        break;
       case "loadData":
         if (webView != null) {
           String data = (String) call.argument("data");
@@ -106,18 +124,6 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
         else {
           result.success(null);
         }
-        break;
-      case "enableAdBlock":
-        if(webView!=null){
-          webView.enableAdBlock();
-        }
-        result.success(null);
-        break;
-      case "disableAdBlock":
-        if(webView!=null){
-          webView.disableAdBlock();
-        }
-        result.success(null);
         break;
       case "injectJavascriptFileFromUrl":
         if (webView != null) {

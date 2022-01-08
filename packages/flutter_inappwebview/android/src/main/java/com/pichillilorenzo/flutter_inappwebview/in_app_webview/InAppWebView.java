@@ -95,14 +95,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
-
+import timber.log.Timber;
 import io.flutter.plugin.common.MethodChannel;
 import okhttp3.OkHttpClient;
+
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 import static com.pichillilorenzo.flutter_inappwebview.types.PreferredContentModeOptionType.fromValue;
 
-final public class InAppWebView extends InputAwareWebView {
+
+
+final public class InAppWebView extends InputAwareWebView{
 
   static final String LOG_TAG = "InAppWebView";
 
@@ -482,15 +485,8 @@ final public class InAppWebView extends InputAwareWebView {
         return false;
       }
     });
-    if(options.isAdBlockEnabled && !AdBlock.isAdBlockEnabled){
-      enableAdBlock();
-      AdBlock.isAdBlockEnabled = true;
-    }else if(!options.isAdBlockEnabled && AdBlock.isAdBlockEnabled){
-      disableAdBlock();
-
-      AdBlock.isAdBlockEnabled = false;
-    }
   }
+  
 
   public void setIncognito(boolean enabled) {
     WebSettings settings = getSettings();
@@ -535,6 +531,45 @@ final public class InAppWebView extends InputAwareWebView {
       settings.setCacheMode(WebSettings.LOAD_DEFAULT);
       settings.setAppCacheEnabled(false);
       Log.d("Cache","Disabled cache");
+    }
+  }
+
+  public void enableAdBlock(){
+    AdblockSettings settings;
+     AdblockSettingsStorage storage = AdblockHelper.get().getStorage();
+     settings = storage.load();
+     if (settings == null) // not yet saved
+    {
+      // default
+      settings = AdblockSettingsStorage.getDefaultSettings(getContext());
+    }
+    settings.setAdblockEnabled(true);
+    enableJsInIframes(true);
+    storage.save(settings);
+  }
+
+  public void disableAdBlock(){
+    AdblockSettings settings;
+     AdblockSettingsStorage storage = AdblockHelper.get().getStorage();
+     settings = storage.load();
+     if (settings == null) // not yet saved
+    {
+      // default
+      settings = AdblockSettingsStorage.getDefaultSettings(getContext());
+    }
+    settings.setAdblockEnabled(false);
+    enableJsInIframes(false);
+    storage.save(settings);
+  }
+
+  public void lowMemory(){
+    if(AdblockHelper.get().isInit()){
+      try{
+
+        AdblockHelper.get().getProvider().getEngine().onLowMemory();
+      }catch(Exception e){
+        
+      }
     }
   }
 
@@ -957,26 +992,6 @@ final public class InAppWebView extends InputAwareWebView {
   public Map<String, Object> getOptions() {
     return (options != null) ? options.getRealOptions(this) : null;
   }
-
-  public void enableAdBlock(){
-    if (AdBlock.settings == null) // not yet saved
-    {
-      AdBlock.init(getContext());// default
-    }
-    AdBlock.settings.setAdblockEnabled(true);
-    AdBlock.storage.save(AdBlock.settings);
-  }
-
-  public void disableAdBlock(){
-    if (AdBlock.settings == null) // not yet saved
-    {
-      AdBlock.init(getContext());// default
-    }
-    AdBlock.settings.setAdblockEnabled(false);
-    AdBlock.storage.save(AdBlock.settings);
-  }
-
-
 
   public void enablePluginScriptAtRuntime(final String flagVariable,
                                           final boolean enable,
